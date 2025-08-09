@@ -14,7 +14,7 @@ class Registration extends StatelessWidget {
         width: double.infinity,
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [Mycolors.basecolor, Mycolors.textcolor],
+            colors: [Mycolors.basecolor, Colors.deepOrangeAccent],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -31,8 +31,14 @@ class Registration extends StatelessWidget {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              SizedBox(height: 20,),
-              Text("What are you looking for today?",style: GoogleFonts.allerta(),)
+              SizedBox(height: 3),
+              Text(
+                "What are you looking for today?",
+                style: GoogleFonts.allerta(
+                  color: Mycolors.textcolor,
+                  fontSize: 15,
+                ),
+              ),SizedBox(height: 10,),Container()
             ],
           ),
         ),
