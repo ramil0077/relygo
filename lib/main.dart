@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:relygo/screens/splash.dart';
 
 void main() {
   runApp(const MyApp());
@@ -11,8 +12,8 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-    
-      home: ,
+    debugShowCheckedModeBanner: false,
+      home: Splashscreen(),
     );
   }
 }
