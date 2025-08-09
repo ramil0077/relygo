@@ -32,7 +32,7 @@ class Registration extends StatelessWidget {
                 ),
               ),
               SizedBox(height: 20,),
-              Text("What are you looking for today?",style: GoogleFonts.allerta,)
+              Text("What are you looking for today?",style: GoogleFonts.allerta(),)
             ],
           ),
         ),
