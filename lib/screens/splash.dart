@@ -33,7 +33,7 @@ class Splashscreen extends StatelessWidget {
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Mycolors.basecolor,
-                    foregroundColor: Mycolors.textcolor,
+                    foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(7),
                     ),
