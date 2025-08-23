@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:relygo/constants.dart';
+import 'package:relygo/job.dart';
 
 class Registration extends StatelessWidget {
   const Registration({super.key});
@@ -31,8 +32,16 @@ class Registration extends StatelessWidget {
                 const SizedBox(height: 35),
 
                 // 🔹 Driver card
-                SizedBox(
-                  width: 350,
+                
+                  SizedBox(
+  width: 350,
+  child: GestureDetector(
+    onTap: () {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => job()), 
+      );
+    },
                   child: Card(
                     color: Mycolors.basecolor,
                     shape: RoundedRectangleBorder(
@@ -84,7 +93,7 @@ class Registration extends StatelessWidget {
                       ),
                     ),
                   ),
-                ),
+                ),),
 
                 const SizedBox(height: 35),
 
