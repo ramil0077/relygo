@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:relygo/constants.dart';
-import 'package:relygo/screens/registration.dart';
+import 'package:relygo/screens/choosescreen.dart';
 
 class Splashscreen extends StatelessWidget {
   const Splashscreen({super.key});
