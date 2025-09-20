@@ -4,6 +4,7 @@ import 'package:relygo/constants.dart';
 import 'package:relygo/screens/ride_management_screen.dart';
 import 'package:relygo/screens/earnings_screen.dart';
 import 'package:relygo/screens/driver_profile_screen.dart';
+import 'package:relygo/utils/responsive.dart';
 
 class DriverDashboardScreen extends StatefulWidget {
   const DriverDashboardScreen({super.key});
@@ -60,200 +61,150 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
 
   Widget _buildHomeTab() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(height: 20),
-          // Header with Online/Offline Toggle
-          Row(
+      padding: ResponsiveUtils.getResponsivePadding(context),
+      child: ResponsiveLayoutBuilder(
+        builder: (context, constraints) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Good Morning, John!",
-                      style: GoogleFonts.poppins(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                      ),
+              SizedBox(height: ResponsiveSpacing.getMediumSpacing(context)),
+              // Header with Online/Offline Toggle
+              Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Good Morning, John!",
+                          style: ResponsiveTextStyles.getTitleStyle(context),
+                        ),
+                        Text(
+                          _isOnline
+                              ? "You're online and ready to drive"
+                              : "You're offline",
+                          style: GoogleFonts.poppins(
+                            fontSize: ResponsiveUtils.getResponsiveFontSize(
+                              context,
+                              mobile: 16,
+                              tablet: 18,
+                              desktop: 20,
+                            ),
+                            color: _isOnline ? Mycolors.green : Mycolors.gray,
+                          ),
+                        ),
+                      ],
                     ),
-                    Text(
-                      _isOnline
-                          ? "You're online and ready to drive"
-                          : "You're offline",
-                      style: GoogleFonts.poppins(
-                        fontSize: 16,
-                        color: _isOnline ? Mycolors.green : Mycolors.gray,
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                  Switch(
+                    value: _isOnline,
+                    onChanged: (value) {
+                      setState(() {
+                        _isOnline = value;
+                      });
+                    },
+                    activeColor: Mycolors.green,
+                  ),
+                ],
               ),
-              Switch(
-                value: _isOnline,
-                onChanged: (value) {
-                  setState(() {
-                    _isOnline = value;
-                  });
-                },
-                activeColor: Mycolors.green,
-              ),
-            ],
-          ),
-          const SizedBox(height: 30),
+              SizedBox(height: ResponsiveSpacing.getLargeSpacing(context)),
 
-          // Today's Stats
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: Mycolors.basecolor,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Column(
-              children: [
-                Text(
-                  "Today's Performance",
-                  style: GoogleFonts.poppins(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+              // Today's Stats
+              Container(
+                padding: ResponsiveUtils.getResponsivePadding(context),
+                decoration: BoxDecoration(
+                  color: Mycolors.basecolor,
+                  borderRadius: BorderRadius.circular(
+                    ResponsiveUtils.getResponsiveBorderRadius(
+                      context,
+                      mobile: 16,
+                      tablet: 18,
+                      desktop: 20,
+                    ),
                   ),
                 ),
-                const SizedBox(height: 20),
-                Row(
+                child: Column(
                   children: [
-                    Expanded(
-                      child: _buildStatCard("8", "Rides", Icons.directions_car),
-                    ),
-                    const SizedBox(width: 15),
-                    Expanded(
-                      child: _buildStatCard(
-                        "₹1,250",
-                        "Earnings",
-                        Icons.attach_money,
+                    Text(
+                      "Today's Performance",
+                      style: GoogleFonts.poppins(
+                        fontSize: ResponsiveUtils.getResponsiveFontSize(
+                          context,
+                          mobile: 18,
+                          tablet: 20,
+                          desktop: 22,
+                        ),
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
                       ),
                     ),
-                    const SizedBox(width: 15),
-                    Expanded(
-                      child: _buildStatCard("4.8", "Rating", Icons.star),
+                    SizedBox(
+                      height: ResponsiveSpacing.getMediumSpacing(context),
+                    ),
+                    ResponsiveWidget(
+                      mobile: _buildMobileStatsGrid(context),
+                      tablet: _buildTabletStatsGrid(context),
+                      desktop: _buildDesktopStatsGrid(context),
                     ),
                   ],
                 ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 30),
-
-          // Quick Actions
-          Text(
-            "Quick Actions",
-            style: GoogleFonts.poppins(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
-            ),
-          ),
-          const SizedBox(height: 20),
-
-          Row(
-            children: [
-              Expanded(
-                child: _buildActionCard(
-                  "Start Ride",
-                  Icons.play_arrow,
-                  Mycolors.green,
-                  () {
-                    // Start ride functionality
-                  },
-                ),
               ),
-              const SizedBox(width: 15),
-              Expanded(
-                child: _buildActionCard(
-                  "View Earnings",
-                  Icons.attach_money,
-                  Mycolors.orange,
-                  () {
-                    setState(() {
-                      _selectedIndex = 2; // Switch to earnings tab
-                    });
-                  },
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 15),
+              SizedBox(height: ResponsiveSpacing.getLargeSpacing(context)),
 
-          Row(
-            children: [
-              Expanded(
-                child: _buildActionCard(
-                  "Ride History",
-                  Icons.history,
-                  Mycolors.basecolor,
-                  () {
-                    setState(() {
-                      _selectedIndex = 1; // Switch to rides tab
-                    });
-                  },
-                ),
+              // Quick Actions
+              Text(
+                "Quick Actions",
+                style: ResponsiveTextStyles.getTitleStyle(context),
               ),
-              const SizedBox(width: 15),
-              Expanded(
-                child: _buildActionCard(
-                  "Settings",
-                  Icons.settings,
-                  Mycolors.gray,
-                  () {
-                    // Settings functionality
-                  },
-                ),
+              SizedBox(height: ResponsiveSpacing.getMediumSpacing(context)),
+
+              ResponsiveWidget(
+                mobile: _buildMobileActionGrid(context),
+                tablet: _buildTabletActionGrid(context),
+                desktop: _buildDesktopActionGrid(context),
+              ),
+
+              SizedBox(height: ResponsiveSpacing.getLargeSpacing(context)),
+
+              // Recent Rides
+              Text(
+                "Recent Rides",
+                style: ResponsiveTextStyles.getTitleStyle(context),
+              ),
+              SizedBox(height: ResponsiveSpacing.getMediumSpacing(context)),
+
+              _buildRecentRideCard(
+                context,
+                "Airport to Downtown",
+                "2.5 km",
+                "₹180",
+                "Completed",
+                Mycolors.green,
+                "2 hours ago",
+              ),
+              SizedBox(height: ResponsiveSpacing.getSmallSpacing(context)),
+              _buildRecentRideCard(
+                context,
+                "Mall to Station",
+                "1.8 km",
+                "₹120",
+                "Completed",
+                Mycolors.green,
+                "4 hours ago",
+              ),
+              SizedBox(height: ResponsiveSpacing.getSmallSpacing(context)),
+              _buildRecentRideCard(
+                context,
+                "Hospital Pickup",
+                "3.2 km",
+                "₹200",
+                "In Progress",
+                Mycolors.orange,
+                "Now",
               ),
             ],
-          ),
-          const SizedBox(height: 30),
-
-          // Recent Rides
-          Text(
-            "Recent Rides",
-            style: GoogleFonts.poppins(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
-            ),
-          ),
-          const SizedBox(height: 15),
-
-          _buildRecentRideCard(
-            "Airport to Downtown",
-            "2.5 km",
-            "₹180",
-            "Completed",
-            Mycolors.green,
-            "2 hours ago",
-          ),
-          const SizedBox(height: 10),
-          _buildRecentRideCard(
-            "Mall to Station",
-            "1.8 km",
-            "₹120",
-            "Completed",
-            Mycolors.green,
-            "4 hours ago",
-          ),
-          const SizedBox(height: 10),
-          _buildRecentRideCard(
-            "Hospital Pickup",
-            "3.2 km",
-            "₹200",
-            "In Progress",
-            Mycolors.orange,
-            "Now",
-          ),
-        ],
+          );
+        },
       ),
     );
   }
@@ -268,36 +219,32 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
 
   Widget _buildChatTab() {
     return Padding(
-      padding: const EdgeInsets.all(20),
+      padding: ResponsiveUtils.getResponsivePadding(context),
       child: Column(
         children: [
-          const SizedBox(height: 20),
-          Text(
-            "Messages",
-            style: GoogleFonts.poppins(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
-            ),
-          ),
-          const SizedBox(height: 20),
+          SizedBox(height: ResponsiveSpacing.getMediumSpacing(context)),
+          Text("Messages", style: ResponsiveTextStyles.getTitleStyle(context)),
+          SizedBox(height: ResponsiveSpacing.getMediumSpacing(context)),
 
           Expanded(
             child: ListView(
               children: [
                 _buildChatCard(
+                  context,
                   "Sarah Johnson",
                   "I'm at the pickup location",
                   "2 min ago",
                   "1",
                 ),
                 _buildChatCard(
+                  context,
                   "Mike Wilson",
                   "Thanks for the great service!",
                   "1 hour ago",
                   "",
                 ),
                 _buildChatCard(
+                  context,
                   "Support Team",
                   "Your rating has been updated",
                   "2 hours ago",
@@ -315,21 +262,306 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
     return const DriverProfileScreen();
   }
 
-  Widget _buildStatCard(String value, String label, IconData icon) {
+  // Mobile Stats Grid - 3 columns
+  Widget _buildMobileStatsGrid(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: _buildStatCard(context, "8", "Rides", Icons.directions_car),
+        ),
+        SizedBox(width: ResponsiveSpacing.getSmallSpacing(context)),
+        Expanded(
+          child: _buildStatCard(
+            context,
+            "₹1,250",
+            "Earnings",
+            Icons.attach_money,
+          ),
+        ),
+        SizedBox(width: ResponsiveSpacing.getSmallSpacing(context)),
+        Expanded(child: _buildStatCard(context, "4.8", "Rating", Icons.star)),
+      ],
+    );
+  }
+
+  // Tablet Stats Grid - 3 columns with more spacing
+  Widget _buildTabletStatsGrid(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: _buildStatCard(context, "8", "Rides", Icons.directions_car),
+        ),
+        SizedBox(width: ResponsiveSpacing.getMediumSpacing(context)),
+        Expanded(
+          child: _buildStatCard(
+            context,
+            "₹1,250",
+            "Earnings",
+            Icons.attach_money,
+          ),
+        ),
+        SizedBox(width: ResponsiveSpacing.getMediumSpacing(context)),
+        Expanded(child: _buildStatCard(context, "4.8", "Rating", Icons.star)),
+      ],
+    );
+  }
+
+  // Desktop Stats Grid - 3 columns with maximum spacing
+  Widget _buildDesktopStatsGrid(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: _buildStatCard(context, "8", "Rides", Icons.directions_car),
+        ),
+        SizedBox(width: ResponsiveSpacing.getLargeSpacing(context)),
+        Expanded(
+          child: _buildStatCard(
+            context,
+            "₹1,250",
+            "Earnings",
+            Icons.attach_money,
+          ),
+        ),
+        SizedBox(width: ResponsiveSpacing.getLargeSpacing(context)),
+        Expanded(child: _buildStatCard(context, "4.8", "Rating", Icons.star)),
+      ],
+    );
+  }
+
+  // Mobile Action Grid - 2x2
+  Widget _buildMobileActionGrid(BuildContext context) {
+    return Column(
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: _buildActionCard(
+                context,
+                "Start Ride",
+                Icons.play_arrow,
+                Mycolors.green,
+                () {
+                  // Start ride functionality
+                },
+              ),
+            ),
+            SizedBox(width: ResponsiveSpacing.getSmallSpacing(context)),
+            Expanded(
+              child: _buildActionCard(
+                context,
+                "View Earnings",
+                Icons.attach_money,
+                Mycolors.orange,
+                () {
+                  setState(() {
+                    _selectedIndex = 2; // Switch to earnings tab
+                  });
+                },
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: ResponsiveSpacing.getSmallSpacing(context)),
+        Row(
+          children: [
+            Expanded(
+              child: _buildActionCard(
+                context,
+                "Ride History",
+                Icons.history,
+                Mycolors.basecolor,
+                () {
+                  setState(() {
+                    _selectedIndex = 1; // Switch to rides tab
+                  });
+                },
+              ),
+            ),
+            SizedBox(width: ResponsiveSpacing.getSmallSpacing(context)),
+            Expanded(
+              child: _buildActionCard(
+                context,
+                "Settings",
+                Icons.settings,
+                Mycolors.gray,
+                () {
+                  // Settings functionality
+                },
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  // Tablet Action Grid - 2x2 with more spacing
+  Widget _buildTabletActionGrid(BuildContext context) {
+    return Column(
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: _buildActionCard(
+                context,
+                "Start Ride",
+                Icons.play_arrow,
+                Mycolors.green,
+                () {
+                  // Start ride functionality
+                },
+              ),
+            ),
+            SizedBox(width: ResponsiveSpacing.getMediumSpacing(context)),
+            Expanded(
+              child: _buildActionCard(
+                context,
+                "View Earnings",
+                Icons.attach_money,
+                Mycolors.orange,
+                () {
+                  setState(() {
+                    _selectedIndex = 2; // Switch to earnings tab
+                  });
+                },
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: ResponsiveSpacing.getMediumSpacing(context)),
+        Row(
+          children: [
+            Expanded(
+              child: _buildActionCard(
+                context,
+                "Ride History",
+                Icons.history,
+                Mycolors.basecolor,
+                () {
+                  setState(() {
+                    _selectedIndex = 1; // Switch to rides tab
+                  });
+                },
+              ),
+            ),
+            SizedBox(width: ResponsiveSpacing.getMediumSpacing(context)),
+            Expanded(
+              child: _buildActionCard(
+                context,
+                "Settings",
+                Icons.settings,
+                Mycolors.gray,
+                () {
+                  // Settings functionality
+                },
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  // Desktop Action Grid - 4 columns
+  Widget _buildDesktopActionGrid(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: _buildActionCard(
+            context,
+            "Start Ride",
+            Icons.play_arrow,
+            Mycolors.green,
+            () {
+              // Start ride functionality
+            },
+          ),
+        ),
+        SizedBox(width: ResponsiveSpacing.getMediumSpacing(context)),
+        Expanded(
+          child: _buildActionCard(
+            context,
+            "View Earnings",
+            Icons.attach_money,
+            Mycolors.orange,
+            () {
+              setState(() {
+                _selectedIndex = 2; // Switch to earnings tab
+              });
+            },
+          ),
+        ),
+        SizedBox(width: ResponsiveSpacing.getMediumSpacing(context)),
+        Expanded(
+          child: _buildActionCard(
+            context,
+            "Ride History",
+            Icons.history,
+            Mycolors.basecolor,
+            () {
+              setState(() {
+                _selectedIndex = 1; // Switch to rides tab
+              });
+            },
+          ),
+        ),
+        SizedBox(width: ResponsiveSpacing.getMediumSpacing(context)),
+        Expanded(
+          child: _buildActionCard(
+            context,
+            "Settings",
+            Icons.settings,
+            Mycolors.gray,
+            () {
+              // Settings functionality
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatCard(
+    BuildContext context,
+    String value,
+    String label,
+    IconData icon,
+  ) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: ResponsiveUtils.getResponsivePadding(context),
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.2),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(
+          ResponsiveUtils.getResponsiveBorderRadius(
+            context,
+            mobile: 12,
+            tablet: 14,
+            desktop: 16,
+          ),
+        ),
       ),
       child: Column(
         children: [
-          Icon(icon, color: Colors.white, size: 24),
-          const SizedBox(height: 8),
+          Icon(
+            icon,
+            color: Colors.white,
+            size: ResponsiveUtils.getResponsiveIconSize(
+              context,
+              mobile: 24,
+              tablet: 26,
+              desktop: 28,
+            ),
+          ),
+          SizedBox(height: ResponsiveSpacing.getSmallSpacing(context)),
           Text(
             value,
             style: GoogleFonts.poppins(
-              fontSize: 18,
+              fontSize: ResponsiveUtils.getResponsiveFontSize(
+                context,
+                mobile: 18,
+                tablet: 20,
+                desktop: 22,
+              ),
               fontWeight: FontWeight.bold,
               color: Colors.white,
             ),
@@ -337,7 +569,12 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
           Text(
             label,
             style: GoogleFonts.poppins(
-              fontSize: 12,
+              fontSize: ResponsiveUtils.getResponsiveFontSize(
+                context,
+                mobile: 12,
+                tablet: 13,
+                desktop: 14,
+              ),
               color: Colors.white.withOpacity(0.9),
             ),
           ),
@@ -347,6 +584,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
   }
 
   Widget _buildActionCard(
+    BuildContext context,
     String title,
     IconData icon,
     Color color,
@@ -355,20 +593,41 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(20),
+        padding: ResponsiveUtils.getResponsivePadding(context),
         decoration: BoxDecoration(
           color: color.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(
+            ResponsiveUtils.getResponsiveBorderRadius(
+              context,
+              mobile: 16,
+              tablet: 18,
+              desktop: 20,
+            ),
+          ),
           border: Border.all(color: color.withOpacity(0.3)),
         ),
         child: Column(
           children: [
-            Icon(icon, color: color, size: 30),
-            const SizedBox(height: 10),
+            Icon(
+              icon,
+              color: color,
+              size: ResponsiveUtils.getResponsiveIconSize(
+                context,
+                mobile: 30,
+                tablet: 35,
+                desktop: 40,
+              ),
+            ),
+            SizedBox(height: ResponsiveSpacing.getSmallSpacing(context)),
             Text(
               title,
               style: GoogleFonts.poppins(
-                fontSize: 14,
+                fontSize: ResponsiveUtils.getResponsiveFontSize(
+                  context,
+                  mobile: 14,
+                  tablet: 16,
+                  desktop: 18,
+                ),
                 fontWeight: FontWeight.w600,
                 color: color,
               ),
@@ -381,6 +640,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
   }
 
   Widget _buildRecentRideCard(
+    BuildContext context,
     String title,
     String distance,
     String price,
@@ -389,15 +649,27 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
     String time,
   ) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: ResponsiveUtils.getResponsivePadding(context),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(
+          ResponsiveUtils.getResponsiveBorderRadius(
+            context,
+            mobile: 12,
+            tablet: 14,
+            desktop: 16,
+          ),
+        ),
         border: Border.all(color: Colors.grey.shade300),
         boxShadow: [
           BoxShadow(
             color: Colors.grey.withOpacity(0.1),
-            blurRadius: 5,
+            blurRadius: ResponsiveUtils.getResponsiveElevation(
+              context,
+              mobile: 5,
+              tablet: 6,
+              desktop: 8,
+            ),
             offset: const Offset(0, 2),
           ),
         ],
@@ -405,18 +677,37 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: EdgeInsets.all(
+              ResponsiveUtils.getResponsiveSpacing(
+                context,
+                mobile: 12,
+                tablet: 14,
+                desktop: 16,
+              ),
+            ),
             decoration: BoxDecoration(
               color: Mycolors.basecolor.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(
+                ResponsiveUtils.getResponsiveBorderRadius(
+                  context,
+                  mobile: 12,
+                  tablet: 14,
+                  desktop: 16,
+                ),
+              ),
             ),
             child: Icon(
               Icons.directions_car,
               color: Mycolors.basecolor,
-              size: 24,
+              size: ResponsiveUtils.getResponsiveIconSize(
+                context,
+                mobile: 24,
+                tablet: 26,
+                desktop: 28,
+              ),
             ),
           ),
-          const SizedBox(width: 16),
+          SizedBox(width: ResponsiveSpacing.getMediumSpacing(context)),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -424,7 +715,12 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                 Text(
                   title,
                   style: GoogleFonts.poppins(
-                    fontSize: 16,
+                    fontSize: ResponsiveUtils.getResponsiveFontSize(
+                      context,
+                      mobile: 16,
+                      tablet: 18,
+                      desktop: 20,
+                    ),
                     fontWeight: FontWeight.w600,
                     color: Colors.black,
                   ),
@@ -432,14 +728,24 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                 Text(
                   distance,
                   style: GoogleFonts.poppins(
-                    fontSize: 14,
+                    fontSize: ResponsiveUtils.getResponsiveFontSize(
+                      context,
+                      mobile: 14,
+                      tablet: 15,
+                      desktop: 16,
+                    ),
                     color: Mycolors.gray,
                   ),
                 ),
                 Text(
                   time,
                   style: GoogleFonts.poppins(
-                    fontSize: 12,
+                    fontSize: ResponsiveUtils.getResponsiveFontSize(
+                      context,
+                      mobile: 12,
+                      tablet: 13,
+                      desktop: 14,
+                    ),
                     color: Mycolors.gray,
                   ),
                 ),
@@ -452,22 +758,54 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
               Text(
                 price,
                 style: GoogleFonts.poppins(
-                  fontSize: 16,
+                  fontSize: ResponsiveUtils.getResponsiveFontSize(
+                    context,
+                    mobile: 16,
+                    tablet: 18,
+                    desktop: 20,
+                  ),
                   fontWeight: FontWeight.bold,
                   color: Colors.black,
                 ),
               ),
               Container(
-                margin: const EdgeInsets.only(top: 4),
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                margin: EdgeInsets.only(
+                  top: ResponsiveSpacing.getSmallSpacing(context) / 2,
+                ),
+                padding: EdgeInsets.symmetric(
+                  horizontal: ResponsiveUtils.getResponsiveSpacing(
+                    context,
+                    mobile: 8,
+                    tablet: 10,
+                    desktop: 12,
+                  ),
+                  vertical: ResponsiveUtils.getResponsiveSpacing(
+                    context,
+                    mobile: 4,
+                    tablet: 5,
+                    desktop: 6,
+                  ),
+                ),
                 decoration: BoxDecoration(
                   color: statusColor.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(
+                    ResponsiveUtils.getResponsiveBorderRadius(
+                      context,
+                      mobile: 12,
+                      tablet: 14,
+                      desktop: 16,
+                    ),
+                  ),
                 ),
                 child: Text(
                   status,
                   style: GoogleFonts.poppins(
-                    fontSize: 12,
+                    fontSize: ResponsiveUtils.getResponsiveFontSize(
+                      context,
+                      mobile: 12,
+                      tablet: 13,
+                      desktop: 14,
+                    ),
                     color: statusColor,
                     fontWeight: FontWeight.w600,
                   ),
@@ -481,22 +819,37 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
   }
 
   Widget _buildChatCard(
+    BuildContext context,
     String name,
     String message,
     String time,
     String unreadCount,
   ) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(16),
+      margin: EdgeInsets.only(
+        bottom: ResponsiveSpacing.getSmallSpacing(context),
+      ),
+      padding: ResponsiveUtils.getResponsivePadding(context),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(
+          ResponsiveUtils.getResponsiveBorderRadius(
+            context,
+            mobile: 12,
+            tablet: 14,
+            desktop: 16,
+          ),
+        ),
         border: Border.all(color: Colors.grey.shade300),
         boxShadow: [
           BoxShadow(
             color: Colors.grey.withOpacity(0.1),
-            blurRadius: 5,
+            blurRadius: ResponsiveUtils.getResponsiveElevation(
+              context,
+              mobile: 5,
+              tablet: 6,
+              desktop: 8,
+            ),
             offset: const Offset(0, 2),
           ),
         ],
@@ -504,18 +857,28 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
       child: Row(
         children: [
           CircleAvatar(
-            radius: 20,
+            radius: ResponsiveUtils.getResponsiveSpacing(
+              context,
+              mobile: 20,
+              tablet: 22,
+              desktop: 24,
+            ),
             backgroundColor: Mycolors.basecolor.withOpacity(0.1),
             child: Text(
               name[0],
               style: GoogleFonts.poppins(
-                fontSize: 16,
+                fontSize: ResponsiveUtils.getResponsiveFontSize(
+                  context,
+                  mobile: 16,
+                  tablet: 18,
+                  desktop: 20,
+                ),
                 fontWeight: FontWeight.bold,
                 color: Mycolors.basecolor,
               ),
             ),
           ),
-          const SizedBox(width: 16),
+          SizedBox(width: ResponsiveSpacing.getMediumSpacing(context)),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -523,7 +886,12 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                 Text(
                   name,
                   style: GoogleFonts.poppins(
-                    fontSize: 16,
+                    fontSize: ResponsiveUtils.getResponsiveFontSize(
+                      context,
+                      mobile: 16,
+                      tablet: 18,
+                      desktop: 20,
+                    ),
                     fontWeight: FontWeight.w600,
                     color: Colors.black,
                   ),
@@ -531,7 +899,12 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                 Text(
                   message,
                   style: GoogleFonts.poppins(
-                    fontSize: 14,
+                    fontSize: ResponsiveUtils.getResponsiveFontSize(
+                      context,
+                      mobile: 14,
+                      tablet: 15,
+                      desktop: 16,
+                    ),
                     color: Mycolors.gray,
                   ),
                 ),
@@ -543,12 +916,29 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
             children: [
               Text(
                 time,
-                style: GoogleFonts.poppins(fontSize: 12, color: Mycolors.gray),
+                style: GoogleFonts.poppins(
+                  fontSize: ResponsiveUtils.getResponsiveFontSize(
+                    context,
+                    mobile: 12,
+                    tablet: 13,
+                    desktop: 14,
+                  ),
+                  color: Mycolors.gray,
+                ),
               ),
               if (unreadCount.isNotEmpty)
                 Container(
-                  margin: const EdgeInsets.only(top: 4),
-                  padding: const EdgeInsets.all(6),
+                  margin: EdgeInsets.only(
+                    top: ResponsiveSpacing.getSmallSpacing(context) / 2,
+                  ),
+                  padding: EdgeInsets.all(
+                    ResponsiveUtils.getResponsiveSpacing(
+                      context,
+                      mobile: 6,
+                      tablet: 7,
+                      desktop: 8,
+                    ),
+                  ),
                   decoration: BoxDecoration(
                     color: Mycolors.basecolor,
                     shape: BoxShape.circle,
@@ -556,7 +946,12 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                   child: Text(
                     unreadCount,
                     style: GoogleFonts.poppins(
-                      fontSize: 10,
+                      fontSize: ResponsiveUtils.getResponsiveFontSize(
+                        context,
+                        mobile: 10,
+                        tablet: 11,
+                        desktop: 12,
+                      ),
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
                     ),
@@ -583,16 +978,17 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
           Icon(
             icon,
             color: isSelected ? Mycolors.basecolor : Colors.grey,
-            size: 24,
+            size: ResponsiveUtils.getResponsiveIconSize(
+              context,
+              mobile: 24,
+              tablet: 26,
+              desktop: 28,
+            ),
           ),
-          const SizedBox(height: 4),
+          SizedBox(height: ResponsiveSpacing.getSmallSpacing(context) / 2),
           Text(
             label,
-            style: GoogleFonts.poppins(
-              fontSize: 12,
-              color: isSelected ? Mycolors.basecolor : Colors.grey,
-              fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-            ),
+            style: ResponsiveTextStyles.getNavLabelStyle(context, isSelected),
           ),
         ],
       ),

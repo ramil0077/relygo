@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:relygo/utils/responsive.dart';
 
 class Mycolors {
   static Color textcolor = Colors.white;
@@ -61,6 +62,121 @@ class AppTheme {
         labelStyle: GoogleFonts.poppins(color: Colors.grey.shade600),
         hintStyle: GoogleFonts.poppins(color: Colors.grey.shade400),
       ),
+    );
+  }
+}
+
+class ResponsiveTextStyles {
+  static TextStyle getTitleStyle(BuildContext context) {
+    return GoogleFonts.poppins(
+      fontSize: ResponsiveUtils.getResponsiveFontSize(
+        context,
+        mobile: 24,
+        tablet: 28,
+        desktop: 32,
+      ),
+      fontWeight: FontWeight.bold,
+      color: Colors.black,
+    );
+  }
+
+  static TextStyle getSubtitleStyle(BuildContext context) {
+    return GoogleFonts.poppins(
+      fontSize: ResponsiveUtils.getResponsiveFontSize(
+        context,
+        mobile: 16,
+        tablet: 18,
+        desktop: 20,
+      ),
+      color: Mycolors.gray,
+    );
+  }
+
+  static TextStyle getCardTitleStyle(BuildContext context) {
+    return GoogleFonts.poppins(
+      fontSize: ResponsiveUtils.getResponsiveFontSize(
+        context,
+        mobile: 18,
+        tablet: 20,
+        desktop: 22,
+      ),
+      fontWeight: FontWeight.bold,
+      color: Colors.white,
+    );
+  }
+
+  static TextStyle getCardSubtitleStyle(BuildContext context) {
+    return GoogleFonts.poppins(
+      fontSize: ResponsiveUtils.getResponsiveFontSize(
+        context,
+        mobile: 14,
+        tablet: 16,
+        desktop: 18,
+      ),
+      color: Colors.white.withOpacity(0.9),
+    );
+  }
+
+  static TextStyle getFeatureTextStyle(BuildContext context) {
+    return GoogleFonts.poppins(
+      fontSize: ResponsiveUtils.getResponsiveFontSize(
+        context,
+        mobile: 14,
+        tablet: 15,
+        desktop: 16,
+      ),
+      color: Colors.white.withOpacity(0.9),
+    );
+  }
+
+  static TextStyle getNavLabelStyle(BuildContext context, bool isActive) {
+    return GoogleFonts.poppins(
+      fontSize: ResponsiveUtils.getResponsiveFontSize(
+        context,
+        mobile: 12,
+        tablet: 13,
+        desktop: 14,
+      ),
+      color: isActive ? Mycolors.basecolor : Colors.grey,
+      fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
+    );
+  }
+}
+
+class ResponsiveSpacing {
+  static double getSmallSpacing(BuildContext context) {
+    return ResponsiveUtils.getResponsiveSpacing(
+      context,
+      mobile: 8,
+      tablet: 10,
+      desktop: 12,
+    );
+  }
+
+  static double getMediumSpacing(BuildContext context) {
+    return ResponsiveUtils.getResponsiveSpacing(
+      context,
+      mobile: 16,
+      tablet: 20,
+      desktop: 24,
+    );
+  }
+
+  static double getLargeSpacing(BuildContext context) {
+    return ResponsiveUtils.getResponsiveSpacing(
+      context,
+      mobile: 24,
+      tablet: 32,
+      desktop: 40,
+    );
+  }
+
+  static double getExtraLargeSpacing(BuildContext context) {
+    return ResponsiveUtils.getResponsiveSpacing(
+      context,
+      mobile: 32,
+      tablet: 40,
+      desktop: 48,
     );
   }
 }

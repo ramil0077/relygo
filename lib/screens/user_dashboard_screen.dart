@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:relygo/constants.dart';
 import 'package:relygo/screens/service_booking_screen.dart';
 import 'package:relygo/screens/user_profile_screen.dart';
+import 'package:relygo/utils/responsive.dart';
 
 class UserDashboardScreen extends StatefulWidget {
   const UserDashboardScreen({super.key});
@@ -58,200 +59,179 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
 
   Widget _buildHomeTab() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(height: 20),
-          // Welcome Header
-          Row(
+      padding: ResponsiveUtils.getResponsivePadding(context),
+      child: ResponsiveLayoutBuilder(
+        builder: (context, constraints) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Welcome back!",
-                      style: GoogleFonts.poppins(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                      ),
+              SizedBox(height: ResponsiveSpacing.getMediumSpacing(context)),
+              // Welcome Header
+              Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Welcome back!",
+                          style: ResponsiveTextStyles.getTitleStyle(context),
+                        ),
+                        Text(
+                          "How can we help you today?",
+                          style: ResponsiveTextStyles.getSubtitleStyle(context),
+                        ),
+                      ],
                     ),
-                    Text(
-                      "How can we help you today?",
-                      style: GoogleFonts.poppins(
-                        fontSize: 16,
-                        color: Mycolors.gray,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              CircleAvatar(
-                radius: 25,
-                backgroundColor: Mycolors.basecolor.withOpacity(0.1),
-                child: Icon(Icons.person, color: Mycolors.basecolor, size: 30),
-              ),
-            ],
-          ),
-          const SizedBox(height: 30),
-
-          // Quick Actions
-          Text(
-            "Quick Actions",
-            style: GoogleFonts.poppins(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
-            ),
-          ),
-          const SizedBox(height: 20),
-
-          // Service Cards
-          Row(
-            children: [
-              Expanded(
-                child: _buildServiceCard(
-                  "Book a Ride",
-                  Icons.directions_car,
-                  Mycolors.basecolor,
-                  () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const ServiceBookingScreen(),
-                      ),
-                    );
-                  },
-                ),
-              ),
-              const SizedBox(width: 15),
-              Expanded(
-                child: _buildServiceCard(
-                  "Schedule Ride",
-                  Icons.schedule,
-                  Mycolors.orange,
-                  () {
-                    // Navigate to schedule ride
-                  },
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 15),
-
-          Row(
-            children: [
-              Expanded(
-                child: _buildServiceCard(
-                  "Emergency",
-                  Icons.emergency,
-                  Mycolors.red,
-                  () {
-                    // Navigate to emergency
-                  },
-                ),
-              ),
-              const SizedBox(width: 15),
-              Expanded(
-                child: _buildServiceCard(
-                  "Package Delivery",
-                  Icons.local_shipping,
-                  Mycolors.green,
-                  () {
-                    // Navigate to package delivery
-                  },
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 30),
-
-          // Recent Rides
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                "Recent Rides",
-                style: GoogleFonts.poppins(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                ),
-              ),
-              TextButton(
-                onPressed: () {
-                  setState(() {
-                    _selectedIndex = 1; // Switch to search tab
-                  });
-                },
-                child: Text(
-                  "View All",
-                  style: GoogleFonts.poppins(
-                    color: Mycolors.basecolor,
-                    fontWeight: FontWeight.w600,
                   ),
-                ),
+                  CircleAvatar(
+                    radius: ResponsiveUtils.getResponsiveSpacing(
+                      context,
+                      mobile: 25,
+                      tablet: 30,
+                      desktop: 35,
+                    ),
+                    backgroundColor: Mycolors.basecolor.withOpacity(0.1),
+                    child: Icon(
+                      Icons.person,
+                      color: Mycolors.basecolor,
+                      size: ResponsiveUtils.getResponsiveIconSize(
+                        context,
+                        mobile: 30,
+                        tablet: 35,
+                        desktop: 40,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: ResponsiveSpacing.getLargeSpacing(context)),
+
+              // Quick Actions
+              Text(
+                "Quick Actions",
+                style: ResponsiveTextStyles.getTitleStyle(context),
+              ),
+              SizedBox(height: ResponsiveSpacing.getMediumSpacing(context)),
+
+              // Service Cards - Responsive Grid
+              ResponsiveWidget(
+                mobile: _buildMobileServiceGrid(context),
+                tablet: _buildTabletServiceGrid(context),
+                desktop: _buildDesktopServiceGrid(context),
+              ),
+
+              SizedBox(height: ResponsiveSpacing.getLargeSpacing(context)),
+
+              // Recent Rides
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "Recent Rides",
+                    style: ResponsiveTextStyles.getTitleStyle(context),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      setState(() {
+                        _selectedIndex = 1; // Switch to search tab
+                      });
+                    },
+                    child: Text(
+                      "View All",
+                      style: GoogleFonts.poppins(
+                        color: Mycolors.basecolor,
+                        fontWeight: FontWeight.w600,
+                        fontSize: ResponsiveUtils.getResponsiveFontSize(
+                          context,
+                          mobile: 14,
+                          tablet: 16,
+                          desktop: 18,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: ResponsiveSpacing.getMediumSpacing(context)),
+
+              // Recent Ride Cards
+              _buildRecentRideCard(
+                context,
+                "Home to Office",
+                "Today, 9:30 AM",
+                "₹150",
+                "Completed",
+                Mycolors.green,
+              ),
+              SizedBox(height: ResponsiveSpacing.getSmallSpacing(context)),
+              _buildRecentRideCard(
+                context,
+                "Airport Pickup",
+                "Yesterday, 2:15 PM",
+                "₹450",
+                "Completed",
+                Mycolors.green,
+              ),
+              SizedBox(height: ResponsiveSpacing.getSmallSpacing(context)),
+              _buildRecentRideCard(
+                context,
+                "Mall Visit",
+                "2 days ago, 6:00 PM",
+                "₹200",
+                "Cancelled",
+                Mycolors.red,
               ),
             ],
-          ),
-          const SizedBox(height: 15),
-
-          // Recent Ride Cards
-          _buildRecentRideCard(
-            "Home to Office",
-            "Today, 9:30 AM",
-            "₹150",
-            "Completed",
-            Mycolors.green,
-          ),
-          const SizedBox(height: 10),
-          _buildRecentRideCard(
-            "Airport Pickup",
-            "Yesterday, 2:15 PM",
-            "₹450",
-            "Completed",
-            Mycolors.green,
-          ),
-          const SizedBox(height: 10),
-          _buildRecentRideCard(
-            "Mall Visit",
-            "2 days ago, 6:00 PM",
-            "₹200",
-            "Cancelled",
-            Mycolors.red,
-          ),
-        ],
+          );
+        },
       ),
     );
   }
 
   Widget _buildSearchTab() {
     return Padding(
-      padding: const EdgeInsets.all(20),
+      padding: ResponsiveUtils.getResponsivePadding(context),
       child: Column(
         children: [
-          const SizedBox(height: 20),
+          SizedBox(height: ResponsiveSpacing.getMediumSpacing(context)),
           // Search Bar
           TextField(
             decoration: InputDecoration(
               hintText: "Search drivers, locations...",
-              prefixIcon: Icon(Icons.search, color: Mycolors.basecolor),
+              prefixIcon: Icon(
+                Icons.search,
+                color: Mycolors.basecolor,
+                size: ResponsiveUtils.getResponsiveIconSize(
+                  context,
+                  mobile: 24,
+                  tablet: 26,
+                  desktop: 28,
+                ),
+              ),
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(
+                  ResponsiveUtils.getResponsiveBorderRadius(
+                    context,
+                    mobile: 12,
+                    tablet: 14,
+                    desktop: 16,
+                  ),
+                ),
               ),
               filled: true,
               fillColor: Colors.grey.shade100,
+              contentPadding: ResponsiveUtils.getResponsivePadding(context),
             ),
           ),
-          const SizedBox(height: 20),
+          SizedBox(height: ResponsiveSpacing.getMediumSpacing(context)),
 
           // Search Results
           Expanded(
             child: ListView(
               children: [
                 _buildDriverCard(
+                  context,
                   "John Smith",
                   "4.8 ⭐",
                   "2.5 km away",
@@ -259,6 +239,7 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                   Mycolors.green,
                 ),
                 _buildDriverCard(
+                  context,
                   "Sarah Johnson",
                   "4.9 ⭐",
                   "1.8 km away",
@@ -266,6 +247,7 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                   Mycolors.green,
                 ),
                 _buildDriverCard(
+                  context,
                   "Mike Wilson",
                   "4.7 ⭐",
                   "3.2 km away",
@@ -286,36 +268,32 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
 
   Widget _buildChatTab() {
     return Padding(
-      padding: const EdgeInsets.all(20),
+      padding: ResponsiveUtils.getResponsivePadding(context),
       child: Column(
         children: [
-          const SizedBox(height: 20),
-          Text(
-            "Messages",
-            style: GoogleFonts.poppins(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
-            ),
-          ),
-          const SizedBox(height: 20),
+          SizedBox(height: ResponsiveSpacing.getMediumSpacing(context)),
+          Text("Messages", style: ResponsiveTextStyles.getTitleStyle(context)),
+          SizedBox(height: ResponsiveSpacing.getMediumSpacing(context)),
 
           Expanded(
             child: ListView(
               children: [
                 _buildChatCard(
+                  context,
                   "John Smith",
                   "Thanks for the great service!",
                   "2 min ago",
                   "1",
                 ),
                 _buildChatCard(
+                  context,
                   "Sarah Johnson",
                   "I'll be there in 5 minutes",
                   "1 hour ago",
                   "",
                 ),
                 _buildChatCard(
+                  context,
                   "Support Team",
                   "Your ride has been confirmed",
                   "2 hours ago",
@@ -333,7 +311,204 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
     return const UserProfileScreen();
   }
 
+  // Mobile Service Grid - 2x2
+  Widget _buildMobileServiceGrid(BuildContext context) {
+    return Column(
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: _buildServiceCard(
+                context,
+                "Book a Ride",
+                Icons.directions_car,
+                Mycolors.basecolor,
+                () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const ServiceBookingScreen(),
+                    ),
+                  );
+                },
+              ),
+            ),
+            SizedBox(width: ResponsiveSpacing.getSmallSpacing(context)),
+            Expanded(
+              child: _buildServiceCard(
+                context,
+                "Schedule Ride",
+                Icons.schedule,
+                Mycolors.orange,
+                () {
+                  // Navigate to schedule ride
+                },
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: ResponsiveSpacing.getSmallSpacing(context)),
+        Row(
+          children: [
+            Expanded(
+              child: _buildServiceCard(
+                context,
+                "Emergency",
+                Icons.emergency,
+                Mycolors.red,
+                () {
+                  // Navigate to emergency
+                },
+              ),
+            ),
+            SizedBox(width: ResponsiveSpacing.getSmallSpacing(context)),
+            Expanded(
+              child: _buildServiceCard(
+                context,
+                "Package Delivery",
+                Icons.local_shipping,
+                Mycolors.green,
+                () {
+                  // Navigate to package delivery
+                },
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  // Tablet Service Grid - 2x2 with larger spacing
+  Widget _buildTabletServiceGrid(BuildContext context) {
+    return Column(
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: _buildServiceCard(
+                context,
+                "Book a Ride",
+                Icons.directions_car,
+                Mycolors.basecolor,
+                () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const ServiceBookingScreen(),
+                    ),
+                  );
+                },
+              ),
+            ),
+            SizedBox(width: ResponsiveSpacing.getMediumSpacing(context)),
+            Expanded(
+              child: _buildServiceCard(
+                context,
+                "Schedule Ride",
+                Icons.schedule,
+                Mycolors.orange,
+                () {
+                  // Navigate to schedule ride
+                },
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: ResponsiveSpacing.getMediumSpacing(context)),
+        Row(
+          children: [
+            Expanded(
+              child: _buildServiceCard(
+                context,
+                "Emergency",
+                Icons.emergency,
+                Mycolors.red,
+                () {
+                  // Navigate to emergency
+                },
+              ),
+            ),
+            SizedBox(width: ResponsiveSpacing.getMediumSpacing(context)),
+            Expanded(
+              child: _buildServiceCard(
+                context,
+                "Package Delivery",
+                Icons.local_shipping,
+                Mycolors.green,
+                () {
+                  // Navigate to package delivery
+                },
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  // Desktop Service Grid - 4 columns
+  Widget _buildDesktopServiceGrid(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: _buildServiceCard(
+            context,
+            "Book a Ride",
+            Icons.directions_car,
+            Mycolors.basecolor,
+            () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const ServiceBookingScreen(),
+                ),
+              );
+            },
+          ),
+        ),
+        SizedBox(width: ResponsiveSpacing.getMediumSpacing(context)),
+        Expanded(
+          child: _buildServiceCard(
+            context,
+            "Schedule Ride",
+            Icons.schedule,
+            Mycolors.orange,
+            () {
+              // Navigate to schedule ride
+            },
+          ),
+        ),
+        SizedBox(width: ResponsiveSpacing.getMediumSpacing(context)),
+        Expanded(
+          child: _buildServiceCard(
+            context,
+            "Emergency",
+            Icons.emergency,
+            Mycolors.red,
+            () {
+              // Navigate to emergency
+            },
+          ),
+        ),
+        SizedBox(width: ResponsiveSpacing.getMediumSpacing(context)),
+        Expanded(
+          child: _buildServiceCard(
+            context,
+            "Package Delivery",
+            Icons.local_shipping,
+            Mycolors.green,
+            () {
+              // Navigate to package delivery
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildServiceCard(
+    BuildContext context,
     String title,
     IconData icon,
     Color color,
@@ -342,20 +517,41 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(20),
+        padding: ResponsiveUtils.getResponsivePadding(context),
         decoration: BoxDecoration(
           color: color.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(
+            ResponsiveUtils.getResponsiveBorderRadius(
+              context,
+              mobile: 16,
+              tablet: 18,
+              desktop: 20,
+            ),
+          ),
           border: Border.all(color: color.withOpacity(0.3)),
         ),
         child: Column(
           children: [
-            Icon(icon, color: color, size: 30),
-            const SizedBox(height: 10),
+            Icon(
+              icon,
+              color: color,
+              size: ResponsiveUtils.getResponsiveIconSize(
+                context,
+                mobile: 30,
+                tablet: 35,
+                desktop: 40,
+              ),
+            ),
+            SizedBox(height: ResponsiveSpacing.getSmallSpacing(context)),
             Text(
               title,
               style: GoogleFonts.poppins(
-                fontSize: 14,
+                fontSize: ResponsiveUtils.getResponsiveFontSize(
+                  context,
+                  mobile: 14,
+                  tablet: 16,
+                  desktop: 18,
+                ),
                 fontWeight: FontWeight.w600,
                 color: color,
               ),
@@ -368,6 +564,7 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
   }
 
   Widget _buildRecentRideCard(
+    BuildContext context,
     String title,
     String time,
     String price,
@@ -375,15 +572,27 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
     Color statusColor,
   ) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: ResponsiveUtils.getResponsivePadding(context),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(
+          ResponsiveUtils.getResponsiveBorderRadius(
+            context,
+            mobile: 12,
+            tablet: 14,
+            desktop: 16,
+          ),
+        ),
         border: Border.all(color: Colors.grey.shade300),
         boxShadow: [
           BoxShadow(
             color: Colors.grey.withOpacity(0.1),
-            blurRadius: 5,
+            blurRadius: ResponsiveUtils.getResponsiveElevation(
+              context,
+              mobile: 5,
+              tablet: 6,
+              desktop: 8,
+            ),
             offset: const Offset(0, 2),
           ),
         ],
@@ -391,18 +600,37 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: EdgeInsets.all(
+              ResponsiveUtils.getResponsiveSpacing(
+                context,
+                mobile: 12,
+                tablet: 14,
+                desktop: 16,
+              ),
+            ),
             decoration: BoxDecoration(
               color: Mycolors.basecolor.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(
+                ResponsiveUtils.getResponsiveBorderRadius(
+                  context,
+                  mobile: 12,
+                  tablet: 14,
+                  desktop: 16,
+                ),
+              ),
             ),
             child: Icon(
               Icons.directions_car,
               color: Mycolors.basecolor,
-              size: 24,
+              size: ResponsiveUtils.getResponsiveIconSize(
+                context,
+                mobile: 24,
+                tablet: 26,
+                desktop: 28,
+              ),
             ),
           ),
-          const SizedBox(width: 16),
+          SizedBox(width: ResponsiveSpacing.getMediumSpacing(context)),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -410,7 +638,12 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                 Text(
                   title,
                   style: GoogleFonts.poppins(
-                    fontSize: 16,
+                    fontSize: ResponsiveUtils.getResponsiveFontSize(
+                      context,
+                      mobile: 16,
+                      tablet: 18,
+                      desktop: 20,
+                    ),
                     fontWeight: FontWeight.w600,
                     color: Colors.black,
                   ),
@@ -418,7 +651,12 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                 Text(
                   time,
                   style: GoogleFonts.poppins(
-                    fontSize: 14,
+                    fontSize: ResponsiveUtils.getResponsiveFontSize(
+                      context,
+                      mobile: 14,
+                      tablet: 15,
+                      desktop: 16,
+                    ),
                     color: Mycolors.gray,
                   ),
                 ),
@@ -431,7 +669,12 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
               Text(
                 price,
                 style: GoogleFonts.poppins(
-                  fontSize: 16,
+                  fontSize: ResponsiveUtils.getResponsiveFontSize(
+                    context,
+                    mobile: 16,
+                    tablet: 18,
+                    desktop: 20,
+                  ),
                   fontWeight: FontWeight.bold,
                   color: Colors.black,
                 ),
@@ -439,7 +682,12 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
               Text(
                 status,
                 style: GoogleFonts.poppins(
-                  fontSize: 12,
+                  fontSize: ResponsiveUtils.getResponsiveFontSize(
+                    context,
+                    mobile: 12,
+                    tablet: 13,
+                    desktop: 14,
+                  ),
                   color: statusColor,
                   fontWeight: FontWeight.w600,
                 ),
@@ -452,6 +700,7 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
   }
 
   Widget _buildDriverCard(
+    BuildContext context,
     String name,
     String rating,
     String distance,
@@ -459,16 +708,30 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
     Color statusColor,
   ) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 15),
-      padding: const EdgeInsets.all(16),
+      margin: EdgeInsets.only(
+        bottom: ResponsiveSpacing.getSmallSpacing(context),
+      ),
+      padding: ResponsiveUtils.getResponsivePadding(context),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(
+          ResponsiveUtils.getResponsiveBorderRadius(
+            context,
+            mobile: 12,
+            tablet: 14,
+            desktop: 16,
+          ),
+        ),
         border: Border.all(color: Colors.grey.shade300),
         boxShadow: [
           BoxShadow(
             color: Colors.grey.withOpacity(0.1),
-            blurRadius: 5,
+            blurRadius: ResponsiveUtils.getResponsiveElevation(
+              context,
+              mobile: 5,
+              tablet: 6,
+              desktop: 8,
+            ),
             offset: const Offset(0, 2),
           ),
         ],
@@ -476,18 +739,28 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
       child: Row(
         children: [
           CircleAvatar(
-            radius: 25,
+            radius: ResponsiveUtils.getResponsiveSpacing(
+              context,
+              mobile: 25,
+              tablet: 28,
+              desktop: 32,
+            ),
             backgroundColor: Mycolors.basecolor.withOpacity(0.1),
             child: Text(
               name[0],
               style: GoogleFonts.poppins(
-                fontSize: 18,
+                fontSize: ResponsiveUtils.getResponsiveFontSize(
+                  context,
+                  mobile: 18,
+                  tablet: 20,
+                  desktop: 22,
+                ),
                 fontWeight: FontWeight.bold,
                 color: Mycolors.basecolor,
               ),
             ),
           ),
-          const SizedBox(width: 16),
+          SizedBox(width: ResponsiveSpacing.getMediumSpacing(context)),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -495,7 +768,12 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                 Text(
                   name,
                   style: GoogleFonts.poppins(
-                    fontSize: 16,
+                    fontSize: ResponsiveUtils.getResponsiveFontSize(
+                      context,
+                      mobile: 16,
+                      tablet: 18,
+                      desktop: 20,
+                    ),
                     fontWeight: FontWeight.w600,
                     color: Colors.black,
                   ),
@@ -503,14 +781,24 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                 Text(
                   rating,
                   style: GoogleFonts.poppins(
-                    fontSize: 14,
+                    fontSize: ResponsiveUtils.getResponsiveFontSize(
+                      context,
+                      mobile: 14,
+                      tablet: 15,
+                      desktop: 16,
+                    ),
                     color: Mycolors.gray,
                   ),
                 ),
                 Text(
                   distance,
                   style: GoogleFonts.poppins(
-                    fontSize: 14,
+                    fontSize: ResponsiveUtils.getResponsiveFontSize(
+                      context,
+                      mobile: 14,
+                      tablet: 15,
+                      desktop: 16,
+                    ),
                     color: Mycolors.gray,
                   ),
                 ),
@@ -520,21 +808,46 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
           Column(
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: EdgeInsets.symmetric(
+                  horizontal: ResponsiveUtils.getResponsiveSpacing(
+                    context,
+                    mobile: 8,
+                    tablet: 10,
+                    desktop: 12,
+                  ),
+                  vertical: ResponsiveUtils.getResponsiveSpacing(
+                    context,
+                    mobile: 4,
+                    tablet: 5,
+                    desktop: 6,
+                  ),
+                ),
                 decoration: BoxDecoration(
                   color: statusColor.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(
+                    ResponsiveUtils.getResponsiveBorderRadius(
+                      context,
+                      mobile: 12,
+                      tablet: 14,
+                      desktop: 16,
+                    ),
+                  ),
                 ),
                 child: Text(
                   status,
                   style: GoogleFonts.poppins(
-                    fontSize: 12,
+                    fontSize: ResponsiveUtils.getResponsiveFontSize(
+                      context,
+                      mobile: 12,
+                      tablet: 13,
+                      desktop: 14,
+                    ),
                     color: statusColor,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
-              const SizedBox(height: 8),
+              SizedBox(height: ResponsiveSpacing.getSmallSpacing(context)),
               ElevatedButton(
                 onPressed: () {
                   // Book this driver
@@ -543,10 +856,41 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                   backgroundColor: Mycolors.basecolor,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(
+                      ResponsiveUtils.getResponsiveBorderRadius(
+                        context,
+                        mobile: 8,
+                        tablet: 10,
+                        desktop: 12,
+                      ),
+                    ),
+                  ),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: ResponsiveUtils.getResponsiveSpacing(
+                      context,
+                      mobile: 12,
+                      tablet: 14,
+                      desktop: 16,
+                    ),
+                    vertical: ResponsiveUtils.getResponsiveSpacing(
+                      context,
+                      mobile: 8,
+                      tablet: 10,
+                      desktop: 12,
+                    ),
                   ),
                 ),
-                child: Text("Book", style: GoogleFonts.poppins(fontSize: 12)),
+                child: Text(
+                  "Book",
+                  style: GoogleFonts.poppins(
+                    fontSize: ResponsiveUtils.getResponsiveFontSize(
+                      context,
+                      mobile: 12,
+                      tablet: 13,
+                      desktop: 14,
+                    ),
+                  ),
+                ),
               ),
             ],
           ),
@@ -556,22 +900,37 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
   }
 
   Widget _buildChatCard(
+    BuildContext context,
     String name,
     String message,
     String time,
     String unreadCount,
   ) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(16),
+      margin: EdgeInsets.only(
+        bottom: ResponsiveSpacing.getSmallSpacing(context),
+      ),
+      padding: ResponsiveUtils.getResponsivePadding(context),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(
+          ResponsiveUtils.getResponsiveBorderRadius(
+            context,
+            mobile: 12,
+            tablet: 14,
+            desktop: 16,
+          ),
+        ),
         border: Border.all(color: Colors.grey.shade300),
         boxShadow: [
           BoxShadow(
             color: Colors.grey.withOpacity(0.1),
-            blurRadius: 5,
+            blurRadius: ResponsiveUtils.getResponsiveElevation(
+              context,
+              mobile: 5,
+              tablet: 6,
+              desktop: 8,
+            ),
             offset: const Offset(0, 2),
           ),
         ],
@@ -579,18 +938,28 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
       child: Row(
         children: [
           CircleAvatar(
-            radius: 20,
+            radius: ResponsiveUtils.getResponsiveSpacing(
+              context,
+              mobile: 20,
+              tablet: 22,
+              desktop: 24,
+            ),
             backgroundColor: Mycolors.basecolor.withOpacity(0.1),
             child: Text(
               name[0],
               style: GoogleFonts.poppins(
-                fontSize: 16,
+                fontSize: ResponsiveUtils.getResponsiveFontSize(
+                  context,
+                  mobile: 16,
+                  tablet: 18,
+                  desktop: 20,
+                ),
                 fontWeight: FontWeight.bold,
                 color: Mycolors.basecolor,
               ),
             ),
           ),
-          const SizedBox(width: 16),
+          SizedBox(width: ResponsiveSpacing.getMediumSpacing(context)),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -598,7 +967,12 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                 Text(
                   name,
                   style: GoogleFonts.poppins(
-                    fontSize: 16,
+                    fontSize: ResponsiveUtils.getResponsiveFontSize(
+                      context,
+                      mobile: 16,
+                      tablet: 18,
+                      desktop: 20,
+                    ),
                     fontWeight: FontWeight.w600,
                     color: Colors.black,
                   ),
@@ -606,7 +980,12 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                 Text(
                   message,
                   style: GoogleFonts.poppins(
-                    fontSize: 14,
+                    fontSize: ResponsiveUtils.getResponsiveFontSize(
+                      context,
+                      mobile: 14,
+                      tablet: 15,
+                      desktop: 16,
+                    ),
                     color: Mycolors.gray,
                   ),
                 ),
@@ -618,12 +997,29 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
             children: [
               Text(
                 time,
-                style: GoogleFonts.poppins(fontSize: 12, color: Mycolors.gray),
+                style: GoogleFonts.poppins(
+                  fontSize: ResponsiveUtils.getResponsiveFontSize(
+                    context,
+                    mobile: 12,
+                    tablet: 13,
+                    desktop: 14,
+                  ),
+                  color: Mycolors.gray,
+                ),
               ),
               if (unreadCount.isNotEmpty)
                 Container(
-                  margin: const EdgeInsets.only(top: 4),
-                  padding: const EdgeInsets.all(6),
+                  margin: EdgeInsets.only(
+                    top: ResponsiveSpacing.getSmallSpacing(context) / 2,
+                  ),
+                  padding: EdgeInsets.all(
+                    ResponsiveUtils.getResponsiveSpacing(
+                      context,
+                      mobile: 6,
+                      tablet: 7,
+                      desktop: 8,
+                    ),
+                  ),
                   decoration: BoxDecoration(
                     color: Mycolors.basecolor,
                     shape: BoxShape.circle,
@@ -631,7 +1027,12 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                   child: Text(
                     unreadCount,
                     style: GoogleFonts.poppins(
-                      fontSize: 10,
+                      fontSize: ResponsiveUtils.getResponsiveFontSize(
+                        context,
+                        mobile: 10,
+                        tablet: 11,
+                        desktop: 12,
+                      ),
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
                     ),
@@ -658,16 +1059,17 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
           Icon(
             icon,
             color: isSelected ? Mycolors.basecolor : Colors.grey,
-            size: 24,
+            size: ResponsiveUtils.getResponsiveIconSize(
+              context,
+              mobile: 24,
+              tablet: 26,
+              desktop: 28,
+            ),
           ),
-          const SizedBox(height: 4),
+          SizedBox(height: ResponsiveSpacing.getSmallSpacing(context) / 2),
           Text(
             label,
-            style: GoogleFonts.poppins(
-              fontSize: 12,
-              color: isSelected ? Mycolors.basecolor : Colors.grey,
-              fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-            ),
+            style: ResponsiveTextStyles.getNavLabelStyle(context, isSelected),
           ),
         ],
       ),
