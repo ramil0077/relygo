@@ -235,7 +235,7 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
                 onPressed: () {
                   _showLogoutDialog();
                 },
-                icon: const Icon(Icons.logout, color: Mycolors.red),
+                icon: Icon(Icons.logout, color: Mycolors.red),
                 label: Text(
                   "Logout",
                   style: GoogleFonts.poppins(
@@ -245,7 +245,7 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
                   ),
                 ),
                 style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: Mycolors.red),
+                  side: BorderSide(color: Mycolors.red),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -399,7 +399,7 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
               onPressed: () {
                 Navigator.of(context).pop();
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
+                  SnackBar(
                     content: Text('Profile updated successfully!'),
                     backgroundColor: Mycolors.green,
                   ),
@@ -485,7 +485,7 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
               onPressed: () {
                 Navigator.of(context).pop();
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
+                  SnackBar(
                     content: Text('Vehicle information updated!'),
                     backgroundColor: Mycolors.green,
                   ),
@@ -556,7 +556,7 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
               onPressed: () {
                 Navigator.of(context).pop();
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
+                  SnackBar(
                     content: Text('Document uploaded!'),
                     backgroundColor: Mycolors.green,
                   ),
@@ -650,7 +650,7 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
               onPressed: () {
                 Navigator.of(context).pop();
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
+                  SnackBar(
                     content: Text('Withdrawal request submitted!'),
                     backgroundColor: Mycolors.green,
                   ),
@@ -849,7 +849,7 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
               onPressed: () {
                 Navigator.of(context).pop();
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
+                  SnackBar(
                     content: Text('Bank details updated!'),
                     backgroundColor: Mycolors.green,
                   ),
@@ -1059,7 +1059,7 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
               onPressed: () {
                 Navigator.of(context).pop();
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
+                  SnackBar(
                     content: Text('Logged out successfully!'),
                     backgroundColor: Mycolors.green,
                   ),

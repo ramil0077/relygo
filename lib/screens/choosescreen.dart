@@ -3,7 +3,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:relygo/constants.dart';
 import 'package:relygo/screens/signin_screen.dart';
 import 'package:relygo/screens/user_contact_screen.dart';
-import 'package:relygo/screens/admin_truck_selection_screen.dart';
 import 'package:relygo/screens/admin_dashboard_screen.dart';
 
 class Registration extends StatelessWidget {

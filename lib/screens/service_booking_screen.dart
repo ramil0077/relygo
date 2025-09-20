@@ -484,7 +484,7 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
               onPressed: () {
                 Navigator.of(context).pop();
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
+                  SnackBar(
                     content: Text(
                       'Booking confirmed! Driver will contact you soon.',
                     ),

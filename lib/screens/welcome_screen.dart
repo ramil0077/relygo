@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:relygo/constants.dart';
-import 'package:relygo/screens/driver_registration_screen.dart';
-import 'package:relygo/screens/user_contact_screen.dart';
 import 'package:relygo/screens/user_dashboard_screen.dart';
 import 'package:relygo/screens/driver_dashboard_screen.dart';
-import 'package:relygo/screens/admin_dashboard_screen.dart';
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});

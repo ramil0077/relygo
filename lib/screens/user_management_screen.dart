@@ -725,7 +725,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
               onPressed: () {
                 Navigator.of(context).pop();
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
+                  SnackBar(
                     content: Text('New user added successfully!'),
                     backgroundColor: Mycolors.green,
                   ),

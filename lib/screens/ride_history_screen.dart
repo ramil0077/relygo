@@ -331,7 +331,7 @@ class _RideHistoryScreenState extends State<RideHistoryScreen> {
                     ),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: Mycolors.basecolor,
-                      side: const BorderSide(color: Mycolors.basecolor),
+                      side: BorderSide(color: Mycolors.basecolor),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
@@ -351,7 +351,7 @@ class _RideHistoryScreenState extends State<RideHistoryScreen> {
                     ),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: Mycolors.orange,
-                      side: const BorderSide(color: Mycolors.orange),
+                      side: BorderSide(color: Mycolors.orange),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
@@ -383,7 +383,7 @@ class _RideHistoryScreenState extends State<RideHistoryScreen> {
                     ),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: Mycolors.basecolor,
-                      side: const BorderSide(color: Mycolors.basecolor),
+                      side: BorderSide(color: Mycolors.basecolor),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
@@ -403,7 +403,7 @@ class _RideHistoryScreenState extends State<RideHistoryScreen> {
                     ),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: Mycolors.green,
-                      side: const BorderSide(color: Mycolors.green),
+                      side: BorderSide(color: Mycolors.green),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
@@ -518,8 +518,8 @@ class _RideHistoryScreenState extends State<RideHistoryScreen> {
               onPressed: () {
                 Navigator.of(context).pop();
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Rating submitted!'),
+                  SnackBar(
+                    content: const Text('Rating submitted!'),
                     backgroundColor: Mycolors.green,
                   ),
                 );
@@ -564,8 +564,8 @@ class _RideHistoryScreenState extends State<RideHistoryScreen> {
               onPressed: () {
                 Navigator.of(context).pop();
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Redirecting to booking...'),
+                  SnackBar(
+                    content: const Text('Redirecting to booking...'),
                     backgroundColor: Mycolors.green,
                   ),
                 );

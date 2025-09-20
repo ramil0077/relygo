@@ -212,7 +212,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
                 onPressed: () {
                   _showLogoutDialog();
                 },
-                icon: const Icon(Icons.logout, color: Mycolors.red),
+                icon: Icon(Icons.logout, color: Mycolors.red),
                 label: Text(
                   "Logout",
                   style: GoogleFonts.poppins(
@@ -222,7 +222,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
                   ),
                 ),
                 style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: Mycolors.red),
+                  side: BorderSide(color: Mycolors.red),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -376,7 +376,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
               onPressed: () {
                 Navigator.of(context).pop();
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
+                  SnackBar(
                     content: Text('Profile updated successfully!'),
                     backgroundColor: Mycolors.green,
                   ),
@@ -517,7 +517,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
               onPressed: () {
                 Navigator.of(context).pop();
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
+                  SnackBar(
                     content: Text('Generating report...'),
                     backgroundColor: Mycolors.orange,
                   ),
@@ -618,7 +618,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
               onPressed: () {
                 Navigator.of(context).pop();
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
+                  SnackBar(
                     content: Text('Settings saved!'),
                     backgroundColor: Mycolors.green,
                   ),
@@ -673,7 +673,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
               onPressed: () {
                 Navigator.of(context).pop();
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
+                  SnackBar(
                     content: Text('Payment settings updated!'),
                     backgroundColor: Mycolors.green,
                   ),
@@ -923,7 +923,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
               onPressed: () {
                 Navigator.of(context).pop();
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
+                  SnackBar(
                     content: Text('Logged out successfully!'),
                     backgroundColor: Mycolors.green,
                   ),

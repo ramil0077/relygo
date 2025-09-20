@@ -308,7 +308,7 @@ class _RideManagementScreenState extends State<RideManagementScreen> {
                     ),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: Mycolors.red,
-                      side: const BorderSide(color: Mycolors.red),
+                      side: BorderSide(color: Mycolors.red),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
@@ -353,7 +353,7 @@ class _RideManagementScreenState extends State<RideManagementScreen> {
                     ),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: Mycolors.basecolor,
-                      side: const BorderSide(color: Mycolors.basecolor),
+                      side: BorderSide(color: Mycolors.basecolor),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
@@ -378,7 +378,7 @@ class _RideManagementScreenState extends State<RideManagementScreen> {
                     ),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: Mycolors.basecolor,
-                      side: const BorderSide(color: Mycolors.basecolor),
+                      side: BorderSide(color: Mycolors.basecolor),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
@@ -398,7 +398,7 @@ class _RideManagementScreenState extends State<RideManagementScreen> {
                     ),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: Mycolors.orange,
-                      side: const BorderSide(color: Mycolors.orange),
+                      side: BorderSide(color: Mycolors.orange),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
@@ -441,7 +441,7 @@ class _RideManagementScreenState extends State<RideManagementScreen> {
               onPressed: () {
                 Navigator.of(context).pop();
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
+                  SnackBar(
                     content: Text('Ride completed successfully!'),
                     backgroundColor: Mycolors.green,
                   ),
@@ -484,7 +484,7 @@ class _RideManagementScreenState extends State<RideManagementScreen> {
               onPressed: () {
                 Navigator.of(context).pop();
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
+                  SnackBar(
                     content: Text('Ride cancelled'),
                     backgroundColor: Mycolors.red,
                   ),
@@ -530,7 +530,7 @@ class _RideManagementScreenState extends State<RideManagementScreen> {
               onPressed: () {
                 Navigator.of(context).pop();
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
+                  SnackBar(
                     content: Text('Ride started!'),
                     backgroundColor: Mycolors.green,
                   ),
@@ -572,7 +572,7 @@ class _RideManagementScreenState extends State<RideManagementScreen> {
                       onPressed: () {
                         Navigator.of(context).pop();
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
+                          SnackBar(
                             content: Text('Calling passenger...'),
                             backgroundColor: Mycolors.green,
                           ),
@@ -592,7 +592,7 @@ class _RideManagementScreenState extends State<RideManagementScreen> {
                       onPressed: () {
                         Navigator.of(context).pop();
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
+                          SnackBar(
                             content: Text('Opening chat...'),
                             backgroundColor: Mycolors.basecolor,
                           ),
@@ -705,7 +705,7 @@ class _RideManagementScreenState extends State<RideManagementScreen> {
               onPressed: () {
                 Navigator.of(context).pop();
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
+                  SnackBar(
                     content: Text('Rating submitted!'),
                     backgroundColor: Mycolors.green,
                   ),

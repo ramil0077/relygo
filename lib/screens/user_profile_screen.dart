@@ -165,7 +165,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 onPressed: () {
                   _showLogoutDialog();
                 },
-                icon: const Icon(Icons.logout, color: Mycolors.red),
+                icon: Icon(Icons.logout, color: Mycolors.red),
                 label: Text(
                   "Logout",
                   style: GoogleFonts.poppins(
@@ -175,7 +175,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   ),
                 ),
                 style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: Mycolors.red),
+                  side: BorderSide(color: Mycolors.red),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -287,7 +287,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               onPressed: () {
                 Navigator.of(context).pop();
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
+                  SnackBar(
                     content: Text('Profile updated successfully!'),
                     backgroundColor: Mycolors.green,
                   ),
@@ -354,8 +354,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               onPressed: () {
                 Navigator.of(context).pop();
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Payment method added!'),
+                  SnackBar(
+                    content: const Text('Payment method added!'),
                     backgroundColor: Mycolors.green,
                   ),
                 );
@@ -561,8 +561,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               onPressed: () {
                 Navigator.of(context).pop();
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Location added to favorites!'),
+                  SnackBar(
+                    content: const Text('Location added to favorites!'),
                     backgroundColor: Mycolors.green,
                   ),
                 );
@@ -800,7 +800,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               onPressed: () {
                 Navigator.of(context).pop();
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
+                  SnackBar(
                     content: Text('Logged out successfully!'),
                     backgroundColor: Mycolors.green,
                   ),

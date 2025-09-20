@@ -496,7 +496,7 @@ class _EarningsScreenState extends State<EarningsScreen> {
               onPressed: () {
                 Navigator.of(context).pop();
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
+                  SnackBar(
                     content: Text('Withdrawal request submitted!'),
                     backgroundColor: Mycolors.green,
                   ),

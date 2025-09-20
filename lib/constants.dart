@@ -12,6 +12,8 @@ class Mycolors {
   static Color gray = Color(0xFF808080); // Gray for text
   static Color lightGray = Color(0xFFF5F5F5); // Light gray background
   static Color gradient = Color.fromARGB(55, 150, 103, 86);
+  static Color blue = Color(0xFF2196F3); // Blue color
+  static Color purple = Color(0xFF9C27B0); // Purple color
 }
 
 class AppTheme {

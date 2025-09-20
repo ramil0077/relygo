@@ -804,7 +804,7 @@ class _DriverManagementScreenState extends State<DriverManagementScreen> {
               onPressed: () {
                 Navigator.of(context).pop();
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
+                  SnackBar(
                     content: Text('New driver added successfully!'),
                     backgroundColor: Mycolors.green,
                   ),
