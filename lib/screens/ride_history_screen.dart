@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:relygo/constants.dart';
+import 'package:relygo/screens/rating_review_screen.dart';
 
 class RideHistoryScreen extends StatefulWidget {
   const RideHistoryScreen({super.key});
@@ -342,7 +343,13 @@ class _RideHistoryScreenState extends State<RideHistoryScreen> {
                 Expanded(
                   child: OutlinedButton.icon(
                     onPressed: () {
-                      _showRateDriverDialog(driverName);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              RatingReviewScreen(driverName: driverName),
+                        ),
+                      );
                     },
                     icon: const Icon(Icons.star, size: 18),
                     label: Text(

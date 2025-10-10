@@ -34,16 +34,19 @@ class _RideManagementScreenState extends State<RideManagementScreen> {
             // Filter Tabs
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-              child: Row(
-                children: [
-                  _buildFilterChip("All", "All"),
-                  const SizedBox(width: 10),
-                  _buildFilterChip("Today", "Today"),
-                  const SizedBox(width: 10),
-                  _buildFilterChip("This Week", "Week"),
-                  const SizedBox(width: 10),
-                  _buildFilterChip("This Month", "Month"),
-                ],
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    _buildFilterChip("All", "All"),
+                    const SizedBox(width: 10),
+                    _buildFilterChip("Today", "Today"),
+                    const SizedBox(width: 10),
+                    _buildFilterChip("This Week", "Week"),
+                    const SizedBox(width: 10),
+                    _buildFilterChip("This Month", "Month"),
+                  ],
+                ),
               ),
             ),
 

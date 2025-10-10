@@ -4,6 +4,7 @@ import 'package:relygo/constants.dart';
 import 'package:relygo/screens/ride_management_screen.dart';
 import 'package:relygo/screens/earnings_screen.dart';
 import 'package:relygo/screens/driver_profile_screen.dart';
+import 'package:relygo/screens/chat_detail_screen.dart';
 import 'package:relygo/utils/responsive.dart';
 
 class DriverDashboardScreen extends StatefulWidget {
@@ -825,7 +826,16 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
     String time,
     String unreadCount,
   ) {
-    return Container(
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ChatDetailScreen(peerName: name),
+          ),
+        );
+      },
+      child: Container(
       margin: EdgeInsets.only(
         bottom: ResponsiveSpacing.getSmallSpacing(context),
       ),
@@ -961,7 +971,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
           ),
         ],
       ),
-    );
+    ));
   }
 
   Widget _buildNavItem(IconData icon, String label, int index) {

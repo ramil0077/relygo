@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:relygo/constants.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:relygo/screens/signin_screen.dart';
 import 'package:relygo/screens/user_contact_screen.dart';
 import 'package:relygo/screens/admin_dashboard_screen.dart';
@@ -16,41 +17,70 @@ class Registration extends StatelessWidget {
         child: SingleChildScrollView(
           child: ResponsiveLayoutBuilder(
             builder: (context, constraints) {
-              return Center(
-                child: ConstrainedBox(
-                  constraints: ResponsiveUtils.getResponsiveConstraints(
-                    context,
-                  ),
-                  child: Column(
-                    children: [
-                      SizedBox(
-                        height: ResponsiveSpacing.getLargeSpacing(context),
-                      ),
-                      Text(
-                        "Welcome to RelyGO",
-                        style: ResponsiveTextStyles.getTitleStyle(context),
-                        textAlign: TextAlign.center,
-                      ),
-                      SizedBox(
-                        height: ResponsiveSpacing.getSmallSpacing(context) / 2,
-                      ),
-                      Text(
-                        "What are you looking for today?",
-                        style: ResponsiveTextStyles.getSubtitleStyle(context),
-                        textAlign: TextAlign.center,
-                      ),
-                      SizedBox(
-                        height: ResponsiveSpacing.getExtraLargeSpacing(context),
-                      ),
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    SizedBox(
+                      height: ResponsiveSpacing.getLargeSpacing(context),
+                    ),
+                    // Brand header
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Image.asset("assets/logooo.png", height: 36),
+                        const SizedBox(width: 8),
+                        Text(
+                          "RelyGO",
+                          style: ResponsiveTextStyles.getTitleStyle(context),
+                        ),
+                      ],
+                    ),
+                    SizedBox(
+                      height: ResponsiveSpacing.getSmallSpacing(context),
+                    ),
+                    Text(
+                      "Select how you want to proceed",
+                      style: ResponsiveTextStyles.getSubtitleStyle(context),
+                      textAlign: TextAlign.center,
+                    ),
+                    SizedBox(
+                      height: ResponsiveSpacing.getExtraLargeSpacing(context),
+                    ),
 
-                      // Service Cards
-                      ResponsiveWidget(
-                        mobile: _buildMobileLayout(context),
-                        tablet: _buildTabletLayout(context),
-                        desktop: _buildDesktopLayout(context),
+                    // Options styled per palette
+                    ResponsiveWidget(
+                      mobile: _buildMobileLayout(context),
+                      tablet: _buildTabletLayout(context),
+                      desktop: _buildDesktopLayout(context),
+                    ),
+
+                    SizedBox(
+                      height: ResponsiveSpacing.getLargeSpacing(context),
+                    ),
+                    // Secondary action
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const AdminDashboardScreen(),
+                          ),
+                        );
+                      },
+                      child: Text(
+                        "Go to Admin",
+                        style: GoogleFonts.poppins(
+                          color: Mycolors.basecolor,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
-                    ],
-                  ),
+                    ),
+                    SizedBox(
+                      height: ResponsiveSpacing.getLargeSpacing(context),
+                    ),
+                  ],
                 ),
               );
             },
@@ -283,71 +313,68 @@ class Registration extends StatelessWidget {
   ) {
     return GestureDetector(
       onTap: onTap,
-      child: Card(
-        color: color,
-        shape: RoundedRectangleBorder(
+      child: Container(
+        width: double.infinity,
+        padding: ResponsiveUtils.getResponsivePadding(context),
+        decoration: BoxDecoration(
+          color: color,
           borderRadius: BorderRadius.circular(
             ResponsiveUtils.getResponsiveBorderRadius(
               context,
-              mobile: 18,
-              tablet: 20,
-              desktop: 22,
+              mobile: 16,
+              tablet: 18,
+              desktop: 20,
             ),
           ),
+          boxShadow: [
+            BoxShadow(
+              color: color.withOpacity(0.25),
+              blurRadius: 12,
+              offset: const Offset(0, 6),
+            ),
+          ],
         ),
-        elevation: ResponsiveUtils.getResponsiveElevation(
-          context,
-          mobile: 4,
-          tablet: 6,
-          desktop: 8,
-        ),
-        child: Padding(
-          padding: ResponsiveUtils.getResponsivePadding(context),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              SizedBox(height: ResponsiveSpacing.getSmallSpacing(context)),
-              // Icon
-              CircleAvatar(
-                radius: ResponsiveUtils.getResponsiveSpacing(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircleAvatar(
+              radius: ResponsiveUtils.getResponsiveSpacing(
+                context,
+                mobile: 20,
+                tablet: 24,
+                desktop: 28,
+              ),
+              backgroundColor: Colors.white.withOpacity(0.2),
+              child: Icon(
+                icon,
+                color: Colors.white,
+                size: ResponsiveUtils.getResponsiveIconSize(
                   context,
-                  mobile: 20,
-                  tablet: 24,
-                  desktop: 28,
-                ),
-                backgroundColor: Colors.white.withOpacity(0.2),
-                child: Icon(
-                  icon,
-                  color: Colors.white,
-                  size: ResponsiveUtils.getResponsiveIconSize(
-                    context,
-                    mobile: 24,
-                    tablet: 28,
-                    desktop: 32,
-                  ),
+                  mobile: 24,
+                  tablet: 28,
+                  desktop: 32,
                 ),
               ),
-              SizedBox(height: ResponsiveSpacing.getMediumSpacing(context)),
-              Text(
-                title,
-                style: ResponsiveTextStyles.getCardTitleStyle(context),
-                textAlign: TextAlign.center,
-              ),
-              SizedBox(height: ResponsiveSpacing.getSmallSpacing(context) / 2),
-              Text(
-                subtitle,
-                style: ResponsiveTextStyles.getCardSubtitleStyle(context),
-                textAlign: TextAlign.center,
-              ),
-              SizedBox(height: ResponsiveSpacing.getMediumSpacing(context)),
-              // Features
-              Column(
-                children: features
-                    .map((feature) => _buildFeatureItem(context, feature))
-                    .toList(),
-              ),
-            ],
-          ),
+            ),
+            SizedBox(height: ResponsiveSpacing.getMediumSpacing(context)),
+            Text(
+              title,
+              style: ResponsiveTextStyles.getCardTitleStyle(context),
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: ResponsiveSpacing.getSmallSpacing(context) / 2),
+            Text(
+              subtitle,
+              style: ResponsiveTextStyles.getCardSubtitleStyle(context),
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: ResponsiveSpacing.getMediumSpacing(context)),
+            Column(
+              children: features
+                  .map((feature) => _buildFeatureItem(context, feature))
+                  .toList(),
+            ),
+          ],
         ),
       ),
     );

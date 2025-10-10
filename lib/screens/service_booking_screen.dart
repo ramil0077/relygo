@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:relygo/constants.dart';
+import 'package:relygo/screens/booking_confirmation_screen.dart';
 
 class ServiceBookingScreen extends StatefulWidget {
   const ServiceBookingScreen({super.key});
@@ -438,69 +439,18 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
   }
 
   void _showBookingConfirmation() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          title: Text(
-            "Confirm Booking",
-            style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text("Service: $_selectedService", style: GoogleFonts.poppins()),
-              Text("Vehicle: $_selectedVehicle", style: GoogleFonts.poppins()),
-              if (_selectedDate != null)
-                Text(
-                  "Date: ${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}",
-                  style: GoogleFonts.poppins(),
-                ),
-              if (_selectedTime != null)
-                Text(
-                  "Time: ${_selectedTime!.format(context)}",
-                  style: GoogleFonts.poppins(),
-                ),
-              const SizedBox(height: 10),
-              Text(
-                "Estimated Price: ₹250 - ₹350",
-                style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text(
-                "Cancel",
-                style: GoogleFonts.poppins(color: Colors.grey),
-              ),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      'Booking confirmed! Driver will contact you soon.',
-                    ),
-                    backgroundColor: Mycolors.green,
-                  ),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Mycolors.basecolor,
-                foregroundColor: Colors.white,
-              ),
-              child: Text("Confirm", style: GoogleFonts.poppins()),
-            ),
-          ],
-        );
-      },
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => BookingConfirmationScreen(
+          service: _selectedService,
+          vehicle: _selectedVehicle,
+          date: _selectedDate != null
+              ? "${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}"
+              : null,
+          time: _selectedTime != null ? _selectedTime!.format(context) : null,
+        ),
+      ),
     );
   }
 }

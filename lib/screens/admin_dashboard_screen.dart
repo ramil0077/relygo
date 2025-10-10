@@ -4,6 +4,7 @@ import 'package:relygo/constants.dart';
 import 'package:relygo/screens/user_management_screen.dart';
 import 'package:relygo/screens/driver_management_screen.dart';
 import 'package:relygo/screens/admin_profile_screen.dart';
+import 'package:relygo/screens/admin_complaints_screen.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
   const AdminDashboardScreen({super.key});
@@ -207,11 +208,16 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               const SizedBox(width: 15),
               Expanded(
                 child: _buildActionCard(
-                  "System Settings",
-                  Icons.settings,
-                  Mycolors.gray,
+                  "Complaints",
+                  Icons.report,
+                  Mycolors.red,
                   () {
-                    // Settings functionality
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const AdminComplaintsScreen(),
+                      ),
+                    );
                   },
                 ),
               ),

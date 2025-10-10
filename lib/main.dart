@@ -5,9 +5,7 @@ import 'package:relygo/screens/driver_dashboard_screen.dart';
 import 'package:relygo/screens/admin_dashboard_screen.dart';
 import 'package:relygo/constants.dart';
 
-void main() {
-  runApp(const MyApp());
-}
+void main() => runApp(const MyApp());
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
