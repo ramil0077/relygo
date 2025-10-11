@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1089618147151",
+    "project_id": "relygo-aba85",
+    "storage_bucket": "relygo-aba85.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1089618147151:android:42762fadbdf85b8907773a",
+        "android_client_info": {
+          "package_name": "com.example.relygo"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAtJATmOYSooUooPzH_aSwJ75bAOjDUwxY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

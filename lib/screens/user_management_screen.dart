@@ -11,7 +11,7 @@ class UserManagementScreen extends StatefulWidget {
 
 class _UserManagementScreenState extends State<UserManagementScreen> {
   String _selectedFilter = "All";
-  String _searchQuery = "";
+  String _searchQuery = ""; 
 
   @override
   Widget build(BuildContext context) {
