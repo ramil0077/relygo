@@ -20,7 +20,7 @@ class MyApp extends StatelessWidget {
       routes: {
         '/user-dashboard': (context) => const UserDashboardScreen(),
         '/driver-dashboard': (context) => const DriverDashboardScreen(),
-        '/admin-dashboard': (context) => const AdminDashboardScreen(),
+        '/admin-dashboard': (context) => const AdminDashboardScreen(), 
       },
     );
   }
