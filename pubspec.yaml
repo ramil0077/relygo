@@ -43,6 +43,11 @@ dependencies:
   firebase_auth: ^5.7.0
   cloud_firestore: ^5.4.4
   firebase_storage: ^12.3.2
+  
+  # Cloudinary and HTTP dependencies
+  cloudinary_flutter: ^1.0.4
+  http: ^1.1.0
+  path_provider: ^2.1.1
 
 dev_dependencies:
   flutter_test:

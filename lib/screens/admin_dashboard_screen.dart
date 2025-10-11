@@ -4,7 +4,9 @@ import 'package:relygo/constants.dart';
 import 'package:relygo/screens/user_management_screen.dart';
 import 'package:relygo/screens/driver_management_screen.dart';
 import 'package:relygo/screens/admin_profile_screen.dart';
-import 'package:relygo/screens/admin_complaints_screen.dart';
+import 'package:relygo/screens/complaint_management_screen.dart';
+import 'package:relygo/screens/feedback_screen.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
   const AdminDashboardScreen({super.key});
@@ -15,6 +17,59 @@ class AdminDashboardScreen extends StatefulWidget {
 
 class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   int _selectedIndex = 0;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  // Real-time data
+  int _totalUsers = 0;
+  int _activeDrivers = 0;
+  int _pendingApprovals = 0;
+  int _openComplaints = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDashboardData();
+  }
+
+  Future<void> _loadDashboardData() async {
+    try {
+      // Get total users
+      QuerySnapshot usersSnapshot = await _firestore.collection('users').get();
+      int totalUsers = usersSnapshot.docs.length;
+
+      // Get active drivers (approved)
+      QuerySnapshot driversSnapshot = await _firestore
+          .collection('users')
+          .where('userType', isEqualTo: 'driver')
+          .where('status', isEqualTo: 'approved')
+          .get();
+      int activeDrivers = driversSnapshot.docs.length;
+
+      // Get pending approvals
+      QuerySnapshot pendingSnapshot = await _firestore
+          .collection('users')
+          .where('userType', isEqualTo: 'driver')
+          .where('status', isEqualTo: 'pending')
+          .get();
+      int pendingApprovals = pendingSnapshot.docs.length;
+
+      // Get open complaints (if you have a complaints collection)
+      QuerySnapshot complaintsSnapshot = await _firestore
+          .collection('complaints')
+          .where('status', isEqualTo: 'open')
+          .get();
+      int openComplaints = complaintsSnapshot.docs.length;
+
+      setState(() {
+        _totalUsers = totalUsers;
+        _activeDrivers = activeDrivers;
+        _pendingApprovals = pendingApprovals;
+        _openComplaints = openComplaints;
+      });
+    } catch (e) {
+      print('Error loading dashboard data: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -108,7 +163,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             children: [
               Expanded(
                 child: _buildStatCard(
-                  "1,250",
+                  _totalUsers.toString(),
                   "Total Users",
                   Icons.people,
                   Mycolors.basecolor,
@@ -117,7 +172,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               const SizedBox(width: 15),
               Expanded(
                 child: _buildStatCard(
-                  "450",
+                  _activeDrivers.toString(),
                   "Active Drivers",
                   Icons.drive_eta,
                   Mycolors.green,
@@ -130,19 +185,19 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             children: [
               Expanded(
                 child: _buildStatCard(
-                  "2,850",
-                  "Total Rides",
-                  Icons.directions_car,
+                  _pendingApprovals.toString(),
+                  "Pending Approvals",
+                  Icons.pending,
                   Mycolors.orange,
                 ),
               ),
               const SizedBox(width: 15),
               Expanded(
                 child: _buildStatCard(
-                  "₹1,25,000",
-                  "Revenue",
-                  Icons.attach_money,
-                  Mycolors.green,
+                  _openComplaints.toString(),
+                  "Open Complaints",
+                  Icons.report,
+                  Mycolors.red,
                 ),
               ),
             ],
@@ -215,7 +270,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const AdminComplaintsScreen(),
+                        builder: (context) => const ComplaintManagementScreen(),
                       ),
                     );
                   },
@@ -287,7 +342,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         children: [
           const SizedBox(height: 20),
           Text(
-            "Analytics",
+            "Analytics & Feedback",
             style: GoogleFonts.poppins(
               fontSize: 24,
               fontWeight: FontWeight.bold,
@@ -295,6 +350,39 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             ),
           ),
           const SizedBox(height: 20),
+
+          // Quick Actions
+          Row(
+            children: [
+              Expanded(
+                child: _buildActionCard(
+                  "View Feedback",
+                  Icons.star,
+                  Mycolors.orange,
+                  () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const FeedbackScreen(),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(width: 15),
+              Expanded(
+                child: _buildActionCard(
+                  "View Analytics",
+                  Icons.analytics,
+                  Mycolors.green,
+                  () {
+                    // Show analytics cards
+                  },
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 30),
 
           // Analytics Cards
           Expanded(

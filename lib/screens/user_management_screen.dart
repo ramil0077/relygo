@@ -11,7 +11,151 @@ class UserManagementScreen extends StatefulWidget {
 
 class _UserManagementScreenState extends State<UserManagementScreen> {
   String _selectedFilter = "All";
-  String _searchQuery = ""; 
+  String _searchQuery = "";
+
+  // Mock data for users
+  final List<Map<String, dynamic>> _users = [
+    {
+      'id': '1',
+      'name': 'John Smith',
+      'email': 'john@example.com',
+      'phone': '+1234567890',
+      'type': 'User',
+      'status': 'Active',
+      'joinDate': '2024-01-15',
+      'totalRides': 25,
+      'rating': 4.8,
+    },
+    {
+      'id': '2',
+      'name': 'Sarah Johnson',
+      'email': 'sarah@example.com',
+      'phone': '+1234567891',
+      'type': 'User',
+      'status': 'Active',
+      'joinDate': '2024-01-20',
+      'totalRides': 18,
+      'rating': 4.9,
+    },
+    {
+      'id': '3',
+      'name': 'Mike Wilson',
+      'email': 'mike@example.com',
+      'phone': '+1234567892',
+      'type': 'User',
+      'status': 'Suspended',
+      'joinDate': '2024-01-10',
+      'totalRides': 5,
+      'rating': 3.2,
+    },
+    {
+      'id': '4',
+      'name': 'Emma Davis',
+      'email': 'emma@example.com',
+      'phone': '+1234567893',
+      'type': 'User',
+      'status': 'Active',
+      'joinDate': '2024-02-01',
+      'totalRides': 32,
+      'rating': 4.7,
+    },
+  ];
+
+  // Mock data for drivers
+  final List<Map<String, dynamic>> _drivers = [
+    {
+      'id': '1',
+      'name': 'David Lee',
+      'email': 'david@example.com',
+      'phone': '+1234567894',
+      'type': 'Driver',
+      'status': 'Approved',
+      'joinDate': '2024-01-05',
+      'totalRides': 150,
+      'rating': 4.9,
+      'licenseNumber': 'DL123456789',
+      'vehicleNumber': 'ABC123',
+      'vehicleType': 'Sedan',
+    },
+    {
+      'id': '2',
+      'name': 'Lisa Brown',
+      'email': 'lisa@example.com',
+      'phone': '+1234567895',
+      'type': 'Driver',
+      'status': 'Pending',
+      'joinDate': '2024-02-10',
+      'totalRides': 0,
+      'rating': 0.0,
+      'licenseNumber': 'DL987654321',
+      'vehicleNumber': 'XYZ789',
+      'vehicleType': 'SUV',
+    },
+    {
+      'id': '3',
+      'name': 'Robert Taylor',
+      'email': 'robert@example.com',
+      'phone': '+1234567896',
+      'type': 'Driver',
+      'status': 'Rejected',
+      'joinDate': '2024-01-25',
+      'totalRides': 0,
+      'rating': 0.0,
+      'licenseNumber': 'DL456789123',
+      'vehicleNumber': 'DEF456',
+      'vehicleType': 'Hatchback',
+    },
+    {
+      'id': '4',
+      'name': 'Maria Garcia',
+      'email': 'maria@example.com',
+      'phone': '+1234567897',
+      'type': 'Driver',
+      'status': 'Approved',
+      'joinDate': '2024-01-12',
+      'totalRides': 200,
+      'rating': 4.8,
+      'licenseNumber': 'DL789123456',
+      'vehicleNumber': 'GHI789',
+      'vehicleType': 'Sedan',
+    },
+  ];
+
+  List<Map<String, dynamic>> get _filteredUsers {
+    List<Map<String, dynamic>> allUsers = [..._users, ..._drivers];
+
+    if (_searchQuery.isNotEmpty) {
+      allUsers = allUsers
+          .where(
+            (user) =>
+                user['name'].toLowerCase().contains(
+                  _searchQuery.toLowerCase(),
+                ) ||
+                user['email'].toLowerCase().contains(
+                  _searchQuery.toLowerCase(),
+                ),
+          )
+          .toList();
+    }
+
+    if (_selectedFilter == "Users") {
+      allUsers = allUsers.where((user) => user['type'] == 'User').toList();
+    } else if (_selectedFilter == "Drivers") {
+      allUsers = allUsers.where((user) => user['type'] == 'Driver').toList();
+    } else if (_selectedFilter == "Pending") {
+      allUsers = allUsers.where((user) => user['status'] == 'Pending').toList();
+    } else if (_selectedFilter == "Approved") {
+      allUsers = allUsers
+          .where((user) => user['status'] == 'Approved')
+          .toList();
+    } else if (_selectedFilter == "Suspended") {
+      allUsers = allUsers
+          .where((user) => user['status'] == 'Suspended')
+          .toList();
+    }
+
+    return allUsers;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -20,6 +164,10 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () => Navigator.pop(context),
+        ),
         title: Text(
           "User Management",
           style: GoogleFonts.poppins(
@@ -30,17 +178,17 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
         ),
         actions: [
           IconButton(
+            icon: Icon(Icons.refresh, color: Mycolors.basecolor),
             onPressed: () {
-              _showAddUserDialog();
+              setState(() {});
             },
-            icon: Icon(Icons.person_add, color: Mycolors.basecolor),
           ),
         ],
       ),
       body: Column(
         children: [
-          // Search and Filter
-          Padding(
+          // Search and Filter Section
+          Container(
             padding: const EdgeInsets.all(20),
             child: Column(
               children: [
@@ -52,28 +200,40 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                     });
                   },
                   decoration: InputDecoration(
-                    hintText: "Search users...",
+                    hintText: "Search users or drivers...",
                     prefixIcon: Icon(Icons.search, color: Mycolors.basecolor),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    filled: true,
-                    fillColor: Colors.grey.shade100,
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(
+                        color: Mycolors.basecolor,
+                        width: 2,
+                      ),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 15),
 
                 // Filter Chips
-                Row(
-                  children: [
-                    _buildFilterChip("All", "All"),
-                    const SizedBox(width: 10),
-                    _buildFilterChip("Active", "Active"),
-                    const SizedBox(width: 10),
-                    _buildFilterChip("Inactive", "Inactive"),
-                    const SizedBox(width: 10),
-                    _buildFilterChip("Blocked", "Blocked"),
-                  ],
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      _buildFilterChip("All", "All"),
+                      const SizedBox(width: 10),
+                      _buildFilterChip("Users", "Users"),
+                      const SizedBox(width: 10),
+                      _buildFilterChip("Drivers", "Drivers"),
+                      const SizedBox(width: 10),
+                      _buildFilterChip("Pending", "Pending"),
+                      const SizedBox(width: 10),
+                      _buildFilterChip("Approved", "Approved"),
+                      const SizedBox(width: 10),
+                      _buildFilterChip("Suspended", "Suspended"),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -81,82 +241,13 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
 
           // Users List
           Expanded(
-            child: ListView(
+            child: ListView.builder(
               padding: const EdgeInsets.symmetric(horizontal: 20),
-              children: [
-                _buildUserCard(
-                  "Sarah Johnson",
-                  "sarah.johnson@email.com",
-                  "+91 98765 43210",
-                  "Active",
-                  Mycolors.green,
-                  "2 days ago",
-                  "Premium",
-                ),
-                _buildUserCard(
-                  "Mike Wilson",
-                  "mike.wilson@email.com",
-                  "+91 87654 32109",
-                  "Active",
-                  Mycolors.green,
-                  "1 week ago",
-                  "Standard",
-                ),
-                _buildUserCard(
-                  "Emma Davis",
-                  "emma.davis@email.com",
-                  "+91 76543 21098",
-                  "Inactive",
-                  Mycolors.orange,
-                  "2 weeks ago",
-                  "Standard",
-                ),
-                _buildUserCard(
-                  "John Smith",
-                  "john.smith@email.com",
-                  "+91 65432 10987",
-                  "Blocked",
-                  Mycolors.red,
-                  "1 month ago",
-                  "Premium",
-                ),
-                _buildUserCard(
-                  "Lisa Brown",
-                  "lisa.brown@email.com",
-                  "+91 54321 09876",
-                  "Active",
-                  Mycolors.green,
-                  "3 days ago",
-                  "Standard",
-                ),
-                _buildUserCard(
-                  "David Lee",
-                  "david.lee@email.com",
-                  "+91 43210 98765",
-                  "Active",
-                  Mycolors.green,
-                  "5 days ago",
-                  "Premium",
-                ),
-                _buildUserCard(
-                  "Anna Taylor",
-                  "anna.taylor@email.com",
-                  "+91 32109 87654",
-                  "Inactive",
-                  Mycolors.orange,
-                  "1 week ago",
-                  "Standard",
-                ),
-                _buildUserCard(
-                  "Chris Anderson",
-                  "chris.anderson@email.com",
-                  "+91 21098 76543",
-                  "Active",
-                  Mycolors.green,
-                  "1 day ago",
-                  "Standard",
-                ),
-              ],
+              itemCount: _filteredUsers.length,
+              itemBuilder: (context, index) {
+                final user = _filteredUsers[index];
+                return _buildUserCard(user);
+              },
             ),
           ),
         ],
@@ -193,15 +284,10 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
     );
   }
 
-  Widget _buildUserCard(
-    String name,
-    String email,
-    String phone,
-    String status,
-    Color statusColor,
-    String lastActive,
-    String membership,
-  ) {
+  Widget _buildUserCard(Map<String, dynamic> user) {
+    Color statusColor = _getStatusColor(user['status']);
+    IconData statusIcon = _getStatusIcon(user['status']);
+
     return Container(
       margin: const EdgeInsets.only(bottom: 15),
       padding: const EdgeInsets.all(16),
@@ -230,7 +316,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                     radius: 20,
                     backgroundColor: Mycolors.basecolor.withOpacity(0.1),
                     child: Text(
-                      name[0],
+                      user['name'][0],
                       style: GoogleFonts.poppins(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -243,7 +329,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        name,
+                        user['name'],
                         style: GoogleFonts.poppins(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -251,9 +337,9 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                         ),
                       ),
                       Text(
-                        email,
+                        user['email'],
                         style: GoogleFonts.poppins(
-                          fontSize: 14,
+                          fontSize: 12,
                           color: Mycolors.gray,
                         ),
                       ),
@@ -272,118 +358,91 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                       color: statusColor.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: Text(
-                      status,
-                      style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        color: statusColor,
-                        fontWeight: FontWeight.w600,
-                      ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(statusIcon, color: statusColor, size: 12),
+                        const SizedBox(width: 4),
+                        Text(
+                          user['status'],
+                          style: GoogleFonts.poppins(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: statusColor,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   const SizedBox(width: 8),
                   PopupMenuButton<String>(
-                    onSelected: (value) {
-                      _handleUserAction(value, name);
-                    },
-                    itemBuilder: (context) => [
-                      PopupMenuItem(
-                        value: "view",
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.visibility,
-                              color: Mycolors.basecolor,
-                              size: 18,
-                            ),
-                            const SizedBox(width: 8),
-                            Text("View Details", style: GoogleFonts.poppins()),
-                          ],
-                        ),
-                      ),
-                      PopupMenuItem(
-                        value: "edit",
-                        child: Row(
-                          children: [
-                            Icon(Icons.edit, color: Mycolors.orange, size: 18),
-                            const SizedBox(width: 8),
-                            Text("Edit", style: GoogleFonts.poppins()),
-                          ],
-                        ),
-                      ),
-                      PopupMenuItem(
-                        value: status == "Blocked" ? "unblock" : "block",
-                        child: Row(
-                          children: [
-                            Icon(
-                              status == "Blocked"
-                                  ? Icons.check_circle
-                                  : Icons.block,
-                              color: status == "Blocked"
-                                  ? Mycolors.green
-                                  : Mycolors.red,
-                              size: 18,
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              status == "Blocked" ? "Unblock" : "Block",
-                              style: GoogleFonts.poppins(),
-                            ),
-                          ],
-                        ),
-                      ),
-                      PopupMenuItem(
-                        value: "delete",
-                        child: Row(
-                          children: [
-                            Icon(Icons.delete, color: Mycolors.red, size: 18),
-                            const SizedBox(width: 8),
-                            Text("Delete", style: GoogleFonts.poppins()),
-                          ],
-                        ),
-                      ),
-                    ],
+                    onSelected: (value) => _handleUserAction(value, user),
+                    itemBuilder: (context) => _buildUserMenuItems(user),
                     child: Icon(Icons.more_vert, color: Mycolors.gray),
                   ),
                 ],
               ),
             ],
           ),
+
           const SizedBox(height: 12),
 
-          // User Details
+          // User details
           Row(
             children: [
               Icon(Icons.phone, color: Mycolors.gray, size: 16),
               const SizedBox(width: 8),
               Text(
-                phone,
-                style: GoogleFonts.poppins(fontSize: 14, color: Mycolors.gray),
+                user['phone'],
+                style: GoogleFonts.poppins(fontSize: 14, color: Colors.black87),
+              ),
+              const SizedBox(width: 20),
+              Icon(Icons.calendar_today, color: Mycolors.gray, size: 16),
+              const SizedBox(width: 8),
+              Text(
+                user['joinDate'],
+                style: GoogleFonts.poppins(fontSize: 14, color: Colors.black87),
               ),
             ],
           ),
-          const SizedBox(height: 8),
 
-          Row(
-            children: [
-              Icon(Icons.access_time, color: Mycolors.gray, size: 16),
-              const SizedBox(width: 8),
-              Text(
-                "Last active: $lastActive",
-                style: GoogleFonts.poppins(fontSize: 14, color: Mycolors.gray),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
+          if (user['type'] == 'Driver') ...[
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Icon(Icons.directions_car, color: Mycolors.gray, size: 16),
+                const SizedBox(width: 8),
+                Text(
+                  "${user['vehicleType']} - ${user['vehicleNumber']}",
+                  style: GoogleFonts.poppins(
+                    fontSize: 14,
+                    color: Colors.black87,
+                  ),
+                ),
+                const SizedBox(width: 20),
+                Icon(Icons.badge, color: Mycolors.gray, size: 16),
+                const SizedBox(width: 8),
+                Text(
+                  user['licenseNumber'],
+                  style: GoogleFonts.poppins(
+                    fontSize: 14,
+                    color: Colors.black87,
+                  ),
+                ),
+              ],
+            ),
+          ],
 
+          const SizedBox(height: 12),
+
+          // Stats
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Icon(Icons.card_membership, color: Mycolors.gray, size: 16),
-              const SizedBox(width: 8),
-              Text(
-                "Membership: $membership",
-                style: GoogleFonts.poppins(fontSize: 14, color: Mycolors.gray),
-              ),
+              _buildStatItem("Rides", "${user['totalRides']}"),
+              _buildStatItem("Rating", "${user['rating']} ⭐"),
+              if (user['type'] == 'Driver')
+                _buildStatItem("Type", user['type']),
             ],
           ),
         ],
@@ -391,27 +450,146 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
     );
   }
 
-  void _handleUserAction(String action, String userName) {
+  Widget _buildStatItem(String label, String value) {
+    return Column(
+      children: [
+        Text(
+          value,
+          style: GoogleFonts.poppins(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: Mycolors.basecolor,
+          ),
+        ),
+        Text(
+          label,
+          style: GoogleFonts.poppins(fontSize: 12, color: Mycolors.gray),
+        ),
+      ],
+    );
+  }
+
+  List<PopupMenuEntry<String>> _buildUserMenuItems(Map<String, dynamic> user) {
+    List<PopupMenuEntry<String>> items = [];
+
+    if (user['type'] == 'Driver' && user['status'] == 'Pending') {
+      items.addAll([
+        PopupMenuItem(
+          value: 'approve',
+          child: Row(
+            children: [
+              Icon(Icons.check_circle, color: Mycolors.green, size: 20),
+              const SizedBox(width: 8),
+              Text('Approve', style: GoogleFonts.poppins()),
+            ],
+          ),
+        ),
+        PopupMenuItem(
+          value: 'reject',
+          child: Row(
+            children: [
+              Icon(Icons.cancel, color: Mycolors.red, size: 20),
+              const SizedBox(width: 8),
+              Text('Reject', style: GoogleFonts.poppins()),
+            ],
+          ),
+        ),
+        PopupMenuItem(
+          value: 'view_docs',
+          child: Row(
+            children: [
+              Icon(Icons.description, color: Mycolors.basecolor, size: 20),
+              const SizedBox(width: 8),
+              Text('View Documents', style: GoogleFonts.poppins()),
+            ],
+          ),
+        ),
+      ]);
+    }
+
+    if (user['status'] == 'Active' || user['status'] == 'Approved') {
+      items.add(
+        PopupMenuItem(
+          value: 'suspend',
+          child: Row(
+            children: [
+              Icon(Icons.pause_circle, color: Mycolors.orange, size: 20),
+              const SizedBox(width: 8),
+              Text('Suspend', style: GoogleFonts.poppins()),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (user['status'] == 'Suspended') {
+      items.add(
+        PopupMenuItem(
+          value: 'activate',
+          child: Row(
+            children: [
+              Icon(Icons.play_circle, color: Mycolors.green, size: 20),
+              const SizedBox(width: 8),
+              Text('Activate', style: GoogleFonts.poppins()),
+            ],
+          ),
+        ),
+      );
+    }
+
+    items.addAll([
+      PopupMenuItem(
+        value: 'view_details',
+        child: Row(
+          children: [
+            Icon(Icons.info, color: Mycolors.basecolor, size: 20),
+            const SizedBox(width: 8),
+            Text('View Details', style: GoogleFonts.poppins()),
+          ],
+        ),
+      ),
+      PopupMenuItem(
+        value: 'contact',
+        child: Row(
+          children: [
+            Icon(Icons.phone, color: Mycolors.basecolor, size: 20),
+            const SizedBox(width: 8),
+            Text('Contact', style: GoogleFonts.poppins()),
+          ],
+        ),
+      ),
+    ]);
+
+    return items;
+  }
+
+  void _handleUserAction(String action, Map<String, dynamic> user) {
     switch (action) {
-      case "view":
-        _showUserDetailsDialog(userName);
+      case 'approve':
+        _showApprovalDialog(user, true);
         break;
-      case "edit":
-        _showEditUserDialog(userName);
+      case 'reject':
+        _showApprovalDialog(user, false);
         break;
-      case "block":
-        _showBlockUserDialog(userName);
+      case 'view_docs':
+        _showDocumentViewer(user);
         break;
-      case "unblock":
-        _showUnblockUserDialog(userName);
+      case 'suspend':
+        _showSuspendDialog(user);
         break;
-      case "delete":
-        _showDeleteUserDialog(userName);
+      case 'activate':
+        _showActivateDialog(user);
+        break;
+      case 'view_details':
+        _showUserDetails(user);
+        break;
+      case 'contact':
+        _showContactDialog(user);
         break;
     }
   }
 
-  void _showUserDetailsDialog(String userName) {
+  void _showApprovalDialog(Map<String, dynamic> user, bool approve) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -420,23 +598,92 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
             borderRadius: BorderRadius.circular(16),
           ),
           title: Text(
-            "User Details",
+            approve ? "Approve Driver" : "Reject Driver",
+            style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+          ),
+          content: Text(
+            approve
+                ? "Are you sure you want to approve ${user['name']} as a driver?"
+                : "Are you sure you want to reject ${user['name']}'s driver application?",
+            style: GoogleFonts.poppins(),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                "Cancel",
+                style: GoogleFonts.poppins(color: Colors.grey),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                setState(() {
+                  user['status'] = approve ? 'Approved' : 'Rejected';
+                });
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      approve
+                          ? 'Driver approved successfully!'
+                          : 'Driver rejected',
+                    ),
+                    backgroundColor: approve ? Mycolors.green : Mycolors.red,
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: approve ? Mycolors.green : Mycolors.red,
+                foregroundColor: Colors.white,
+              ),
+              child: Text(
+                approve ? "Approve" : "Reject",
+                style: GoogleFonts.poppins(),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showDocumentViewer(Map<String, dynamic> user) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Text(
+            "Driver Documents",
             style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text("Name: $userName", style: GoogleFonts.poppins()),
               Text(
-                "Email: $userName.toLowerCase().replaceAll(' ', '.')@email.com",
-                style: GoogleFonts.poppins(),
+                "Driver: ${user['name']}",
+                style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
               ),
-              Text("Phone: +91 98765 43210", style: GoogleFonts.poppins()),
-              Text("Status: Active", style: GoogleFonts.poppins()),
-              Text("Member Since: January 2024", style: GoogleFonts.poppins()),
-              Text("Total Rides: 25", style: GoogleFonts.poppins()),
-              Text("Rating: 4.8 ⭐", style: GoogleFonts.poppins()),
+              const SizedBox(height: 16),
+              _buildDocumentItem("Driver License", "DL123456789", Icons.badge),
+              _buildDocumentItem(
+                "Vehicle Registration",
+                "ABC123",
+                Icons.directions_car,
+              ),
+              _buildDocumentItem(
+                "Insurance Certificate",
+                "INS789456",
+                Icons.security,
+              ),
+              _buildDocumentItem(
+                "Vehicle Type",
+                user['vehicleType'],
+                Icons.category,
+              ),
             ],
           ),
           actions: [
@@ -453,86 +700,40 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
     );
   }
 
-  void _showEditUserDialog(String userName) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          title: Text(
-            "Edit User",
-            style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                decoration: InputDecoration(
-                  labelText: "Name",
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
+  Widget _buildDocumentItem(String title, String value, IconData icon) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        children: [
+          Icon(icon, color: Mycolors.basecolor, size: 20),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: GoogleFonts.poppins(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
-                controller: TextEditingController(text: userName),
-              ),
-              const SizedBox(height: 15),
-              TextField(
-                decoration: InputDecoration(
-                  labelText: "Email",
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
+                Text(
+                  value,
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    color: Mycolors.gray,
                   ),
                 ),
-                controller: TextEditingController(
-                  text:
-                      "$userName.toLowerCase().replaceAll(' ', '.')@email.com",
-                ),
-              ),
-              const SizedBox(height: 15),
-              TextField(
-                decoration: InputDecoration(
-                  labelText: "Phone",
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                controller: TextEditingController(text: "+91 98765 43210"),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text(
-                "Cancel",
-                style: GoogleFonts.poppins(color: Colors.grey),
-              ),
+              ],
             ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('$userName updated successfully!'),
-                    backgroundColor: Mycolors.green,
-                  ),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Mycolors.basecolor,
-                foregroundColor: Colors.white,
-              ),
-              child: Text("Save", style: GoogleFonts.poppins()),
-            ),
-          ],
-        );
-      },
+          ),
+        ],
+      ),
     );
   }
 
-  void _showBlockUserDialog(String userName) {
+  void _showSuspendDialog(Map<String, dynamic> user) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -541,11 +742,11 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
             borderRadius: BorderRadius.circular(16),
           ),
           title: Text(
-            "Block User",
+            "Suspend User",
             style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
           ),
           content: Text(
-            "Are you sure you want to block $userName?",
+            "Are you sure you want to suspend ${user['name']}?",
             style: GoogleFonts.poppins(),
           ),
           actions: [
@@ -559,18 +760,21 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
             ElevatedButton(
               onPressed: () {
                 Navigator.of(context).pop();
+                setState(() {
+                  user['status'] = 'Suspended';
+                });
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text('$userName has been blocked'),
-                    backgroundColor: Mycolors.red,
+                    content: Text('User suspended successfully!'),
+                    backgroundColor: Mycolors.orange,
                   ),
                 );
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: Mycolors.red,
+                backgroundColor: Mycolors.orange,
                 foregroundColor: Colors.white,
               ),
-              child: Text("Block", style: GoogleFonts.poppins()),
+              child: Text("Suspend", style: GoogleFonts.poppins()),
             ),
           ],
         );
@@ -578,7 +782,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
     );
   }
 
-  void _showUnblockUserDialog(String userName) {
+  void _showActivateDialog(Map<String, dynamic> user) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -587,11 +791,11 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
             borderRadius: BorderRadius.circular(16),
           ),
           title: Text(
-            "Unblock User",
+            "Activate User",
             style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
           ),
           content: Text(
-            "Are you sure you want to unblock $userName?",
+            "Are you sure you want to activate ${user['name']}?",
             style: GoogleFonts.poppins(),
           ),
           actions: [
@@ -605,9 +809,14 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
             ElevatedButton(
               onPressed: () {
                 Navigator.of(context).pop();
+                setState(() {
+                  user['status'] = user['type'] == 'Driver'
+                      ? 'Approved'
+                      : 'Active';
+                });
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text('$userName has been unblocked'),
+                    content: Text('User activated successfully!'),
                     backgroundColor: Mycolors.green,
                   ),
                 );
@@ -616,7 +825,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                 backgroundColor: Mycolors.green,
                 foregroundColor: Colors.white,
               ),
-              child: Text("Unblock", style: GoogleFonts.poppins()),
+              child: Text("Activate", style: GoogleFonts.poppins()),
             ),
           ],
         );
@@ -624,7 +833,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
     );
   }
 
-  void _showDeleteUserDialog(String userName) {
+  void _showUserDetails(Map<String, dynamic> user) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -633,36 +842,37 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
             borderRadius: BorderRadius.circular(16),
           ),
           title: Text(
-            "Delete User",
+            "User Details",
             style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
           ),
-          content: Text(
-            "Are you sure you want to permanently delete $userName? This action cannot be undone.",
-            style: GoogleFonts.poppins(),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildDetailRow("Name", user['name']),
+              _buildDetailRow("Email", user['email']),
+              _buildDetailRow("Phone", user['phone']),
+              _buildDetailRow("Type", user['type']),
+              _buildDetailRow("Status", user['status']),
+              _buildDetailRow("Join Date", user['joinDate']),
+              _buildDetailRow("Total Rides", "${user['totalRides']}"),
+              _buildDetailRow("Rating", "${user['rating']} ⭐"),
+              if (user['type'] == 'Driver') ...[
+                _buildDetailRow("License", user['licenseNumber']),
+                _buildDetailRow(
+                  "Vehicle",
+                  "${user['vehicleType']} - ${user['vehicleNumber']}",
+                ),
+              ],
+            ],
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
               child: Text(
-                "Cancel",
+                "Close",
                 style: GoogleFonts.poppins(color: Colors.grey),
               ),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('$userName has been deleted'),
-                    backgroundColor: Mycolors.red,
-                  ),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Mycolors.red,
-                foregroundColor: Colors.white,
-              ),
-              child: Text("Delete", style: GoogleFonts.poppins()),
             ),
           ],
         );
@@ -670,7 +880,34 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
     );
   }
 
-  void _showAddUserDialog() {
+  Widget _buildDetailRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 100,
+            child: Text(
+              "$label:",
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: GoogleFonts.poppins(fontSize: 14, color: Colors.black87),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showContactDialog(Map<String, dynamic> user) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -679,37 +916,45 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
             borderRadius: BorderRadius.circular(16),
           ),
           title: Text(
-            "Add New User",
+            "Contact ${user['name']}",
             style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              TextField(
-                decoration: InputDecoration(
-                  labelText: "Full Name",
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
+              ListTile(
+                leading: Icon(Icons.phone, color: Mycolors.green),
+                title: Text("Call", style: GoogleFonts.poppins()),
+                subtitle: Text(
+                  user['phone'],
+                  style: GoogleFonts.poppins(fontSize: 12),
                 ),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Calling ${user['phone']}...'),
+                      backgroundColor: Mycolors.green,
+                    ),
+                  );
+                },
               ),
-              const SizedBox(height: 15),
-              TextField(
-                decoration: InputDecoration(
-                  labelText: "Email",
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
+              ListTile(
+                leading: Icon(Icons.email, color: Mycolors.basecolor),
+                title: Text("Email", style: GoogleFonts.poppins()),
+                subtitle: Text(
+                  user['email'],
+                  style: GoogleFonts.poppins(fontSize: 12),
                 ),
-              ),
-              const SizedBox(height: 15),
-              TextField(
-                decoration: InputDecoration(
-                  labelText: "Phone",
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Opening email client...'),
+                      backgroundColor: Mycolors.basecolor,
+                    ),
+                  );
+                },
               ),
             ],
           ),
@@ -717,29 +962,45 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
               child: Text(
-                "Cancel",
+                "Close",
                 style: GoogleFonts.poppins(color: Colors.grey),
               ),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('New user added successfully!'),
-                    backgroundColor: Mycolors.green,
-                  ),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Mycolors.basecolor,
-                foregroundColor: Colors.white,
-              ),
-              child: Text("Add User", style: GoogleFonts.poppins()),
             ),
           ],
         );
       },
     );
+  }
+
+  Color _getStatusColor(String status) {
+    switch (status) {
+      case 'Active':
+      case 'Approved':
+        return Mycolors.green;
+      case 'Pending':
+        return Mycolors.orange;
+      case 'Suspended':
+        return Mycolors.red;
+      case 'Rejected':
+        return Mycolors.red;
+      default:
+        return Mycolors.gray;
+    }
+  }
+
+  IconData _getStatusIcon(String status) {
+    switch (status) {
+      case 'Active':
+      case 'Approved':
+        return Icons.check_circle;
+      case 'Pending':
+        return Icons.pending;
+      case 'Suspended':
+        return Icons.pause_circle;
+      case 'Rejected':
+        return Icons.cancel;
+      default:
+        return Icons.help;
+    }
   }
 }

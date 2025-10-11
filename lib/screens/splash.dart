@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:relygo/constants.dart';
-import 'package:relygo/screens/choosescreen.dart';
+import 'package:relygo/screens/signin_screen.dart';
 
 class Splashscreen extends StatelessWidget {
   const Splashscreen({super.key});
@@ -49,7 +49,7 @@ class Splashscreen extends StatelessWidget {
                     Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const Registration(),
+                        builder: (context) => const SignInScreen(),
                       ),
                     );
                   },

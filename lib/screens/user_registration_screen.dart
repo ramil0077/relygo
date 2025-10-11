@@ -1,50 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:relygo/constants.dart';
-import 'package:relygo/screens/driver_dashboard_screen.dart';
-import 'package:relygo/widgets/image_upload_widget.dart';
+import 'package:relygo/screens/user_dashboard_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class DriverRegistrationScreen extends StatefulWidget {
-  const DriverRegistrationScreen({super.key});
+class UserRegistrationScreen extends StatefulWidget {
+  const UserRegistrationScreen({super.key});
 
   @override
-  State<DriverRegistrationScreen> createState() =>
-      _DriverRegistrationScreenState();
+  State<UserRegistrationScreen> createState() => _UserRegistrationScreenState();
 }
 
-class _DriverRegistrationScreenState extends State<DriverRegistrationScreen> {
+class _UserRegistrationScreenState extends State<UserRegistrationScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-  final _licenseController = TextEditingController();
-  final _vehicleNumberController = TextEditingController();
-  final _vehicleTypeController = TextEditingController();
   bool _isLoading = false;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   bool _agreeToTerms = false;
-  String _selectedVehicleType = "Sedan";
-
-  // Document URLs
-  String _licenseUrl = '';
-  String _vehicleRegistrationUrl = '';
-  String _insuranceUrl = '';
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-
-  final List<String> _vehicleTypes = [
-    "Sedan",
-    "SUV",
-    "Hatchback",
-    "Auto",
-    "Bike",
-  ];
 
   @override
   void dispose() {
@@ -53,9 +34,6 @@ class _DriverRegistrationScreenState extends State<DriverRegistrationScreen> {
     _phoneController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
-    _licenseController.dispose();
-    _vehicleNumberController.dispose();
-    _vehicleTypeController.dispose();
     super.dispose();
   }
 
@@ -71,7 +49,7 @@ class _DriverRegistrationScreenState extends State<DriverRegistrationScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          "Driver Registration",
+          "User Registration",
           style: GoogleFonts.poppins(
             fontSize: 20,
             fontWeight: FontWeight.bold,
@@ -101,14 +79,14 @@ class _DriverRegistrationScreenState extends State<DriverRegistrationScreen> {
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: const Icon(
-                          Icons.drive_eta,
+                          Icons.person,
                           color: Colors.white,
                           size: 40,
                         ),
                       ),
                       const SizedBox(height: 20),
                       Text(
-                        "Join as Driver",
+                        "Create User Account",
                         style: GoogleFonts.poppins(
                           fontSize: 28,
                           fontWeight: FontWeight.bold,
@@ -117,7 +95,7 @@ class _DriverRegistrationScreenState extends State<DriverRegistrationScreen> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        "Start earning with RelyGO",
+                        "Join RelyGO as a user",
                         style: GoogleFonts.poppins(
                           fontSize: 16,
                           color: Mycolors.gray,
@@ -128,17 +106,6 @@ class _DriverRegistrationScreenState extends State<DriverRegistrationScreen> {
                 ),
 
                 const SizedBox(height: 40),
-
-                // Personal Information Section
-                Text(
-                  "Personal Information",
-                  style: GoogleFonts.poppins(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
-                ),
-                const SizedBox(height: 20),
 
                 // Name Field
                 Text(
@@ -355,177 +322,6 @@ class _DriverRegistrationScreenState extends State<DriverRegistrationScreen> {
                     return null;
                   },
                 ),
-                const SizedBox(height: 30),
-
-                // Vehicle Information Section
-                Text(
-                  "Vehicle Information",
-                  style: GoogleFonts.poppins(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
-                ),
-                const SizedBox(height: 20),
-
-                // License Number Field
-                Text(
-                  "Driver License Number",
-                  style: GoogleFonts.poppins(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                TextFormField(
-                  controller: _licenseController,
-                  decoration: InputDecoration(
-                    hintText: "Enter your license number",
-                    prefixIcon: Icon(Icons.badge, color: Mycolors.basecolor),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(
-                        color: Mycolors.basecolor,
-                        width: 2,
-                      ),
-                    ),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter license number';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 20),
-
-                // Vehicle Type Field
-                Text(
-                  "Vehicle Type",
-                  style: GoogleFonts.poppins(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                DropdownButtonFormField<String>(
-                  value: _selectedVehicleType,
-                  decoration: InputDecoration(
-                    prefixIcon: Icon(
-                      Icons.directions_car,
-                      color: Mycolors.basecolor,
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(
-                        color: Mycolors.basecolor,
-                        width: 2,
-                      ),
-                    ),
-                  ),
-                  items: _vehicleTypes.map((String type) {
-                    return DropdownMenuItem<String>(
-                      value: type,
-                      child: Text(type),
-                    );
-                  }).toList(),
-                  onChanged: (String? newValue) {
-                    setState(() {
-                      _selectedVehicleType = newValue!;
-                    });
-                  },
-                ),
-                const SizedBox(height: 20),
-
-                // Vehicle Number Field
-                Text(
-                  "Vehicle Number",
-                  style: GoogleFonts.poppins(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                TextFormField(
-                  controller: _vehicleNumberController,
-                  decoration: InputDecoration(
-                    hintText: "Enter vehicle registration number",
-                    prefixIcon: Icon(
-                      Icons.confirmation_number,
-                      color: Mycolors.basecolor,
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(
-                        color: Mycolors.basecolor,
-                        width: 2,
-                      ),
-                    ),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter vehicle number';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 30),
-
-                // Document Upload Section
-                Text(
-                  "Required Documents",
-                  style: GoogleFonts.poppins(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
-                ),
-                const SizedBox(height: 20),
-
-                ImageUploadWidget(
-                  title: "Driver License",
-                  subtitle: "Upload your driving license",
-                  folder: "drivers/licenses",
-                  onImageUploaded: (url) {
-                    setState(() {
-                      _licenseUrl = url;
-                    });
-                  },
-                ),
-                const SizedBox(height: 15),
-                ImageUploadWidget(
-                  title: "Vehicle Registration",
-                  subtitle: "Upload vehicle registration certificate",
-                  folder: "drivers/vehicles",
-                  onImageUploaded: (url) {
-                    setState(() {
-                      _vehicleRegistrationUrl = url;
-                    });
-                  },
-                ),
-                const SizedBox(height: 15),
-                ImageUploadWidget(
-                  title: "Insurance Certificate",
-                  subtitle: "Upload vehicle insurance certificate",
-                  folder: "drivers/insurance",
-                  onImageUploaded: (url) {
-                    setState(() {
-                      _insuranceUrl = url;
-                    });
-                  },
-                ),
                 const SizedBox(height: 20),
 
                 // Terms and Conditions
@@ -542,7 +338,7 @@ class _DriverRegistrationScreenState extends State<DriverRegistrationScreen> {
                     ),
                     Expanded(
                       child: Text(
-                        "I agree to the Terms and Conditions and understand that my application will be reviewed by admin",
+                        "I agree to the Terms and Conditions",
                         style: GoogleFonts.poppins(
                           fontSize: 14,
                           color: Colors.black87,
@@ -579,7 +375,7 @@ class _DriverRegistrationScreenState extends State<DriverRegistrationScreen> {
                             ),
                           )
                         : Text(
-                            "Submit Application",
+                            "Create Account",
                             style: GoogleFonts.poppins(
                               fontSize: 18,
                               fontWeight: FontWeight.w600,
@@ -616,19 +412,6 @@ class _DriverRegistrationScreenState extends State<DriverRegistrationScreen> {
   void _handleRegistration() async {
     if (!_formKey.currentState!.validate()) return;
 
-    // Check if all documents are uploaded
-    if (_licenseUrl.isEmpty ||
-        _vehicleRegistrationUrl.isEmpty ||
-        _insuranceUrl.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Please upload all required documents'),
-          backgroundColor: Mycolors.red,
-        ),
-      );
-      return;
-    }
-
     setState(() {
       _isLoading = true;
     });
@@ -642,30 +425,20 @@ class _DriverRegistrationScreenState extends State<DriverRegistrationScreen> {
           );
 
       if (userCredential.user != null) {
-        // Save driver data to Firestore
+        // Save user data to Firestore
         await _firestore.collection('users').doc(userCredential.user!.uid).set({
           'name': _nameController.text.trim(),
           'email': _emailController.text.trim(),
           'phone': _phoneController.text.trim(),
-          'userType': 'driver',
-          'status': 'pending',
-          'licenseNumber': _licenseController.text.trim(),
-          'vehicleType': _selectedVehicleType,
-          'vehicleNumber': _vehicleNumberController.text.trim(),
-          'documents': {
-            'license': _licenseUrl,
-            'vehicleRegistration': _vehicleRegistrationUrl,
-            'insurance': _insuranceUrl,
-          },
+          'userType': 'user',
+          'status': 'approved',
           'createdAt': FieldValue.serverTimestamp(),
         });
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: const Text(
-                'Application submitted successfully! Admin will review your application.',
-              ),
+              content: const Text('Account created successfully!'),
               backgroundColor: Mycolors.green,
             ),
           );
@@ -673,7 +446,7 @@ class _DriverRegistrationScreenState extends State<DriverRegistrationScreen> {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
-              builder: (context) => const DriverDashboardScreen(),
+              builder: (context) => const UserDashboardScreen(),
             ),
           );
         }
@@ -697,7 +470,10 @@ class _DriverRegistrationScreenState extends State<DriverRegistrationScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: Mycolors.red),
+          SnackBar(
+            content: Text('An error occurred: $e'),
+            backgroundColor: Mycolors.red,
+          ),
         );
       }
     }

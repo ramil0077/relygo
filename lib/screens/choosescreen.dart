@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:relygo/screens/signin_screen.dart';
 import 'package:relygo/screens/user_contact_screen.dart';
 import 'package:relygo/screens/admin_dashboard_screen.dart';
+import 'package:relygo/screens/admin_login_screen.dart';
 import 'package:relygo/utils/responsive.dart';
 
 class Registration extends StatelessWidget {
@@ -62,10 +63,10 @@ class Registration extends StatelessWidget {
                     // Secondary action
                     TextButton(
                       onPressed: () {
-                        Navigator.pushReplacement(
+                        Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const AdminDashboardScreen(),
+                            builder: (context) => const AdminLoginScreen(),
                           ),
                         );
                       },
@@ -142,11 +143,9 @@ class Registration extends StatelessWidget {
             "• System Administration",
           ],
           () {
-            Navigator.pushReplacement(
+            Navigator.push(
               context,
-              MaterialPageRoute(
-                builder: (context) => const AdminDashboardScreen(),
-              ),
+              MaterialPageRoute(builder: (context) => const AdminLoginScreen()),
             );
           },
         ),
@@ -220,11 +219,9 @@ class Registration extends StatelessWidget {
             "• System Administration",
           ],
           () {
-            Navigator.pushReplacement(
+            Navigator.push(
               context,
-              MaterialPageRoute(
-                builder: (context) => const AdminDashboardScreen(),
-              ),
+              MaterialPageRoute(builder: (context) => const AdminLoginScreen()),
             );
           },
         ),
