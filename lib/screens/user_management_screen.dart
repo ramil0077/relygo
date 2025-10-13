@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:relygo/constants.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:relygo/services/admin_service.dart';
 
 class UserManagementScreen extends StatefulWidget {
   const UserManagementScreen({super.key});
@@ -12,150 +14,6 @@ class UserManagementScreen extends StatefulWidget {
 class _UserManagementScreenState extends State<UserManagementScreen> {
   String _selectedFilter = "All";
   String _searchQuery = "";
-
-  // Mock data for users
-  final List<Map<String, dynamic>> _users = [
-    {
-      'id': '1',
-      'name': 'John Smith',
-      'email': 'john@example.com',
-      'phone': '+1234567890',
-      'type': 'User',
-      'status': 'Active',
-      'joinDate': '2024-01-15',
-      'totalRides': 25,
-      'rating': 4.8,
-    },
-    {
-      'id': '2',
-      'name': 'Sarah Johnson',
-      'email': 'sarah@example.com',
-      'phone': '+1234567891',
-      'type': 'User',
-      'status': 'Active',
-      'joinDate': '2024-01-20',
-      'totalRides': 18,
-      'rating': 4.9,
-    },
-    {
-      'id': '3',
-      'name': 'Mike Wilson',
-      'email': 'mike@example.com',
-      'phone': '+1234567892',
-      'type': 'User',
-      'status': 'Suspended',
-      'joinDate': '2024-01-10',
-      'totalRides': 5,
-      'rating': 3.2,
-    },
-    {
-      'id': '4',
-      'name': 'Emma Davis',
-      'email': 'emma@example.com',
-      'phone': '+1234567893',
-      'type': 'User',
-      'status': 'Active',
-      'joinDate': '2024-02-01',
-      'totalRides': 32,
-      'rating': 4.7,
-    },
-  ];
-
-  // Mock data for drivers
-  final List<Map<String, dynamic>> _drivers = [
-    {
-      'id': '1',
-      'name': 'David Lee',
-      'email': 'david@example.com',
-      'phone': '+1234567894',
-      'type': 'Driver',
-      'status': 'Approved',
-      'joinDate': '2024-01-05',
-      'totalRides': 150,
-      'rating': 4.9,
-      'licenseNumber': 'DL123456789',
-      'vehicleNumber': 'ABC123',
-      'vehicleType': 'Sedan',
-    },
-    {
-      'id': '2',
-      'name': 'Lisa Brown',
-      'email': 'lisa@example.com',
-      'phone': '+1234567895',
-      'type': 'Driver',
-      'status': 'Pending',
-      'joinDate': '2024-02-10',
-      'totalRides': 0,
-      'rating': 0.0,
-      'licenseNumber': 'DL987654321',
-      'vehicleNumber': 'XYZ789',
-      'vehicleType': 'SUV',
-    },
-    {
-      'id': '3',
-      'name': 'Robert Taylor',
-      'email': 'robert@example.com',
-      'phone': '+1234567896',
-      'type': 'Driver',
-      'status': 'Rejected',
-      'joinDate': '2024-01-25',
-      'totalRides': 0,
-      'rating': 0.0,
-      'licenseNumber': 'DL456789123',
-      'vehicleNumber': 'DEF456',
-      'vehicleType': 'Hatchback',
-    },
-    {
-      'id': '4',
-      'name': 'Maria Garcia',
-      'email': 'maria@example.com',
-      'phone': '+1234567897',
-      'type': 'Driver',
-      'status': 'Approved',
-      'joinDate': '2024-01-12',
-      'totalRides': 200,
-      'rating': 4.8,
-      'licenseNumber': 'DL789123456',
-      'vehicleNumber': 'GHI789',
-      'vehicleType': 'Sedan',
-    },
-  ];
-
-  List<Map<String, dynamic>> get _filteredUsers {
-    List<Map<String, dynamic>> allUsers = [..._users, ..._drivers];
-
-    if (_searchQuery.isNotEmpty) {
-      allUsers = allUsers
-          .where(
-            (user) =>
-                user['name'].toLowerCase().contains(
-                  _searchQuery.toLowerCase(),
-                ) ||
-                user['email'].toLowerCase().contains(
-                  _searchQuery.toLowerCase(),
-                ),
-          )
-          .toList();
-    }
-
-    if (_selectedFilter == "Users") {
-      allUsers = allUsers.where((user) => user['type'] == 'User').toList();
-    } else if (_selectedFilter == "Drivers") {
-      allUsers = allUsers.where((user) => user['type'] == 'Driver').toList();
-    } else if (_selectedFilter == "Pending") {
-      allUsers = allUsers.where((user) => user['status'] == 'Pending').toList();
-    } else if (_selectedFilter == "Approved") {
-      allUsers = allUsers
-          .where((user) => user['status'] == 'Approved')
-          .toList();
-    } else if (_selectedFilter == "Suspended") {
-      allUsers = allUsers
-          .where((user) => user['status'] == 'Suspended')
-          .toList();
-    }
-
-    return allUsers;
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -239,14 +97,112 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
             ),
           ),
 
-          // Users List
+          // Users List (real-time)
           Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              itemCount: _filteredUsers.length,
-              itemBuilder: (context, index) {
-                final user = _filteredUsers[index];
-                return _buildUserCard(user);
+            child: StreamBuilder<List<Map<String, dynamic>>>(
+              stream: AdminService.getAllUsersAndDriversStream(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (snapshot.hasError) {
+                  return Center(
+                    child: Text(
+                      'Failed to load users',
+                      style: GoogleFonts.poppins(color: Mycolors.red),
+                    ),
+                  );
+                }
+
+                List<Map<String, dynamic>> allUsers = snapshot.data ?? [];
+
+                // Normalize keys expected by UI and flatten driver fields
+                allUsers = allUsers.map((u) {
+                  final Map<String, dynamic> docs =
+                      (u['documents'] is Map<String, dynamic>)
+                      ? (u['documents'] as Map<String, dynamic>)
+                      : {};
+                  return {
+                    ...u,
+                    'name': u['name'] ?? u['fullName'] ?? 'Unknown',
+                    'email': u['email'] ?? '',
+                    'phone': u['phone'] ?? u['phoneNumber'] ?? '',
+                    'type':
+                        (u['userType'] ?? '').toString().toLowerCase() ==
+                            'driver'
+                        ? 'Driver'
+                        : 'User',
+                    'status': _statusString(u['status']),
+                    'joinDate': _formatDate(u['createdAt']),
+                    'totalRides': u['totalRides'] ?? 0,
+                    'rating': (u['rating'] is num)
+                        ? (u['rating'] as num).toDouble()
+                        : 0.0,
+                    'vehicleType':
+                        u['vehicleType'] ?? docs['vehicleType'] ?? '',
+                    'vehicleNumber':
+                        u['vehicleNumber'] ?? docs['vehicleNumber'] ?? '',
+                    'licenseNumber':
+                        u['licenseNumber'] ?? docs['licenseNumber'] ?? '',
+                  };
+                }).toList();
+
+                // Search filter
+                if (_searchQuery.isNotEmpty) {
+                  allUsers = allUsers.where((user) {
+                    final name = (user['name'] ?? '').toString().toLowerCase();
+                    final email = (user['email'] ?? '')
+                        .toString()
+                        .toLowerCase();
+                    final q = _searchQuery.toLowerCase();
+                    return name.contains(q) || email.contains(q);
+                  }).toList();
+                }
+
+                // Chip filters
+                if (_selectedFilter == "Users") {
+                  allUsers = allUsers
+                      .where((user) => user['type'] == 'User')
+                      .toList();
+                } else if (_selectedFilter == "Drivers") {
+                  allUsers = allUsers
+                      .where((user) => user['type'] == 'Driver')
+                      .toList();
+                } else if (_selectedFilter == "Pending") {
+                  allUsers = allUsers
+                      .where((user) => user['status'] == 'Pending')
+                      .toList();
+                } else if (_selectedFilter == "Approved") {
+                  allUsers = allUsers
+                      .where(
+                        (user) =>
+                            user['status'] == 'Approved' ||
+                            user['status'] == 'Active',
+                      )
+                      .toList();
+                } else if (_selectedFilter == "Suspended") {
+                  allUsers = allUsers
+                      .where((user) => user['status'] == 'Suspended')
+                      .toList();
+                }
+
+                if (allUsers.isEmpty) {
+                  return Center(
+                    child: Text(
+                      'No records found',
+                      style: GoogleFonts.poppins(color: Mycolors.gray),
+                    ),
+                  );
+                }
+
+                return ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  itemCount: allUsers.length,
+                  itemBuilder: (context, index) {
+                    final user = allUsers[index];
+                    return _buildUserCard(user);
+                  },
+                );
               },
             ),
           ),
@@ -288,164 +244,93 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
     Color statusColor = _getStatusColor(user['status']);
     IconData statusIcon = _getStatusIcon(user['status']);
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 15),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade300),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            blurRadius: 5,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header with status and actions
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  CircleAvatar(
-                    radius: 20,
-                    backgroundColor: Mycolors.basecolor.withOpacity(0.1),
-                    child: Text(
-                      user['name'][0],
-                      style: GoogleFonts.poppins(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Mycolors.basecolor,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        user['name'],
+    return GestureDetector(
+      onTap: () => _showUserBottomSheet(user),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 15),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.grey.shade300),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.1),
+              blurRadius: 5,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header with status and actions
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 20,
+                      backgroundColor: Mycolors.basecolor.withOpacity(0.1),
+                      child: Text(
+                        user['name'][0],
                         style: GoogleFonts.poppins(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          color: Colors.black,
+                          color: Mycolors.basecolor,
                         ),
                       ),
-                      Text(
-                        user['email'],
-                        style: GoogleFonts.poppins(
-                          fontSize: 12,
-                          color: Mycolors.gray,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
                     ),
-                    decoration: BoxDecoration(
-                      color: statusColor.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
+                    const SizedBox(width: 12),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(statusIcon, color: statusColor, size: 12),
-                        const SizedBox(width: 4),
                         Text(
-                          user['status'],
+                          user['name'],
+                          style: GoogleFonts.poppins(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                          ),
+                        ),
+                        Text(
+                          user['email'],
                           style: GoogleFonts.poppins(
                             fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: statusColor,
+                            color: Mycolors.gray,
                           ),
                         ),
                       ],
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  PopupMenuButton<String>(
-                    onSelected: (value) => _handleUserAction(value, user),
-                    itemBuilder: (context) => _buildUserMenuItems(user),
-                    child: Icon(Icons.more_vert, color: Mycolors.gray),
-                  ),
-                ],
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 12),
-
-          // User details
-          Row(
-            children: [
-              Icon(Icons.phone, color: Mycolors.gray, size: 16),
-              const SizedBox(width: 8),
-              Text(
-                user['phone'],
-                style: GoogleFonts.poppins(fontSize: 14, color: Colors.black87),
-              ),
-              const SizedBox(width: 20),
-              Icon(Icons.calendar_today, color: Mycolors.gray, size: 16),
-              const SizedBox(width: 8),
-              Text(
-                user['joinDate'],
-                style: GoogleFonts.poppins(fontSize: 14, color: Colors.black87),
-              ),
-            ],
-          ),
-
-          if (user['type'] == 'Driver') ...[
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Icon(Icons.directions_car, color: Mycolors.gray, size: 16),
-                const SizedBox(width: 8),
-                Text(
-                  "${user['vehicleType']} - ${user['vehicleNumber']}",
-                  style: GoogleFonts.poppins(
-                    fontSize: 14,
-                    color: Colors.black87,
-                  ),
+                  ],
                 ),
-                const SizedBox(width: 20),
-                Icon(Icons.badge, color: Mycolors.gray, size: 16),
-                const SizedBox(width: 8),
-                Text(
-                  user['licenseNumber'],
-                  style: GoogleFonts.poppins(
-                    fontSize: 14,
-                    color: Colors.black87,
-                  ),
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: statusColor.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(statusIcon, color: statusColor, size: 16),
+                    ),
+                    const SizedBox(width: 8),
+                    const Icon(Icons.chevron_right, color: Colors.grey),
+                  ],
                 ),
               ],
             ),
+
+            const SizedBox(height: 12),
+
+            // Minimal: other details moved to bottom sheet on tap
+            // (phone, dates, vehicle, license, stats removed from inline view)
           ],
-
-          const SizedBox(height: 12),
-
-          // Stats
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _buildStatItem("Rides", "${user['totalRides']}"),
-              _buildStatItem("Rating", "${user['rating']} ⭐"),
-              if (user['type'] == 'Driver')
-                _buildStatItem("Type", user['type']),
-            ],
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -549,6 +434,16 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
         ),
       ),
       PopupMenuItem(
+        value: 'view_reviews',
+        child: Row(
+          children: [
+            Icon(Icons.reviews, color: Mycolors.orange, size: 20),
+            const SizedBox(width: 8),
+            Text('View Reviews', style: GoogleFonts.poppins()),
+          ],
+        ),
+      ),
+      PopupMenuItem(
         value: 'contact',
         child: Row(
           children: [
@@ -583,10 +478,147 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
       case 'view_details':
         _showUserDetails(user);
         break;
+      case 'view_reviews':
+        _showReviews(user);
+        break;
       case 'contact':
         _showContactDialog(user);
         break;
     }
+  }
+
+  String _statusString(dynamic raw) {
+    final value = (raw ?? '').toString().toLowerCase();
+    if (value == 'approved' || value == 'active') return 'Approved';
+    if (value == 'pending') return 'Pending';
+    if (value == 'rejected') return 'Rejected';
+    if (value == 'suspended') return 'Suspended';
+    return 'Active';
+  }
+
+  String _formatDate(dynamic ts) {
+    try {
+      if (ts is Timestamp) {
+        final dt = ts.toDate();
+        return "${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')}";
+      }
+      return ts?.toString() ?? '';
+    } catch (_) {
+      return '';
+    }
+  }
+
+  void _showReviews(Map<String, dynamic> user) {
+    final isDriver = user['type'] == 'Driver';
+    final id = user['id'] ?? '';
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          insetPadding: const EdgeInsets.all(16),
+          child: SizedBox(
+            height: 500,
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Reviews for ${user['name']}',
+                    style: GoogleFonts.poppins(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Expanded(
+                    child: StreamBuilder<List<Map<String, dynamic>>>(
+                      stream: AdminService.getFeedbackStream(
+                        userId: isDriver ? null : id,
+                        driverId: isDriver ? id : null,
+                      ),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const Center(
+                            child: CircularProgressIndicator(),
+                          );
+                        }
+                        if (snapshot.hasError) {
+                          return Center(
+                            child: Text(
+                              'Failed to load reviews',
+                              style: GoogleFonts.poppins(color: Mycolors.red),
+                            ),
+                          );
+                        }
+                        final items = snapshot.data ?? [];
+                        if (items.isEmpty) {
+                          return Center(
+                            child: Text(
+                              'No reviews yet',
+                              style: GoogleFonts.poppins(color: Mycolors.gray),
+                            ),
+                          );
+                        }
+                        return ListView.separated(
+                          itemCount: items.length,
+                          separatorBuilder: (_, __) =>
+                              const Divider(height: 16),
+                          itemBuilder: (context, index) {
+                            final r = items[index];
+                            final rating = (r['rating'] is num)
+                                ? (r['rating'] as num).toDouble()
+                                : 0.0;
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.star,
+                                      color: Mycolors.orange,
+                                      size: 16,
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      rating.toStringAsFixed(1),
+                                      style: GoogleFonts.poppins(
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  r['comment'] ?? '',
+                                  style: GoogleFonts.poppins(fontSize: 13),
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: Text(
+                        'Close',
+                        style: GoogleFonts.poppins(color: Colors.grey),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
   }
 
   void _showApprovalDialog(Map<String, dynamic> user, bool approve) {
@@ -601,12 +633,34 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
             approve ? "Approve Driver" : "Reject Driver",
             style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
           ),
-          content: Text(
-            approve
-                ? "Are you sure you want to approve ${user['name']} as a driver?"
-                : "Are you sure you want to reject ${user['name']}'s driver application?",
-            style: GoogleFonts.poppins(),
-          ),
+          content: approve
+              ? Text(
+                  "Are you sure you want to approve ${user['name']} as a driver?",
+                  style: GoogleFonts.poppins(),
+                )
+              : Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Provide a reason (optional):",
+                      style: GoogleFonts.poppins(fontSize: 13),
+                    ),
+                    const SizedBox(height: 8),
+                    TextField(
+                      key: const ValueKey('reject_reason_field'),
+                      maxLines: 2,
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        hintText: 'Reason for rejection',
+                      ),
+                      onChanged: (v) {
+                        // Temp store on user map for ease
+                        user['__rejectReason'] = v;
+                      },
+                    ),
+                  ],
+                ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
@@ -616,21 +670,63 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
               ),
             ),
             ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
                 Navigator.of(context).pop();
-                setState(() {
-                  user['status'] = approve ? 'Approved' : 'Rejected';
-                });
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      approve
-                          ? 'Driver approved successfully!'
-                          : 'Driver rejected',
+                try {
+                  if (approve) {
+                    final res = await AdminService.approveDriver(user['id']);
+                    if (res['success'] == true) {
+                      setState(() {
+                        user['status'] = 'Approved';
+                      });
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: const Text('Driver approved successfully!'),
+                          backgroundColor: Mycolors.green,
+                        ),
+                      );
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(res['error'] ?? 'Failed to approve'),
+                          backgroundColor: Mycolors.red,
+                        ),
+                      );
+                    }
+                  } else {
+                    final reason = (user['__rejectReason'] ?? 'Not specified')
+                        .toString();
+                    final res = await AdminService.rejectDriver(
+                      user['id'],
+                      reason,
+                    );
+                    if (res['success'] == true) {
+                      setState(() {
+                        user['status'] = 'Rejected';
+                      });
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: const Text('Driver rejected'),
+                          backgroundColor: Mycolors.red,
+                        ),
+                      );
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(res['error'] ?? 'Failed to reject'),
+                          backgroundColor: Mycolors.red,
+                        ),
+                      );
+                    }
+                  }
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Action failed: $e'),
+                      backgroundColor: Mycolors.red,
                     ),
-                    backgroundColor: approve ? Mycolors.green : Mycolors.red,
-                  ),
-                );
+                  );
+                }
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: approve ? Mycolors.green : Mycolors.red,
@@ -877,6 +973,179 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
           ],
         );
       },
+    );
+  }
+
+  void _showUserBottomSheet(Map<String, dynamic> user) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) {
+        final docs = (user['documents'] is Map<String, dynamic>)
+            ? (user['documents'] as Map<String, dynamic>)
+            : {};
+        return DraggableScrollableSheet(
+          expand: false,
+          initialChildSize: 0.6,
+          minChildSize: 0.4,
+          maxChildSize: 0.95,
+          builder: (context, scrollController) {
+            return SingleChildScrollView(
+              controller: scrollController,
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 22,
+                        backgroundColor: Mycolors.basecolor.withOpacity(0.1),
+                        child: Text(
+                          (user['name'] ?? 'U')[0],
+                          style: GoogleFonts.poppins(
+                            fontWeight: FontWeight.bold,
+                            color: Mycolors.basecolor,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              user['name'] ?? 'Unknown',
+                              style: GoogleFonts.poppins(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            Text(
+                              user['email'] ?? '',
+                              style: GoogleFonts.poppins(
+                                fontSize: 13,
+                                color: Mycolors.gray,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: _getStatusColor(
+                            user['status'],
+                          ).withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          user['status'],
+                          style: GoogleFonts.poppins(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: _getStatusColor(user['status']),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  _buildDetailRow("Phone", user['phone'] ?? ''),
+                  _buildDetailRow("Join Date", user['joinDate'] ?? ''),
+                  _buildDetailRow("Type", user['type'] ?? ''),
+                  if (user['type'] == 'Driver') ...[
+                    _buildDetailRow(
+                      "License",
+                      (user['licenseNumber'] ?? '').toString(),
+                    ),
+                    _buildDetailRow(
+                      "Vehicle",
+                      "${user['vehicleType'] ?? ''} - ${user['vehicleNumber'] ?? ''}",
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'Documents',
+                      style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 8),
+                    _buildDocTile('License', docs['license']),
+                    _buildDocTile(
+                      'Vehicle Registration',
+                      docs['vehicleRegistration'],
+                    ),
+                    _buildDocTile('Insurance', docs['insurance']),
+                  ],
+                  const SizedBox(height: 16),
+                  if (user['type'] == 'Driver' && user['status'] == 'Pending')
+                    Row(
+                      children: [
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: () => _handleUserAction('approve', user),
+                            icon: const Icon(Icons.check_circle),
+                            label: Text(
+                              'Approve',
+                              style: GoogleFonts.poppins(),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Mycolors.green,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: () => _handleUserAction('reject', user),
+                            icon: const Icon(Icons.cancel),
+                            label: Text('Reject', style: GoogleFonts.poppins()),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Mycolors.red,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildDocTile(String label, dynamic url) {
+    final String value = (url ?? '').toString();
+    return ListTile(
+      dense: true,
+      contentPadding: EdgeInsets.zero,
+      leading: Icon(Icons.description, color: Mycolors.basecolor),
+      title: Text(
+        label,
+        style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+      ),
+      subtitle: Text(
+        value.isEmpty ? 'Not uploaded' : value,
+        style: GoogleFonts.poppins(fontSize: 12, color: Mycolors.gray),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+      onTap: value.isEmpty ? null : () {},
     );
   }
 

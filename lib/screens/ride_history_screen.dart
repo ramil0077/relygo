@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:relygo/constants.dart';
 import 'package:relygo/screens/rating_review_screen.dart';
+import 'package:relygo/services/user_service.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class RideHistoryScreen extends StatefulWidget {
   const RideHistoryScreen({super.key});
@@ -47,100 +49,66 @@ class _RideHistoryScreenState extends State<RideHistoryScreen> {
             ),
           ),
 
-          // Rides List
+          // Rides List - Firestore
           Expanded(
-            child: ListView(
-              padding: const EdgeInsets.all(20),
-              children: [
-                _buildRideCard(
-                  "Airport to Downtown",
-                  "John Smith",
-                  "2.5 km",
-                  "₹180",
-                  "Completed",
-                  Mycolors.green,
-                  "2 hours ago",
-                  "4.8",
-                  Icons.directions_car,
-                ),
-                _buildRideCard(
-                  "Mall to Station",
-                  "Sarah Johnson",
-                  "1.8 km",
-                  "₹120",
-                  "Completed",
-                  Mycolors.green,
-                  "Yesterday",
-                  "4.9",
-                  Icons.directions_car,
-                ),
-                _buildRideCard(
-                  "Hospital Pickup",
-                  "Mike Wilson",
-                  "3.2 km",
-                  "₹200",
-                  "Completed",
-                  Mycolors.green,
-                  "2 days ago",
-                  "4.7",
-                  Icons.directions_car,
-                ),
-                _buildRideCard(
-                  "Office to Home",
-                  "Emma Davis",
-                  "4.1 km",
-                  "₹250",
-                  "Cancelled",
-                  Mycolors.red,
-                  "3 days ago",
-                  "0.0",
-                  Icons.cancel,
-                ),
-                _buildRideCard(
-                  "Station to Airport",
-                  "David Lee",
-                  "5.2 km",
-                  "₹300",
-                  "Completed",
-                  Mycolors.green,
-                  "1 week ago",
-                  "4.6",
-                  Icons.directions_car,
-                ),
-                _buildRideCard(
-                  "Downtown to Mall",
-                  "Lisa Brown",
-                  "2.8 km",
-                  "₹160",
-                  "Completed",
-                  Mycolors.green,
-                  "1 week ago",
-                  "4.8",
-                  Icons.directions_car,
-                ),
-                _buildRideCard(
-                  "Grocery Store",
-                  "Chris Anderson",
-                  "1.5 km",
-                  "₹90",
-                  "Completed",
-                  Mycolors.green,
-                  "2 weeks ago",
-                  "4.5",
-                  Icons.shopping_cart,
-                ),
-                _buildRideCard(
-                  "University",
-                  "Anna Taylor",
-                  "6.3 km",
-                  "₹350",
-                  "Completed",
-                  Mycolors.green,
-                  "2 weeks ago",
-                  "4.9",
-                  Icons.school,
-                ),
-              ],
+            child: StreamBuilder<List<Map<String, dynamic>>>(
+              stream: UserService.getCurrentUserRidesStream(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (snapshot.hasError) {
+                  return Center(
+                    child: Text(
+                      'Failed to load rides',
+                      style: GoogleFonts.poppins(color: Mycolors.red),
+                    ),
+                  );
+                }
+                final rides = snapshot.data ?? [];
+                if (rides.isEmpty) {
+                  return Center(
+                    child: Text(
+                      'No rides found',
+                      style: GoogleFonts.poppins(color: Mycolors.gray),
+                    ),
+                  );
+                }
+                return ListView.builder(
+                  padding: const EdgeInsets.all(20),
+                  itemCount: rides.length,
+                  itemBuilder: (context, index) {
+                    final r = rides[index];
+                    final destination = r['destination'] ?? r['to'] ?? 'Ride';
+                    final driverName = r['driverName'] ?? '';
+                    final distance = r['distanceText'] ?? '';
+                    final price = r['fare'] != null ? '₹${r['fare']}' : '';
+                    final status = _statusString(r['status']);
+                    final statusColor = _statusColor(status);
+                    final time = _formatDate(r['createdAt']);
+                    final rating = (r['rating'] is num)
+                        ? (r['rating'] as num).toString()
+                        : '0.0';
+                    final icon = status == 'Cancelled'
+                        ? Icons.cancel
+                        : Icons.directions_car;
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 15),
+                      child: _buildRideCard(
+                        destination,
+                        driverName,
+                        distance,
+                        price,
+                        status,
+                        statusColor,
+                        time,
+                        rating,
+                        icon,
+                      ),
+                    );
+                  },
+                );
+              },
             ),
           ),
         ],
@@ -423,6 +391,39 @@ class _RideHistoryScreenState extends State<RideHistoryScreen> {
         ],
       ),
     );
+  }
+
+  String _statusString(dynamic raw) {
+    final v = (raw ?? '').toString().toLowerCase();
+    if (v == 'completed') return 'Completed';
+    if (v == 'cancelled') return 'Cancelled';
+    if (v == 'scheduled') return 'Scheduled';
+    return 'Completed';
+  }
+
+  Color _statusColor(String status) {
+    switch (status) {
+      case 'Completed':
+        return Mycolors.green;
+      case 'Cancelled':
+        return Mycolors.red;
+      case 'Scheduled':
+        return Mycolors.basecolor;
+      default:
+        return Mycolors.gray;
+    }
+  }
+
+  String _formatDate(dynamic createdAt) {
+    try {
+      if (createdAt is Timestamp) {
+        final dt = createdAt.toDate();
+        return "${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')}";
+      }
+      return createdAt?.toString() ?? '';
+    } catch (_) {
+      return '';
+    }
   }
 
   void _showRideDetailsDialog(

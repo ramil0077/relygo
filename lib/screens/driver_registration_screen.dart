@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:relygo/constants.dart';
-import 'package:relygo/screens/driver_dashboard_screen.dart';
 import 'package:relygo/widgets/image_upload_widget.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:relygo/services/auth_service.dart';
+import 'package:relygo/screens/signin_screen.dart';
 
 class DriverRegistrationScreen extends StatefulWidget {
   const DriverRegistrationScreen({super.key});
@@ -34,9 +33,6 @@ class _DriverRegistrationScreenState extends State<DriverRegistrationScreen> {
   String _licenseUrl = '';
   String _vehicleRegistrationUrl = '';
   String _insuranceUrl = '';
-
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   final List<String> _vehicleTypes = [
     "Sedan",
@@ -633,71 +629,61 @@ class _DriverRegistrationScreenState extends State<DriverRegistrationScreen> {
       _isLoading = true;
     });
 
-    try {
-      // Create user with Firebase Auth
-      UserCredential userCredential = await _auth
-          .createUserWithEmailAndPassword(
-            email: _emailController.text.trim(),
-            password: _passwordController.text.trim(),
-          );
+    // Prepare documents map
+    final Map<String, String> documents = {
+      'license': _licenseUrl,
+      'vehicleRegistration': _vehicleRegistrationUrl,
+      'insurance': _insuranceUrl,
+    };
 
-      if (userCredential.user != null) {
-        // Save driver data to Firestore
-        await _firestore.collection('users').doc(userCredential.user!.uid).set({
-          'name': _nameController.text.trim(),
-          'email': _emailController.text.trim(),
-          'phone': _phoneController.text.trim(),
-          'userType': 'driver',
-          'status': 'pending',
+    final result = await AuthService.createUserWithEmailAndPassword(
+      email: _emailController.text.trim(),
+      password: _passwordController.text.trim(),
+      name: _nameController.text.trim(),
+      phone: _phoneController.text.trim(),
+      userType: 'driver',
+      documents: documents,
+    );
+
+    if (result['success'] == true) {
+      // Update with additional driver information
+      final String userId = result['user'].uid;
+      await AuthService.updateUserProfile(
+        userId: userId,
+        documents: {
+          ...documents,
           'licenseNumber': _licenseController.text.trim(),
           'vehicleType': _selectedVehicleType,
           'vehicleNumber': _vehicleNumberController.text.trim(),
-          'documents': {
-            'license': _licenseUrl,
-            'vehicleRegistration': _vehicleRegistrationUrl,
-            'insurance': _insuranceUrl,
-          },
-          'createdAt': FieldValue.serverTimestamp(),
-        });
+        },
+      );
 
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text(
+              'Application submitted! You can login after admin approval.',
+            ),
+            backgroundColor: Mycolors.green,
+          ),
+        );
+
+        // Sign out and redirect to login
+        await AuthService.signOut();
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Text(
-                'Application submitted successfully! Admin will review your application.',
-              ),
-              backgroundColor: Mycolors.green,
-            ),
-          );
-
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const DriverDashboardScreen(),
-            ),
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (_) => const SignInScreen()),
+            (route) => false,
           );
         }
       }
-    } on FirebaseAuthException catch (e) {
-      String errorMessage = 'An error occurred. Please try again.';
-
-      if (e.code == 'weak-password') {
-        errorMessage = 'Password is too weak.';
-      } else if (e.code == 'email-already-in-use') {
-        errorMessage = 'An account already exists with this email.';
-      } else if (e.code == 'invalid-email') {
-        errorMessage = 'Please enter a valid email address.';
-      }
-
+    } else {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(errorMessage), backgroundColor: Mycolors.red),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: Mycolors.red),
+          SnackBar(
+            content: Text(result['error'] ?? 'Registration failed'),
+            backgroundColor: Mycolors.red,
+          ),
         );
       }
     }

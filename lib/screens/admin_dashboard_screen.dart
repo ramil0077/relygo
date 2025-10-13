@@ -3,9 +3,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:relygo/constants.dart';
 import 'package:relygo/screens/user_management_screen.dart';
 import 'package:relygo/screens/driver_management_screen.dart';
-import 'package:relygo/screens/admin_profile_screen.dart';
 import 'package:relygo/screens/complaint_management_screen.dart';
 import 'package:relygo/screens/feedback_screen.dart';
+import 'package:relygo/screens/admin_driver_approval_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
@@ -83,7 +83,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             _buildUsersTab(),
             _buildDriversTab(),
             _buildAnalyticsTab(),
-            _buildProfileTab(),
           ],
         ),
       ),
@@ -106,7 +105,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             _buildNavItem(Icons.people, "Users", 1),
             _buildNavItem(Icons.drive_eta, "Drivers", 2),
             _buildNavItem(Icons.analytics, "Analytics", 3),
-            _buildNavItem(Icons.person, "Profile", 4),
           ],
         ),
       ),
@@ -332,7 +330,84 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   }
 
   Widget _buildDriversTab() {
-    return const DriverManagementScreen();
+    return Padding(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        children: [
+          const SizedBox(height: 20),
+          Text(
+            "Driver Management",
+            style: GoogleFonts.poppins(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
+          ),
+          const SizedBox(height: 20),
+
+          // Quick Actions
+          Row(
+            children: [
+              Expanded(
+                child: _buildActionCard(
+                  "Driver Approvals",
+                  Icons.approval,
+                  Mycolors.orange,
+                  () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const AdminDriverApprovalScreen(),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(width: 15),
+              Expanded(
+                child: _buildActionCard(
+                  "Manage Drivers",
+                  Icons.people,
+                  Mycolors.blue,
+                  () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const DriverManagementScreen(),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+
+          // Stats
+          Row(
+            children: [
+              Expanded(
+                child: _buildStatCard(
+                  _pendingApprovals.toString(),
+                  "Pending Approvals",
+                  Icons.pending,
+                  Mycolors.orange,
+                ),
+              ),
+              const SizedBox(width: 15),
+              Expanded(
+                child: _buildStatCard(
+                  _activeDrivers.toString(),
+                  "Active Drivers",
+                  Icons.drive_eta,
+                  Mycolors.green,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildAnalyticsTab() {
@@ -421,10 +496,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         ],
       ),
     );
-  }
-
-  Widget _buildProfileTab() {
-    return const AdminProfileScreen();
   }
 
   Widget _buildStatCard(

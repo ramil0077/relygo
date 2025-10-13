@@ -1,5 +1,7 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:relygo/constants.dart';
@@ -27,6 +29,8 @@ class ImageUploadWidget extends StatefulWidget {
 
 class _ImageUploadWidgetState extends State<ImageUploadWidget> {
   File? _selectedImage;
+  Uint8List? _selectedBytes; // for web
+  String? _selectedFilename; // for web
   bool _isUploading = false;
   String? _uploadedUrl;
 
@@ -108,7 +112,8 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget> {
                 ),
             ],
           ),
-          if (_selectedImage != null && _uploadedUrl == null) ...[
+          if ((_selectedImage != null || _selectedBytes != null) &&
+              _uploadedUrl == null) ...[
             const SizedBox(height: 12),
             Container(
               width: double.infinity,
@@ -119,7 +124,9 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget> {
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(8),
-                child: Image.file(_selectedImage!, fit: BoxFit.cover),
+                child: kIsWeb && _selectedBytes != null
+                    ? Image.memory(_selectedBytes!, fit: BoxFit.cover)
+                    : Image.file(_selectedImage!, fit: BoxFit.cover),
               ),
             ),
             const SizedBox(height: 8),
@@ -234,33 +241,55 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget> {
 
   Future<void> _selectImage() async {
     try {
-      final ImagePicker picker = ImagePicker();
-      final XFile? image = await picker.pickImage(
-        source: ImageSource.gallery,
-        maxWidth: 1920,
-        maxHeight: 1080,
-        imageQuality: 85,
-      );
-
-      if (image != null) {
-        File imageFile = File(image.path);
-
-        // Validate file
-        if (!CloudinaryService.isValidImageFile(imageFile)) {
-          _showErrorSnackBar(
-            'Please select a valid image file (JPG, PNG, GIF, WebP)',
-          );
-          return;
+      if (kIsWeb) {
+        final ImagePicker picker = ImagePicker();
+        final XFile? image = await picker.pickImage(
+          source: ImageSource.gallery,
+        );
+        if (image != null) {
+          final bytes = await image.readAsBytes();
+          if (!CloudinaryService.isValidImageFilename(image.name)) {
+            _showErrorSnackBar(
+              'Please select a valid image file (JPG, PNG, GIF, WebP)',
+            );
+            return;
+          }
+          if (!CloudinaryService.isBytesSizeValid(bytes)) {
+            _showErrorSnackBar('Image size must be less than 5MB');
+            return;
+          }
+          setState(() {
+            _selectedBytes = bytes;
+            _selectedFilename = image.name;
+            _selectedImage = null;
+          });
         }
-
-        if (!CloudinaryService.isFileSizeValid(imageFile)) {
-          _showErrorSnackBar('Image size must be less than 5MB');
-          return;
+      } else {
+        final ImagePicker picker = ImagePicker();
+        final XFile? image = await picker.pickImage(
+          source: ImageSource.gallery,
+          maxWidth: 1920,
+          maxHeight: 1080,
+          imageQuality: 85,
+        );
+        if (image != null) {
+          File imageFile = File(image.path);
+          if (!CloudinaryService.isValidImageFile(imageFile)) {
+            _showErrorSnackBar(
+              'Please select a valid image file (JPG, PNG, GIF, WebP)',
+            );
+            return;
+          }
+          if (!CloudinaryService.isFileSizeValid(imageFile)) {
+            _showErrorSnackBar('Image size must be less than 5MB');
+            return;
+          }
+          setState(() {
+            _selectedImage = imageFile;
+            _selectedBytes = null;
+            _selectedFilename = null;
+          });
         }
-
-        setState(() {
-          _selectedImage = imageFile;
-        });
       }
     } catch (e) {
       _showErrorSnackBar('Error selecting image: $e');
@@ -268,22 +297,33 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget> {
   }
 
   Future<void> _uploadImage() async {
-    if (_selectedImage == null) return;
+    if (_selectedImage == null && _selectedBytes == null) return;
 
     setState(() {
       _isUploading = true;
     });
 
     try {
-      String? uploadedUrl = await CloudinaryService.uploadImage(
-        _selectedImage!,
-        widget.folder,
-      );
+      String? uploadedUrl;
+      if (kIsWeb && _selectedBytes != null) {
+        uploadedUrl = await CloudinaryService.uploadImageBytes(
+          _selectedBytes!,
+          widget.folder,
+          filename: _selectedFilename ?? 'upload.jpg',
+        );
+      } else if (_selectedImage != null) {
+        uploadedUrl = await CloudinaryService.uploadImage(
+          _selectedImage!,
+          widget.folder,
+        );
+      }
 
       if (uploadedUrl != null) {
         setState(() {
           _uploadedUrl = uploadedUrl;
           _selectedImage = null;
+          _selectedBytes = null;
+          _selectedFilename = null;
         });
 
         widget.onImageUploaded(uploadedUrl);
@@ -303,6 +343,8 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget> {
   void _removeImage() {
     setState(() {
       _selectedImage = null;
+      _selectedBytes = null;
+      _selectedFilename = null;
       _uploadedUrl = null;
     });
     widget.onImageUploaded('');

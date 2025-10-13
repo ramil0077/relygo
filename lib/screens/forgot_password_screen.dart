@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:relygo/constants.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:relygo/services/auth_service.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -264,11 +264,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       _isLoading = true;
     });
 
-    try {
-      await FirebaseAuth.instance.sendPasswordResetEmail(
-        email: _emailController.text.trim(),
-      );
+    final result = await AuthService.resetPassword(
+      _emailController.text.trim(),
+    );
 
+    if (result['success'] == true) {
       setState(() {
         _emailSent = true;
         _isLoading = false;
@@ -276,27 +276,24 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Password reset email sent successfully!'),
+          content: Text(
+            result['message'] ?? 'Password reset email sent successfully!',
+          ),
           backgroundColor: Mycolors.green,
         ),
       );
-    } catch (e) {
+    } else {
       setState(() {
         _isLoading = false;
       });
 
-      String errorMessage = 'An error occurred. Please try again.';
-
-      if (e.toString().contains('user-not-found')) {
-        errorMessage = 'No account found with this email address.';
-      } else if (e.toString().contains('invalid-email')) {
-        errorMessage = 'Please enter a valid email address.';
-      } else if (e.toString().contains('too-many-requests')) {
-        errorMessage = 'Too many requests. Please try again later.';
-      }
-
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(errorMessage), backgroundColor: Mycolors.red),
+        SnackBar(
+          content: Text(
+            result['error'] ?? 'An error occurred. Please try again.',
+          ),
+          backgroundColor: Mycolors.red,
+        ),
       );
     }
   }

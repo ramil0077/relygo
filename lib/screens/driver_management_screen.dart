@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:relygo/constants.dart';
+import 'package:relygo/services/admin_service.dart';
 
 class DriverManagementScreen extends StatefulWidget {
   const DriverManagementScreen({super.key});
@@ -79,100 +80,85 @@ class _DriverManagementScreenState extends State<DriverManagementScreen> {
             ),
           ),
 
-          // Drivers List
+          // Drivers List (real-time)
           Expanded(
-            child: ListView(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              children: [
-                _buildDriverCard(
-                  "John Smith",
-                  "john.smith@email.com",
-                  "+91 98765 43210",
-                  "Online",
-                  Mycolors.green,
-                  "4.8",
-                  "Car",
-                  "2 hours ago",
-                  "₹1,250",
-                ),
-                _buildDriverCard(
-                  "Sarah Johnson",
-                  "sarah.johnson@email.com",
-                  "+91 87654 32109",
-                  "Online",
-                  Mycolors.green,
-                  "4.9",
-                  "Bike",
-                  "30 minutes ago",
-                  "₹980",
-                ),
-                _buildDriverCard(
-                  "Mike Wilson",
-                  "mike.wilson@email.com",
-                  "+91 76543 21098",
-                  "Offline",
-                  Mycolors.orange,
-                  "4.7",
-                  "Auto",
-                  "1 day ago",
-                  "₹1,500",
-                ),
-                _buildDriverCard(
-                  "Emma Davis",
-                  "emma.davis@email.com",
-                  "+91 65432 10987",
-                  "Pending",
-                  Mycolors.red,
-                  "0.0",
-                  "Car",
-                  "Verification",
-                  "₹0",
-                ),
-                _buildDriverCard(
-                  "David Lee",
-                  "david.lee@email.com",
-                  "+91 54321 09876",
-                  "Online",
-                  Mycolors.green,
-                  "4.6",
-                  "Car",
-                  "1 hour ago",
-                  "₹2,100",
-                ),
-                _buildDriverCard(
-                  "Lisa Brown",
-                  "lisa.brown@email.com",
-                  "+91 43210 98765",
-                  "Offline",
-                  Mycolors.orange,
-                  "4.5",
-                  "Bike",
-                  "3 hours ago",
-                  "₹750",
-                ),
-                _buildDriverCard(
-                  "Chris Anderson",
-                  "chris.anderson@email.com",
-                  "+91 32109 87654",
-                  "Online",
-                  Mycolors.green,
-                  "4.8",
-                  "Auto",
-                  "15 minutes ago",
-                  "₹1,800",
-                ),
-                _buildDriverCard(
-                  "Anna Taylor",
-                  "anna.taylor@email.com",
-                  "+91 21098 76543",
-                  "Pending",
-                  Mycolors.red,
-                  "0.0",
-                  "Car",
-                  "Document Review",
-                  "₹0",
-                ),
-              ],
+            child: StreamBuilder<List<Map<String, dynamic>>>(
+              stream: AdminService.getAllDriversStream(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (snapshot.hasError) {
+                  return Center(
+                    child: Text(
+                      'Failed to load drivers',
+                      style: GoogleFonts.poppins(color: Mycolors.red),
+                    ),
+                  );
+                }
+                List<Map<String, dynamic>> drivers = (snapshot.data ?? []).map((
+                  d,
+                ) {
+                  return {
+                    ...d,
+                    'name': d['name'] ?? d['fullName'] ?? 'Unknown',
+                    'email': d['email'] ?? '',
+                    'phone': d['phone'] ?? d['phoneNumber'] ?? '',
+                    'status': _statusString(d['status']),
+                    'rating': (d['rating'] is num)
+                        ? (d['rating'] as num).toDouble()
+                        : 0.0,
+                    'vehicleType': d['vehicleType'] ?? '',
+                  };
+                }).toList();
+
+                // Text search
+                if (_searchQuery.isNotEmpty) {
+                  final q = _searchQuery.toLowerCase();
+                  drivers = drivers.where((u) {
+                    return (u['name'] ?? '').toString().toLowerCase().contains(
+                          q,
+                        ) ||
+                        (u['email'] ?? '').toString().toLowerCase().contains(q);
+                  }).toList();
+                }
+
+                // Status filter
+                if (_selectedFilter != 'All') {
+                  drivers = drivers
+                      .where((u) => u['status'] == _selectedFilter)
+                      .toList();
+                }
+
+                if (drivers.isEmpty) {
+                  return Center(
+                    child: Text(
+                      'No drivers found',
+                      style: GoogleFonts.poppins(color: Mycolors.gray),
+                    ),
+                  );
+                }
+
+                return ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  itemCount: drivers.length,
+                  itemBuilder: (context, index) {
+                    final d = drivers[index];
+                    final statusColor = _statusColor(d['status']);
+                    return _buildDriverCard(
+                      d['name'] ?? '',
+                      d['email'] ?? '',
+                      d['phone'] ?? '',
+                      d['status'] ?? 'Pending',
+                      statusColor,
+                      (d['rating'] ?? 0.0).toString(),
+                      d['vehicleType'] ?? '',
+                      '',
+                      '',
+                    );
+                  },
+                );
+              },
             ),
           ),
         ],
@@ -449,6 +435,31 @@ class _DriverManagementScreenState extends State<DriverManagementScreen> {
         ],
       ),
     );
+  }
+
+  Color _statusColor(String status) {
+    switch (status) {
+      case 'Online':
+        return Mycolors.green;
+      case 'Offline':
+        return Mycolors.orange;
+      case 'Pending':
+        return Mycolors.red;
+      case 'Approved':
+        return Mycolors.green;
+      default:
+        return Mycolors.gray;
+    }
+  }
+
+  String _statusString(dynamic raw) {
+    final v = (raw ?? '').toString().toLowerCase();
+    if (v == 'approved' || v == 'active') return 'Approved';
+    if (v == 'pending') return 'Pending';
+    if (v == 'online') return 'Online';
+    if (v == 'offline') return 'Offline';
+    if (v == 'suspended') return 'Pending';
+    return 'Pending';
   }
 
   void _handleDriverAction(String action, String driverName) {

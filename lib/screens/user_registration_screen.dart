@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:relygo/constants.dart';
 import 'package:relygo/screens/user_dashboard_screen.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:relygo/services/auth_service.dart';
 
 class UserRegistrationScreen extends StatefulWidget {
   const UserRegistrationScreen({super.key});
@@ -24,9 +23,6 @@ class _UserRegistrationScreenState extends State<UserRegistrationScreen> {
   bool _obscureConfirmPassword = true;
   bool _agreeToTerms = false;
 
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-
   @override
   void dispose() {
     _nameController.dispose();
@@ -43,7 +39,7 @@ class _UserRegistrationScreenState extends State<UserRegistrationScreen> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
-        elevation: 0,
+   
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () => Navigator.pop(context),
@@ -416,62 +412,33 @@ class _UserRegistrationScreenState extends State<UserRegistrationScreen> {
       _isLoading = true;
     });
 
-    try {
-      // Create user with Firebase Auth
-      UserCredential userCredential = await _auth
-          .createUserWithEmailAndPassword(
-            email: _emailController.text.trim(),
-            password: _passwordController.text.trim(),
-          );
+    final result = await AuthService.createUserWithEmailAndPassword(
+      email: _emailController.text.trim(),
+      password: _passwordController.text.trim(),
+      name: _nameController.text.trim(),
+      phone: _phoneController.text.trim(),
+      userType: 'user',
+    );
 
-      if (userCredential.user != null) {
-        // Save user data to Firestore
-        await _firestore.collection('users').doc(userCredential.user!.uid).set({
-          'name': _nameController.text.trim(),
-          'email': _emailController.text.trim(),
-          'phone': _phoneController.text.trim(),
-          'userType': 'user',
-          'status': 'approved',
-          'createdAt': FieldValue.serverTimestamp(),
-        });
-
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Text('Account created successfully!'),
-              backgroundColor: Mycolors.green,
-            ),
-          );
-
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const UserDashboardScreen(),
-            ),
-          );
-        }
-      }
-    } on FirebaseAuthException catch (e) {
-      String errorMessage = 'An error occurred. Please try again.';
-
-      if (e.code == 'weak-password') {
-        errorMessage = 'Password is too weak.';
-      } else if (e.code == 'email-already-in-use') {
-        errorMessage = 'An account already exists with this email.';
-      } else if (e.code == 'invalid-email') {
-        errorMessage = 'Please enter a valid email address.';
-      }
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(errorMessage), backgroundColor: Mycolors.red),
-        );
-      }
-    } catch (e) {
+    if (result['success'] == true) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('An error occurred: $e'),
+            content: const Text('Account created successfully!'),
+            backgroundColor: Mycolors.green,
+          ),
+        );
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const UserDashboardScreen()),
+        );
+      }
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result['error'] ?? 'Registration failed'),
             backgroundColor: Mycolors.red,
           ),
         );

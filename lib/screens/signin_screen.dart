@@ -7,8 +7,7 @@ import 'package:relygo/screens/admin_dashboard_screen.dart';
 import 'package:relygo/screens/user_registration_screen.dart';
 import 'package:relygo/screens/driver_registration_screen.dart';
 import 'package:relygo/screens/forgot_password_screen.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:relygo/services/auth_service.dart';
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
@@ -23,9 +22,6 @@ class _SignInScreenState extends State<SignInScreen> {
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
   bool _obscurePassword = true;
-
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   @override
   void dispose() {
@@ -228,54 +224,6 @@ class _SignInScreenState extends State<SignInScreen> {
                     ),
                     const SizedBox(height: 20),
 
-                    // Demo Credentials
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Mycolors.lightGray,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: Mycolors.basecolor.withOpacity(0.3),
-                        ),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "Demo Credentials:",
-                            style: GoogleFonts.poppins(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: Mycolors.basecolor,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            "User: user@relygo.com / user123",
-                            style: GoogleFonts.poppins(
-                              fontSize: 12,
-                              color: Colors.black87,
-                            ),
-                          ),
-                          Text(
-                            "Driver: driver@relygo.com / driver123",
-                            style: GoogleFonts.poppins(
-                              fontSize: 12,
-                              color: Colors.black87,
-                            ),
-                          ),
-                          Text(
-                            "Admin: admin@relygo.com / admin123",
-                            style: GoogleFonts.poppins(
-                              fontSize: 12,
-                              color: Colors.black87,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-
                     // Forgot Password Link
                     Center(
                       child: TextButton(
@@ -333,82 +281,44 @@ class _SignInScreenState extends State<SignInScreen> {
       _isLoading = true;
     });
 
-    try {
-      final String email = _emailController.text.trim();
-      final String password = _passwordController.text.trim();
+    final String email = _emailController.text.trim();
+    final String password = _passwordController.text.trim();
 
-      // Sign in with Firebase Auth
-      UserCredential userCredential = await _auth.signInWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
+    final result = await AuthService.signInWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
 
-      if (userCredential.user != null) {
-        // Get user role from Firestore
-        DocumentSnapshot userDoc = await _firestore
-            .collection('users')
-            .doc(userCredential.user!.uid)
-            .get();
+    if (result['success'] == true) {
+      final String userType = result['userType'] ?? 'user';
 
-        String userRole = 'user'; // default role
-        if (userDoc.exists) {
-          Map<String, dynamic> userData =
-              userDoc.data() as Map<String, dynamic>;
-          userRole = userData['userType'] ?? 'user';
-        }
-
-        // Navigate based on role
-        Widget destination;
-        switch (userRole.toLowerCase()) {
-          case 'user':
-            destination = const UserDashboardScreen();
-            break;
-          case 'driver':
-            destination = const DriverDashboardScreen();
-            break;
-          case 'admin':
-            destination = const AdminDashboardScreen();
-            break;
-          default:
-            destination = const UserDashboardScreen();
-        }
-
-        if (mounted) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => destination),
-          );
-        }
-      }
-    } on FirebaseAuthException catch (e) {
-      String errorMessage = 'An error occurred. Please try again.';
-
-      if (e.code == 'user-not-found') {
-        errorMessage = 'No user found with this email address.';
-      } else if (e.code == 'wrong-password') {
-        errorMessage = 'Incorrect password.';
-      } else if (e.code == 'invalid-email') {
-        errorMessage = 'Please enter a valid email address.';
-      } else if (e.code == 'user-disabled') {
-        errorMessage = 'This account has been disabled.';
-      } else if (e.code == 'too-many-requests') {
-        errorMessage = 'Too many failed attempts. Please try again later.';
+      // Navigate based on role
+      Widget destination;
+      switch (userType.toLowerCase()) {
+        case 'user':
+          destination = const UserDashboardScreen();
+          break;
+        case 'driver':
+          destination = const DriverDashboardScreen();
+          break;
+        case 'admin':
+          destination = const AdminDashboardScreen();
+          break;
+        default:
+          destination = const UserDashboardScreen();
       }
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(errorMessage),
-            backgroundColor: Mycolors.red,
-            behavior: SnackBarBehavior.floating,
-          ),
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => destination),
         );
       }
-    } catch (e) {
+    } else {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('An error occurred: $e'),
+            content: Text(result['error'] ?? 'Login failed'),
             backgroundColor: Mycolors.red,
             behavior: SnackBarBehavior.floating,
           ),

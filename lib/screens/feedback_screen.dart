@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:relygo/constants.dart';
+import 'package:relygo/services/admin_service.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class FeedbackScreen extends StatefulWidget {
   const FeedbackScreen({super.key});
@@ -12,135 +14,6 @@ class FeedbackScreen extends StatefulWidget {
 class _FeedbackScreenState extends State<FeedbackScreen> {
   String _selectedFilter = "All";
   String _searchQuery = "";
-
-  // Mock data for feedback
-  final List<Map<String, dynamic>> _feedback = [
-    {
-      'id': '1',
-      'userName': 'Sarah Johnson',
-      'userEmail': 'sarah@example.com',
-      'driverName': 'Mike Wilson',
-      'driverEmail': 'mike@example.com',
-      'rideId': 'RIDE001',
-      'rating': 5.0,
-      'comment':
-          'Excellent service! The driver was very professional and the car was clean. Highly recommended!',
-      'category': 'Driver Service',
-      'date': '2024-02-15',
-      'time': '14:30',
-      'status': 'Published',
-    },
-    {
-      'id': '2',
-      'userName': 'John Smith',
-      'userEmail': 'john@example.com',
-      'driverName': 'David Lee',
-      'driverEmail': 'david@example.com',
-      'rideId': 'RIDE002',
-      'rating': 4.0,
-      'comment':
-          'Good service overall, but the driver took a longer route than necessary.',
-      'category': 'Route',
-      'date': '2024-02-14',
-      'time': '09:15',
-      'status': 'Published',
-    },
-    {
-      'id': '3',
-      'userName': 'Emma Davis',
-      'userEmail': 'emma@example.com',
-      'driverName': 'Robert Taylor',
-      'driverEmail': 'robert@example.com',
-      'rideId': 'RIDE003',
-      'rating': 2.0,
-      'comment':
-          'The driver was rude and the car was not clean. Very disappointed with the service.',
-      'category': 'Driver Behavior',
-      'date': '2024-02-13',
-      'time': '16:45',
-      'status': 'Under Review',
-    },
-    {
-      'id': '4',
-      'userName': 'Lisa Brown',
-      'userEmail': 'lisa@example.com',
-      'driverName': 'Alex Johnson',
-      'driverEmail': 'alex@example.com',
-      'rideId': 'RIDE004',
-      'rating': 5.0,
-      'comment':
-          'Perfect ride! Driver was friendly, car was spotless, and arrived on time. Will definitely use again.',
-      'category': 'Overall Experience',
-      'date': '2024-02-12',
-      'time': '11:20',
-      'status': 'Published',
-    },
-    {
-      'id': '5',
-      'userName': 'Maria Garcia',
-      'userEmail': 'maria@example.com',
-      'driverName': 'Tom Wilson',
-      'driverEmail': 'tom@example.com',
-      'rideId': 'RIDE005',
-      'rating': 3.0,
-      'comment':
-          'Average service. The driver was okay but the app had some issues during booking.',
-      'category': 'App Experience',
-      'date': '2024-02-11',
-      'time': '13:10',
-      'status': 'Published',
-    },
-    {
-      'id': '6',
-      'userName': 'Alex Thompson',
-      'userEmail': 'alex@example.com',
-      'driverName': 'Sarah Davis',
-      'driverEmail': 'sarah@example.com',
-      'rideId': 'RIDE006',
-      'rating': 1.0,
-      'comment':
-          'Terrible experience! Driver was unprofessional and the car was in poor condition.',
-      'category': 'Driver Behavior',
-      'date': '2024-02-10',
-      'time': '08:30',
-      'status': 'Hidden',
-    },
-  ];
-
-  List<Map<String, dynamic>> get _filteredFeedback {
-    List<Map<String, dynamic>> feedback = [..._feedback];
-
-    if (_searchQuery.isNotEmpty) {
-      feedback = feedback
-          .where(
-            (item) =>
-                item['userName'].toLowerCase().contains(
-                  _searchQuery.toLowerCase(),
-                ) ||
-                item['driverName'].toLowerCase().contains(
-                  _searchQuery.toLowerCase(),
-                ) ||
-                item['comment'].toLowerCase().contains(
-                  _searchQuery.toLowerCase(),
-                ),
-          )
-          .toList();
-    }
-
-    if (_selectedFilter == "High Rating") {
-      feedback = feedback.where((item) => item['rating'] >= 4.0).toList();
-    } else if (_selectedFilter == "Low Rating") {
-      feedback = feedback.where((item) => item['rating'] < 3.0).toList();
-    } else if (_selectedFilter == "Under Review") {
-      feedback = feedback
-          .where((item) => item['status'] == 'Under Review')
-          .toList();
-    } else if (_selectedFilter == "Hidden") {
-      feedback = feedback.where((item) => item['status'] == 'Hidden').toList();
-    }
-
-    return feedback;
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -222,14 +95,94 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
             ),
           ),
 
-          // Feedback List
+          // Feedback List (real-time)
           Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              itemCount: _filteredFeedback.length,
-              itemBuilder: (context, index) {
-                final feedback = _filteredFeedback[index];
-                return _buildFeedbackCard(feedback);
+            child: StreamBuilder<List<Map<String, dynamic>>>(
+              stream: AdminService.getFeedbackStream(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (snapshot.hasError) {
+                  return Center(
+                    child: Text(
+                      'Failed to load feedback',
+                      style: GoogleFonts.poppins(color: Mycolors.red),
+                    ),
+                  );
+                }
+                List<Map<String, dynamic>> feedback = (snapshot.data ?? []).map(
+                  (f) {
+                    return {
+                      ...f,
+                      'userName': f['userName'] ?? f['userDisplayName'] ?? '',
+                      'driverName':
+                          f['driverName'] ?? f['driverDisplayName'] ?? '',
+                      'rating': (f['rating'] is num)
+                          ? (f['rating'] as num).toDouble()
+                          : 0.0,
+                      'comment': f['comment'] ?? '',
+                      'status': (f['status'] ?? 'Published'),
+                      'date': f['createdAt'],
+                    };
+                  },
+                ).toList();
+
+                // Search filter
+                if (_searchQuery.isNotEmpty) {
+                  final q = _searchQuery.toLowerCase();
+                  feedback = feedback.where((item) {
+                    return (item['userName'] ?? '')
+                            .toString()
+                            .toLowerCase()
+                            .contains(q) ||
+                        (item['driverName'] ?? '')
+                            .toString()
+                            .toLowerCase()
+                            .contains(q) ||
+                        (item['comment'] ?? '')
+                            .toString()
+                            .toLowerCase()
+                            .contains(q);
+                  }).toList();
+                }
+
+                // Chip filters
+                if (_selectedFilter == "High Rating") {
+                  feedback = feedback
+                      .where((item) => (item['rating'] ?? 0.0) >= 4.0)
+                      .toList();
+                } else if (_selectedFilter == "Low Rating") {
+                  feedback = feedback
+                      .where((item) => (item['rating'] ?? 0.0) < 3.0)
+                      .toList();
+                } else if (_selectedFilter == "Under Review") {
+                  feedback = feedback
+                      .where((item) => item['status'] == 'Under Review')
+                      .toList();
+                } else if (_selectedFilter == "Hidden") {
+                  feedback = feedback
+                      .where((item) => item['status'] == 'Hidden')
+                      .toList();
+                }
+
+                if (feedback.isEmpty) {
+                  return Center(
+                    child: Text(
+                      'No feedback found',
+                      style: GoogleFonts.poppins(color: Mycolors.gray),
+                    ),
+                  );
+                }
+
+                return ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  itemCount: feedback.length,
+                  itemBuilder: (context, index) {
+                    final item = feedback[index];
+                    return _buildFeedbackCard(item);
+                  },
+                );
               },
             ),
           ),
@@ -372,14 +325,15 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
               Icon(Icons.calendar_today, color: Mycolors.gray, size: 16),
               const SizedBox(width: 8),
               Text(
-                "${feedback['date']} ${feedback['time']}",
+                _formatDate(feedback['date']),
                 style: GoogleFonts.poppins(fontSize: 12, color: Colors.black87),
               ),
               const SizedBox(width: 16),
               Icon(Icons.category, color: Mycolors.gray, size: 16),
               const SizedBox(width: 8),
+              // category may be absent in firestore; show rating instead
               Text(
-                feedback['category'],
+                "Rating",
                 style: GoogleFonts.poppins(fontSize: 12, color: Colors.black87),
               ),
             ],
@@ -662,6 +616,18 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
         return Mycolors.red;
       default:
         return Mycolors.gray;
+    }
+  }
+
+  String _formatDate(dynamic createdAt) {
+    try {
+      if (createdAt is Timestamp) {
+        final dt = createdAt.toDate();
+        return "${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')}";
+      }
+      return createdAt?.toString() ?? '';
+    } catch (_) {
+      return '';
     }
   }
 }
