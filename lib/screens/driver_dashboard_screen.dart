@@ -6,6 +6,8 @@ import 'package:relygo/screens/earnings_screen.dart';
 import 'package:relygo/screens/driver_profile_screen.dart';
 import 'package:relygo/screens/chat_detail_screen.dart';
 import 'package:relygo/utils/responsive.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:relygo/services/auth_service.dart';
 
 class DriverDashboardScreen extends StatefulWidget {
   const DriverDashboardScreen({super.key});
@@ -17,6 +19,16 @@ class DriverDashboardScreen extends StatefulWidget {
 class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
   int _selectedIndex = 0;
   bool _isOnline = false;
+
+  Stream<QuerySnapshot<Map<String, dynamic>>> _recentRequestsStream() {
+    final driverId = AuthService.currentUserId;
+    return FirebaseFirestore.instance
+        .collection('ride_requests')
+        .where('driverId', isEqualTo: driverId)
+        .orderBy('createdAt', descending: true)
+        .limit(5)
+        .snapshots();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -174,34 +186,64 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
               ),
               SizedBox(height: ResponsiveSpacing.getMediumSpacing(context)),
 
-              _buildRecentRideCard(
-                context,
-                "Airport to Downtown",
-                "2.5 km",
-                "₹180",
-                "Completed",
-                Mycolors.green,
-                "2 hours ago",
-              ),
-              SizedBox(height: ResponsiveSpacing.getSmallSpacing(context)),
-              _buildRecentRideCard(
-                context,
-                "Mall to Station",
-                "1.8 km",
-                "₹120",
-                "Completed",
-                Mycolors.green,
-                "4 hours ago",
-              ),
-              SizedBox(height: ResponsiveSpacing.getSmallSpacing(context)),
-              _buildRecentRideCard(
-                context,
-                "Hospital Pickup",
-                "3.2 km",
-                "₹200",
-                "In Progress",
-                Mycolors.orange,
-                "Now",
+              StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                stream: _recentRequestsStream(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  if (snapshot.hasError) {
+                    return Center(
+                      child: Text(
+                        'Failed to load recent requests',
+                        style: GoogleFonts.poppins(color: Mycolors.red),
+                      ),
+                    );
+                  }
+                  final docs = snapshot.data?.docs ?? [];
+                  if (docs.isEmpty) {
+                    return Center(
+                      child: Text(
+                        'No recent requests',
+                        style: GoogleFonts.poppins(color: Mycolors.gray),
+                      ),
+                    );
+                  }
+                  return Column(
+                    children: docs.take(3).map((doc) {
+                      final d = doc.data();
+                      final title = (d['destination'] ?? 'Ride Request')
+                          .toString();
+                      final price = d['price'] != null ? '₹${d['price']}' : '';
+                      final status = (d['status'] ?? 'pending').toString();
+                      final statusColor = status == 'pending'
+                          ? Mycolors.orange
+                          : (status == 'accepted'
+                                ? Mycolors.green
+                                : Mycolors.red);
+                      final createdAt = d['createdAt'] is Timestamp
+                          ? (d['createdAt'] as Timestamp).toDate()
+                          : null;
+                      final time = createdAt != null
+                          ? '${createdAt.hour}:${createdAt.minute.toString().padLeft(2, '0')}'
+                          : '';
+                      return Padding(
+                        padding: EdgeInsets.only(
+                          bottom: ResponsiveSpacing.getSmallSpacing(context),
+                        ),
+                        child: _buildRecentRideCard(
+                          context,
+                          title,
+                          '',
+                          price,
+                          status,
+                          statusColor,
+                          time,
+                        ),
+                      );
+                    }).toList(),
+                  );
+                },
               ),
             ],
           );
@@ -836,142 +878,143 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
         );
       },
       child: Container(
-      margin: EdgeInsets.only(
-        bottom: ResponsiveSpacing.getSmallSpacing(context),
-      ),
-      padding: ResponsiveUtils.getResponsivePadding(context),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(
-          ResponsiveUtils.getResponsiveBorderRadius(
-            context,
-            mobile: 12,
-            tablet: 14,
-            desktop: 16,
-          ),
+        margin: EdgeInsets.only(
+          bottom: ResponsiveSpacing.getSmallSpacing(context),
         ),
-        border: Border.all(color: Colors.grey.shade300),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            blurRadius: ResponsiveUtils.getResponsiveElevation(
+        padding: ResponsiveUtils.getResponsivePadding(context),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(
+            ResponsiveUtils.getResponsiveBorderRadius(
               context,
-              mobile: 5,
-              tablet: 6,
-              desktop: 8,
+              mobile: 12,
+              tablet: 14,
+              desktop: 16,
             ),
-            offset: const Offset(0, 2),
           ),
-        ],
-      ),
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: ResponsiveUtils.getResponsiveSpacing(
-              context,
-              mobile: 20,
-              tablet: 22,
-              desktop: 24,
+          border: Border.all(color: Colors.grey.shade300),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.1),
+              blurRadius: ResponsiveUtils.getResponsiveElevation(
+                context,
+                mobile: 5,
+                tablet: 6,
+                desktop: 8,
+              ),
+              offset: const Offset(0, 2),
             ),
-            backgroundColor: Mycolors.basecolor.withOpacity(0.1),
-            child: Text(
-              name[0],
-              style: GoogleFonts.poppins(
-                fontSize: ResponsiveUtils.getResponsiveFontSize(
-                  context,
-                  mobile: 16,
-                  tablet: 18,
-                  desktop: 20,
+          ],
+        ),
+        child: Row(
+          children: [
+            CircleAvatar(
+              radius: ResponsiveUtils.getResponsiveSpacing(
+                context,
+                mobile: 20,
+                tablet: 22,
+                desktop: 24,
+              ),
+              backgroundColor: Mycolors.basecolor.withOpacity(0.1),
+              child: Text(
+                name[0],
+                style: GoogleFonts.poppins(
+                  fontSize: ResponsiveUtils.getResponsiveFontSize(
+                    context,
+                    mobile: 16,
+                    tablet: 18,
+                    desktop: 20,
+                  ),
+                  fontWeight: FontWeight.bold,
+                  color: Mycolors.basecolor,
                 ),
-                fontWeight: FontWeight.bold,
-                color: Mycolors.basecolor,
               ),
             ),
-          ),
-          SizedBox(width: ResponsiveSpacing.getMediumSpacing(context)),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            SizedBox(width: ResponsiveSpacing.getMediumSpacing(context)),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    name,
+                    style: GoogleFonts.poppins(
+                      fontSize: ResponsiveUtils.getResponsiveFontSize(
+                        context,
+                        mobile: 16,
+                        tablet: 18,
+                        desktop: 20,
+                      ),
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black,
+                    ),
+                  ),
+                  Text(
+                    message,
+                    style: GoogleFonts.poppins(
+                      fontSize: ResponsiveUtils.getResponsiveFontSize(
+                        context,
+                        mobile: 14,
+                        tablet: 15,
+                        desktop: 16,
+                      ),
+                      color: Mycolors.gray,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  name,
+                  time,
                   style: GoogleFonts.poppins(
                     fontSize: ResponsiveUtils.getResponsiveFontSize(
                       context,
-                      mobile: 16,
-                      tablet: 18,
-                      desktop: 20,
-                    ),
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black,
-                  ),
-                ),
-                Text(
-                  message,
-                  style: GoogleFonts.poppins(
-                    fontSize: ResponsiveUtils.getResponsiveFontSize(
-                      context,
-                      mobile: 14,
-                      tablet: 15,
-                      desktop: 16,
+                      mobile: 12,
+                      tablet: 13,
+                      desktop: 14,
                     ),
                     color: Mycolors.gray,
                   ),
                 ),
+                if (unreadCount.isNotEmpty)
+                  Container(
+                    margin: EdgeInsets.only(
+                      top: ResponsiveSpacing.getSmallSpacing(context) / 2,
+                    ),
+                    padding: EdgeInsets.all(
+                      ResponsiveUtils.getResponsiveSpacing(
+                        context,
+                        mobile: 6,
+                        tablet: 7,
+                        desktop: 8,
+                      ),
+                    ),
+                    decoration: BoxDecoration(
+                      color: Mycolors.basecolor,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Text(
+                      unreadCount,
+                      style: GoogleFonts.poppins(
+                        fontSize: ResponsiveUtils.getResponsiveFontSize(
+                          context,
+                          mobile: 10,
+                          tablet: 11,
+                          desktop: 12,
+                        ),
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
               ],
             ),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                time,
-                style: GoogleFonts.poppins(
-                  fontSize: ResponsiveUtils.getResponsiveFontSize(
-                    context,
-                    mobile: 12,
-                    tablet: 13,
-                    desktop: 14,
-                  ),
-                  color: Mycolors.gray,
-                ),
-              ),
-              if (unreadCount.isNotEmpty)
-                Container(
-                  margin: EdgeInsets.only(
-                    top: ResponsiveSpacing.getSmallSpacing(context) / 2,
-                  ),
-                  padding: EdgeInsets.all(
-                    ResponsiveUtils.getResponsiveSpacing(
-                      context,
-                      mobile: 6,
-                      tablet: 7,
-                      desktop: 8,
-                    ),
-                  ),
-                  decoration: BoxDecoration(
-                    color: Mycolors.basecolor,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Text(
-                    unreadCount,
-                    style: GoogleFonts.poppins(
-                      fontSize: ResponsiveUtils.getResponsiveFontSize(
-                        context,
-                        mobile: 10,
-                        tablet: 11,
-                        desktop: 12,
-                      ),
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        ],
+          ],
+        ),
       ),
-    ));
+    );
   }
 
   Widget _buildNavItem(IconData icon, String label, int index) {
