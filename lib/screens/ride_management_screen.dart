@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:relygo/constants.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:relygo/services/auth_service.dart';
 
 class RideManagementScreen extends StatefulWidget {
   const RideManagementScreen({super.key});
@@ -11,6 +13,14 @@ class RideManagementScreen extends StatefulWidget {
 
 class _RideManagementScreenState extends State<RideManagementScreen> {
   String _selectedFilter = "All";
+  Stream<QuerySnapshot<Map<String, dynamic>>> _requestsStream() {
+    final driverId = AuthService.currentUserId;
+    return FirebaseFirestore.instance
+        .collection('ride_requests')
+        .where('driverId', isEqualTo: driverId)
+        .orderBy('createdAt', descending: true)
+        .snapshots();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -50,77 +60,62 @@ class _RideManagementScreenState extends State<RideManagementScreen> {
               ),
             ),
 
-            // Rides List
+            // Rides List (realtime requests for this driver)
             Expanded(
-              child: ListView(
-                padding: const EdgeInsets.all(20),
-                children: [
-                  _buildRideCard(
-                    "Airport to Downtown",
-                    "Sarah Johnson",
-                    "2.5 km",
-                    "₹180",
-                    "Completed",
-                    Mycolors.green,
-                    "2 hours ago",
-                    Icons.check_circle,
-                  ),
-                  const SizedBox(height: 15),
-                  _buildRideCard(
-                    "Mall to Station",
-                    "Mike Wilson",
-                    "1.8 km",
-                    "₹120",
-                    "Completed",
-                    Mycolors.green,
-                    "4 hours ago",
-                    Icons.check_circle,
-                  ),
-                  const SizedBox(height: 15),
-                  _buildRideCard(
-                    "Hospital Pickup",
-                    "Emma Davis",
-                    "3.2 km",
-                    "₹200",
-                    "In Progress",
-                    Mycolors.orange,
-                    "Now",
-                    Icons.directions_car,
-                  ),
-                  const SizedBox(height: 15),
-                  _buildRideCard(
-                    "Office to Home",
-                    "John Smith",
-                    "4.1 km",
-                    "₹250",
-                    "Scheduled",
-                    Mycolors.basecolor,
-                    "Tomorrow, 9:00 AM",
-                    Icons.schedule,
-                  ),
-                  const SizedBox(height: 15),
-                  _buildRideCard(
-                    "Station to Airport",
-                    "Lisa Brown",
-                    "5.2 km",
-                    "₹300",
-                    "Cancelled",
-                    Mycolors.red,
-                    "Yesterday",
-                    Icons.cancel,
-                  ),
-                  const SizedBox(height: 15),
-                  _buildRideCard(
-                    "Downtown to Mall",
-                    "David Lee",
-                    "2.8 km",
-                    "₹160",
-                    "Completed",
-                    Mycolors.green,
-                    "2 days ago",
-                    Icons.check_circle,
-                  ),
-                ],
+              child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                stream: _requestsStream(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  if (snapshot.hasError) {
+                    return Center(child: Text('Failed to load requests'));
+                  }
+                  final docs = snapshot.data?.docs ?? [];
+                  if (docs.isEmpty) {
+                    return Center(
+                      child: Text(
+                        'No ride requests yet',
+                        style: GoogleFonts.poppins(color: Mycolors.gray),
+                      ),
+                    );
+                  }
+                  return ListView.separated(
+                    padding: const EdgeInsets.all(20),
+                    itemCount: docs.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 15),
+                    itemBuilder: (context, index) {
+                      final d = docs[index].data();
+                      final destination = (d['destination'] ?? '').toString();
+                      final passengerName = (d['userName'] ?? '').toString();
+                      final price = (d['price'] != null)
+                          ? '₹${d['price']}'
+                          : '';
+                      final status = (d['status'] ?? 'pending').toString();
+                      final statusColor = status == 'pending'
+                          ? Mycolors.orange
+                          : (status == 'accepted'
+                                ? Mycolors.green
+                                : Mycolors.red);
+                      final createdAt = d['createdAt'] is Timestamp
+                          ? (d['createdAt'] as Timestamp).toDate()
+                          : null;
+                      final time = createdAt != null
+                          ? '${createdAt.hour}:${createdAt.minute.toString().padLeft(2, '0')}'
+                          : '';
+                      return _buildRideCard(
+                        destination.isEmpty ? 'Ride Request' : destination,
+                        passengerName.isEmpty ? 'User' : passengerName,
+                        '',
+                        price,
+                        status,
+                        statusColor,
+                        time,
+                        Icons.directions_car,
+                      );
+                    },
+                  );
+                },
               ),
             ),
           ],

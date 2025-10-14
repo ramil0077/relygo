@@ -8,13 +8,13 @@ class UserService {
   static Stream<List<Map<String, dynamic>>> getDriversStream() {
     return _firestore
         .collection('users')
-        .where('userType', isEqualTo: 'driver')
-        .where('status', whereIn: ['approved', 'active'])
-        .orderBy('createdAt', descending: true)
+        .where('userType', whereIn: ['driver', 'Driver'])
+        .where('status', whereIn: ['approved', 'active', 'Approved', 'Active'])
+       
         .snapshots()
         .map(
           (snapshot) => snapshot.docs.map((doc) {
-            final data = doc.data() as Map<String, dynamic>;
+            final data = doc.data();
             data['id'] = doc.id;
             return data;
           }).toList(),
@@ -34,7 +34,7 @@ class UserService {
         .snapshots()
         .map(
           (snapshot) => snapshot.docs.map((doc) {
-            final data = doc.data() as Map<String, dynamic>;
+            final data = doc.data();
             data['id'] = doc.id;
             return data;
           }).toList(),

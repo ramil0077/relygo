@@ -7,6 +7,8 @@ import 'package:relygo/screens/chat_detail_screen.dart';
 import 'package:relygo/utils/responsive.dart';
 import 'package:relygo/services/user_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:relygo/screens/chat_detail_screen.dart';
+import 'package:relygo/services/admin_service.dart';
 
 class UserDashboardScreen extends StatefulWidget {
   const UserDashboardScreen({super.key});
@@ -17,6 +19,7 @@ class UserDashboardScreen extends StatefulWidget {
 
 class _UserDashboardScreenState extends State<UserDashboardScreen> {
   int _selectedIndex = 0;
+  String _driverSearchQuery = "";
 
   @override
   Widget build(BuildContext context) {
@@ -217,6 +220,11 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
           SizedBox(height: ResponsiveSpacing.getMediumSpacing(context)),
           // Search Bar
           TextField(
+            onChanged: (value) {
+              setState(() {
+                _driverSearchQuery = value.trim();
+              });
+            },
             decoration: InputDecoration(
               hintText: "Search drivers, locations...",
               prefixIcon: Icon(
@@ -262,7 +270,25 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                     ),
                   );
                 }
-                final drivers = snapshot.data ?? [];
+                List<Map<String, dynamic>> drivers = snapshot.data ?? [];
+
+                // Filter by search query (name, email, vehicleType)
+                if (_driverSearchQuery.isNotEmpty) {
+                  final q = _driverSearchQuery.toLowerCase();
+                  drivers = drivers.where((d) {
+                    final name = (d['name'] ?? d['fullName'] ?? '')
+                        .toString()
+                        .toLowerCase();
+                    final email = (d['email'] ?? '').toString().toLowerCase();
+                    final vehicleType = (d['vehicleType'] ?? '')
+                        .toString()
+                        .toLowerCase();
+                    return name.contains(q) ||
+                        email.contains(q) ||
+                        vehicleType.contains(q);
+                  }).toList();
+                }
+
                 if (drivers.isEmpty) {
                   return Center(
                     child: Text(
@@ -282,21 +308,28 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                     final displayRating = rating == 0
                         ? 'New'
                         : '${rating.toStringAsFixed(1)} ⭐';
+                    final rawStatus = (d['status'] ?? '')
+                        .toString()
+                        .toLowerCase();
                     final isAvailable =
-                        (d['availability'] ?? 'available') == 'available' ||
-                        (d['status'] ?? '') == 'approved';
+                        rawStatus == 'approved' ||
+                        rawStatus == 'active' ||
+                        (d['availability'] ?? 'available') == 'available';
                     final status = isAvailable ? 'Available' : 'Busy';
                     final statusColor = isAvailable
                         ? Mycolors.green
                         : Mycolors.orange;
                     final distance = d['distanceText'] ?? '';
-                    return _buildDriverCard(
-                      context,
-                      name,
-                      displayRating,
-                      distance,
-                      status,
-                      statusColor,
+                    return GestureDetector(
+                      onTap: () => _showDriverDetailsSheet(d),
+                      child: _buildDriverCard(
+                        context,
+                        name,
+                        displayRating,
+                        distance,
+                        status,
+                        statusColor,
+                      ),
                     );
                   },
                 );
@@ -305,6 +338,335 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  void _showDriverDetailsSheet(Map<String, dynamic> driver) {
+    final String driverId = (driver['id'] ?? '').toString();
+    final String name = (driver['name'] ?? driver['fullName'] ?? 'Driver')
+        .toString();
+    final String email = (driver['email'] ?? '').toString();
+    final String phone = (driver['phone'] ?? driver['phoneNumber'] ?? '')
+        .toString();
+    final double rating = (driver['rating'] is num)
+        ? (driver['rating'] as num).toDouble()
+        : 0.0;
+    final String vehicleType =
+        (driver['vehicleType'] ?? driver['documents']?['vehicleType'] ?? '')
+            .toString();
+    final String vehicleNumber =
+        (driver['vehicleNumber'] ?? driver['documents']?['vehicleNumber'] ?? '')
+            .toString();
+    final String rawStatus = (driver['status'] ?? '').toString().toLowerCase();
+    final bool isAvailable =
+        rawStatus == 'approved' ||
+        rawStatus == 'active' ||
+        (driver['availability'] ?? 'available') == 'available';
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) {
+        return DraggableScrollableSheet(
+          expand: false,
+          initialChildSize: 0.7,
+          minChildSize: 0.4,
+          maxChildSize: 0.95,
+          builder: (context, scrollController) {
+            return SingleChildScrollView(
+              controller: scrollController,
+              padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 24,
+                        backgroundColor: Mycolors.basecolor.withOpacity(0.1),
+                        child: Text(
+                          name.isNotEmpty ? name[0] : 'D',
+                          style: GoogleFonts.poppins(
+                            fontWeight: FontWeight.bold,
+                            color: Mycolors.basecolor,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              name,
+                              style: GoogleFonts.poppins(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            if (email.isNotEmpty)
+                              Text(
+                                email,
+                                style: GoogleFonts.poppins(
+                                  fontSize: 12,
+                                  color: Mycolors.gray,
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                      ElevatedButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  const ServiceBookingScreen(),
+                              settings: RouteSettings(
+                                arguments: {
+                                  'driverId': driverId,
+                                  'driverName': name,
+                                },
+                              ),
+                            ),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Mycolors.basecolor,
+                          foregroundColor: Colors.white,
+                        ),
+                        child: Text('Book', style: GoogleFonts.poppins()),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Icon(Icons.star, color: Mycolors.orange, size: 18),
+                      const SizedBox(width: 6),
+                      Text(
+                        rating == 0 ? 'New' : rating.toStringAsFixed(1),
+                        style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  if (vehicleType.isNotEmpty || vehicleNumber.isNotEmpty)
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.directions_car,
+                          color: Mycolors.gray,
+                          size: 18,
+                        ),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            vehicleNumber.isNotEmpty
+                                ? "$vehicleType  •  $vehicleNumber"
+                                : vehicleType,
+                            style: GoogleFonts.poppins(
+                              fontSize: 13,
+                              color: Colors.black87,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color:
+                              (isAvailable ? Mycolors.green : Mycolors.orange)
+                                  .withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color:
+                                (isAvailable ? Mycolors.green : Mycolors.orange)
+                                    .withOpacity(0.3),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              isAvailable
+                                  ? Icons.check_circle
+                                  : Icons.pause_circle,
+                              color: isAvailable
+                                  ? Mycolors.green
+                                  : Mycolors.orange,
+                              size: 14,
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              isAvailable ? 'Available' : 'Busy',
+                              style: GoogleFonts.poppins(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: isAvailable
+                                    ? Mycolors.green
+                                    : Mycolors.orange,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  if (phone.isNotEmpty)
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: Icon(Icons.phone, color: Mycolors.green),
+                      title: Text(phone, style: GoogleFonts.poppins()),
+                      onTap: () {
+                        _showContactOptions(name, phone);
+                      },
+                    ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Feedback',
+                    style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    height: 240,
+                    child: StreamBuilder<List<Map<String, dynamic>>>(
+                      stream: AdminService.getFeedbackStream(
+                        driverId: driverId,
+                      ),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const Center(
+                            child: CircularProgressIndicator(),
+                          );
+                        }
+                        final items = snapshot.data ?? [];
+                        if (items.isEmpty) {
+                          return Center(
+                            child: Text(
+                              'No feedback yet',
+                              style: GoogleFonts.poppins(color: Mycolors.gray),
+                            ),
+                          );
+                        }
+                        return ListView.separated(
+                          itemCount: items.length,
+                          separatorBuilder: (_, __) =>
+                              const Divider(height: 12),
+                          itemBuilder: (context, index) {
+                            final f = items[index];
+                            final fr = (f['rating'] is num)
+                                ? (f['rating'] as num).toDouble()
+                                : 0.0;
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.star,
+                                      color: Mycolors.orange,
+                                      size: 16,
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      fr.toStringAsFixed(1),
+                                      style: GoogleFonts.poppins(
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  (f['comment'] ?? '').toString(),
+                                  style: GoogleFonts.poppins(fontSize: 13),
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _showContactOptions(String name, String phone) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          title: Text(
+            'Contact $name',
+            style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: Icon(Icons.phone, color: Mycolors.green),
+                title: Text('Call', style: GoogleFonts.poppins()),
+                subtitle: Text(phone, style: GoogleFonts.poppins(fontSize: 12)),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Calling $phone...'),
+                      backgroundColor: Mycolors.green,
+                    ),
+                  );
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.chat, color: Mycolors.basecolor),
+                title: Text('Chat', style: GoogleFonts.poppins()),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ChatDetailScreen(peerName: name),
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                'Close',
+                style: GoogleFonts.poppins(color: Colors.grey),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 

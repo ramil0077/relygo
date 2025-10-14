@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:relygo/constants.dart';
 import 'package:relygo/screens/booking_confirmation_screen.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:relygo/services/auth_service.dart';
 
 class ServiceBookingScreen extends StatefulWidget {
   const ServiceBookingScreen({super.key});
@@ -15,6 +17,25 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
   String _selectedVehicle = "Car";
   DateTime? _selectedDate;
   TimeOfDay? _selectedTime;
+  final TextEditingController _pickupController = TextEditingController();
+  final TextEditingController _destinationController = TextEditingController();
+  String? _driverId;
+  String? _driverName;
+
+  @override
+  void initState() {
+    super.initState();
+    // Read driver args if provided
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final args = ModalRoute.of(context)?.settings.arguments;
+      if (args is Map) {
+        setState(() {
+          _driverId = args['driverId']?.toString();
+          _driverName = args['driverName']?.toString();
+        });
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +46,9 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () async {
+            await Navigator.maybePop(context);
+          },
         ),
         title: Text(
           "Book a Service",
@@ -115,6 +138,7 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
               ),
               const SizedBox(height: 15),
               TextField(
+                controller: _pickupController,
                 decoration: InputDecoration(
                   hintText: "Enter pickup location",
                   prefixIcon: Icon(
@@ -139,6 +163,7 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
               ),
               const SizedBox(height: 15),
               TextField(
+                controller: _destinationController,
                 decoration: InputDecoration(
                   hintText: "Enter destination",
                   prefixIcon: Icon(Icons.place, color: Mycolors.basecolor),
@@ -304,9 +329,7 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
                 width: double.infinity,
                 height: 55,
                 child: ElevatedButton(
-                  onPressed: () {
-                    _showBookingConfirmation();
-                  },
+                  onPressed: _createBooking,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Mycolors.basecolor,
                     foregroundColor: Colors.white,
@@ -438,19 +461,72 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
     }
   }
 
-  void _showBookingConfirmation() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => BookingConfirmationScreen(
-          service: _selectedService,
-          vehicle: _selectedVehicle,
-          date: _selectedDate != null
-              ? "${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}"
-              : null,
-          time: _selectedTime != null ? _selectedTime!.format(context) : null,
+  Future<void> _createBooking() async {
+    final userId = AuthService.currentUserId;
+    if (userId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Please sign in to book'),
+          backgroundColor: Mycolors.red,
         ),
-      ),
-    );
+      );
+      return;
+    }
+
+    try {
+      final now = DateTime.now();
+      final data = {
+        'userId': userId,
+        'driverId': _driverId, // can be null for open request
+        'driverName': _driverName,
+        'service': _selectedService,
+        'vehicle': _selectedVehicle,
+        'pickup': _pickupController.text.trim(),
+        'destination': _destinationController.text.trim(),
+        'status': 'pending',
+        'createdAt': Timestamp.fromDate(now),
+        'scheduledDate': _selectedDate != null
+            ? Timestamp.fromDate(
+                DateTime(
+                  _selectedDate!.year,
+                  _selectedDate!.month,
+                  _selectedDate!.day,
+                  _selectedTime?.hour ?? 0,
+                  _selectedTime?.minute ?? 0,
+                ),
+              )
+            : null,
+      };
+
+      await FirebaseFirestore.instance.collection('ride_requests').add(data);
+
+      // Optional: show confirmation screen
+      if (!mounted) return;
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => BookingConfirmationScreen(
+            service: _selectedService,
+            vehicle: _selectedVehicle,
+            date: _selectedDate != null
+                ? "${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}"
+                : null,
+            time: _selectedTime != null ? _selectedTime!.format(context) : null,
+          ),
+        ),
+      );
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Request sent to driver'),
+          backgroundColor: Mycolors.green,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Booking failed: $e')));
+    }
   }
 }

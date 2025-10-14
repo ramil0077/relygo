@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:relygo/constants.dart';
 import 'package:relygo/screens/user_management_screen.dart';
@@ -24,51 +25,60 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   int _activeDrivers = 0;
   int _pendingApprovals = 0;
   int _openComplaints = 0;
+  StreamSubscription? _usersSub;
+  StreamSubscription? _approvedDriversSub;
+  StreamSubscription? _pendingDriversSub;
+  StreamSubscription? _complaintsSub; 
 
   @override
   void initState() {
     super.initState();
-    _loadDashboardData();
+    _startRealtimeStats();
   }
 
-  Future<void> _loadDashboardData() async {
-    try {
-      // Get total users
-      QuerySnapshot usersSnapshot = await _firestore.collection('users').get();
-      int totalUsers = usersSnapshot.docs.length;
+  void _startRealtimeStats() {
+    // Total users
+    _usersSub = _firestore.collection('users').snapshots().listen((snap) {
+      setState(() => _totalUsers = snap.size);
+    }, onError: (_) {});
 
-      // Get active drivers (approved)
-      QuerySnapshot driversSnapshot = await _firestore
-          .collection('users')
-          .where('userType', isEqualTo: 'driver')
-          .where('status', isEqualTo: 'approved')
-          .get();
-      int activeDrivers = driversSnapshot.docs.length;
+    // Active (approved) drivers
+    _approvedDriversSub = _firestore
+        .collection('users')
+        .where('userType', whereIn: ['driver', 'Driver'])
+        .where('status', whereIn: ['approved', 'Approved'])
+        .snapshots()
+        .listen((snap) {
+          setState(() => _activeDrivers = snap.size);
+        }, onError: (_) {});
 
-      // Get pending approvals
-      QuerySnapshot pendingSnapshot = await _firestore
-          .collection('users')
-          .where('userType', isEqualTo: 'driver')
-          .where('status', isEqualTo: 'pending')
-          .get();
-      int pendingApprovals = pendingSnapshot.docs.length;
+    // Pending approvals (pending)
+    _pendingDriversSub = _firestore
+        .collection('users')
+        .where('userType', whereIn: ['driver', 'Driver'])
+        .where('status', whereIn: ['pending', 'Pending'])
+        .snapshots()
+        .listen((snap) {
+          setState(() => _pendingApprovals = snap.size);
+        }, onError: (_) {});
 
-      // Get open complaints (if you have a complaints collection)
-      QuerySnapshot complaintsSnapshot = await _firestore
-          .collection('complaints')
-          .where('status', isEqualTo: 'open')
-          .get();
-      int openComplaints = complaintsSnapshot.docs.length;
+    // Open complaints (optional collection)
+    _complaintsSub = _firestore
+        .collection('complaints')
+        .where('status', whereIn: ['open', 'Open'])
+        .snapshots()
+        .listen((snap) {
+          setState(() => _openComplaints = snap.size);
+        }, onError: (_) {});
+  }
 
-      setState(() {
-        _totalUsers = totalUsers;
-        _activeDrivers = activeDrivers;
-        _pendingApprovals = pendingApprovals;
-        _openComplaints = openComplaints;
-      });
-    } catch (e) {
-      print('Error loading dashboard data: $e');
-    }
+  @override
+  void dispose() {
+    _usersSub?.cancel();
+    _approvedDriversSub?.cancel();
+    _pendingDriversSub?.cancel();
+    _complaintsSub?.cancel();
+    super.dispose();
   }
 
   @override

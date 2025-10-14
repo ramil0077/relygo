@@ -35,7 +35,7 @@ class _UserRegistrationScreenState extends State<UserRegistrationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(  
+    return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
@@ -386,8 +386,8 @@ class _UserRegistrationScreenState extends State<UserRegistrationScreen> {
                 // Login Link
                 Center(
                   child: TextButton(
-                    onPressed: () {
-                      Navigator.pop(context);
+                    onPressed: () async {
+                      await Navigator.maybePop(context);
                     },
                     child: Text(
                       "Already have an account? Sign In",
