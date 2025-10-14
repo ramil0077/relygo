@@ -3,6 +3,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:relygo/constants.dart';
 import 'package:relygo/services/auth_service.dart';
 import 'package:relygo/screens/signin_screen.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+// AppSettings are defined in constants.dart
 
 class UserProfileScreen extends StatefulWidget {
   const UserProfileScreen({super.key});
@@ -14,6 +16,7 @@ class UserProfileScreen extends StatefulWidget {
 class _UserProfileScreenState extends State<UserProfileScreen> {
   @override
   Widget build(BuildContext context) {
+    final String? uid = AuthService.currentUserId;
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -28,166 +31,215 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           ),
         ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            // Profile Header
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    Mycolors.basecolor,
-                    Mycolors.basecolor.withOpacity(0.8),
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Mycolors.basecolor.withOpacity(0.3),
-                    blurRadius: 10,
-                    offset: const Offset(0, 5),
-                  ),
-                ],
-              ),
-              child: Column(
-                children: [
-                  CircleAvatar(
-                    radius: 50,
-                    backgroundColor: Colors.white.withOpacity(0.2),
-                    child: Icon(Icons.person, size: 50, color: Colors.white),
-                  ),
-                  const SizedBox(height: 15),
-                  Text(
-                    "Sarah Johnson",
-                    style: GoogleFonts.poppins(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                  Text(
-                    "sarah.johnson@email.com",
-                    style: GoogleFonts.poppins(
-                      fontSize: 16,
-                      color: Colors.white.withOpacity(0.9),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
+      body: uid == null
+          ? const Center(child: CircularProgressIndicator())
+          : StreamBuilder<DocumentSnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection('users')
+                  .doc(uid)
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (!snapshot.hasData || !snapshot.data!.exists) {
+                  return Center(
                     child: Text(
-                      "Premium Member",
-                      style: GoogleFonts.poppins(
-                        fontSize: 14,
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                      ),
+                      'Profile not found',
+                      style: GoogleFonts.poppins(color: Mycolors.red),
                     ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 30),
+                  );
+                }
+                final data = snapshot.data!.data() as Map<String, dynamic>;
+                final String name = (data['name'] ?? 'User').toString();
+                final String email = (data['email'] ?? '').toString();
+                final Map<String, dynamic> docs =
+                    (data['documents'] is Map<String, dynamic>)
+                    ? (data['documents'] as Map<String, dynamic>)
+                    : {};
+                final bool isDriver =
+                    (data['userType']?.toString().toLowerCase() == 'driver') ||
+                    docs.isNotEmpty;
+                final String vehicleType =
+                    (data['vehicleType'] ?? docs['vehicleType'] ?? '')
+                        .toString();
+                final String vehicleNumber =
+                    (data['vehicleNumber'] ?? docs['vehicleNumber'] ?? '')
+                        .toString();
+                final String licenseNumber =
+                    (data['licenseNumber'] ?? docs['licenseNumber'] ?? '')
+                        .toString();
 
-            // Profile Options
-            _buildProfileOption(
-              "Personal Information",
-              "Update your personal details",
-              Icons.person_outline,
-              () {
-                _showPersonalInfoDialog();
-              },
-            ),
-            _buildProfileOption(
-              "Payment Methods",
-              "Manage your payment options",
-              Icons.payment,
-              () {
-                _showPaymentMethodsDialog();
-              },
-            ),
-            _buildProfileOption(
-              "Ride History",
-              "View your ride history",
-              Icons.history,
-              () {
-                _showRideHistoryDialog();
-              },
-            ),
-            _buildProfileOption(
-              "Favorites",
-              "Manage your favorite locations",
-              Icons.favorite,
-              () {
-                _showFavoritesDialog();
-              },
-            ),
-            _buildProfileOption(
-              "Notifications",
-              "Manage notification preferences",
-              Icons.notifications,
-              () {
-                _showNotificationsDialog();
-              },
-            ),
-            _buildProfileOption(
-              "Help & Support",
-              "Get help and contact support",
-              Icons.help,
-              () {
-                _showHelpSupportDialog();
-              },
-            ),
-            _buildProfileOption(
-              "Settings",
-              "App settings and preferences",
-              Icons.settings,
-              () {
-                _showSettingsDialog();
-              },
-            ),
-            const SizedBox(height: 20),
+                return SingleChildScrollView(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    children: [
+                      // Profile Header (dynamic)
+                      Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              Mycolors.basecolor,
+                              Mycolors.basecolor.withOpacity(0.8),
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Mycolors.basecolor.withOpacity(0.3),
+                              blurRadius: 10,
+                              offset: const Offset(0, 5),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          children: [
+                            CircleAvatar(
+                              radius: 50,
+                              backgroundColor: Colors.white.withOpacity(0.2),
+                              child: Text(
+                                name.isNotEmpty ? name[0] : 'U',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 32,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 15),
+                            Text(
+                              name,
+                              style: GoogleFonts.poppins(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                            Text(
+                              email,
+                              style: GoogleFonts.poppins(
+                                fontSize: 16,
+                                color: Colors.white.withOpacity(0.9),
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Text(
+                                isDriver ? 'Driver' : 'User',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 14,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 30),
 
-            // Logout Button
-            SizedBox(
-              width: double.infinity,
-              height: 50,
-              child: OutlinedButton.icon(
-                onPressed: () {
-                  _showLogoutDialog();
-                },
-                icon: Icon(Icons.logout, color: Mycolors.red),
-                label: Text(
-                  "Logout",
-                  style: GoogleFonts.poppins(
-                    fontSize: 16,
-                    color: Mycolors.red,
-                    fontWeight: FontWeight.w600,
+                      // Profile Options
+                      _buildProfileOption(
+                        "Personal Information",
+                        "Update your personal details",
+                        Icons.person_outline,
+                        () {
+                          _showPersonalInfoDialog(
+                            currentName: name,
+                            currentEmail: email,
+                            currentPhone: (data['phone'] ?? '').toString(),
+                          );
+                        },
+                      ),
+                      _buildProfileOption(
+                        "Ride History",
+                        "View your ride history",
+                        Icons.history,
+                        () {
+                          _showRideHistoryDialog();
+                        },
+                      ),
+                      _buildProfileOption(
+                        "Help & Support",
+                        "Get help and contact support",
+                        Icons.help,
+                        () {
+                          _showHelpSupportDialog();
+                        },
+                      ),
+                      const SizedBox(height: 20),
+
+                      // Logout Button
+                      SizedBox(
+                        width: double.infinity,
+                        height: 50,
+                        child: OutlinedButton.icon(
+                          onPressed: () {
+                            _showLogoutDialog();
+                          },
+                          icon: Icon(Icons.logout, color: Mycolors.red),
+                          label: Text(
+                            "Logout",
+                            style: GoogleFonts.poppins(
+                              fontSize: 16,
+                              color: Mycolors.red,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          style: OutlinedButton.styleFrom(
+                            side: BorderSide(color: Mycolors.red),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+
+                      if (isDriver) ...[
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            "Driver Documents",
+                            style: GoogleFonts.poppins(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        _buildDocTile(
+                          'License',
+                          docs['license'] ?? licenseNumber,
+                        ),
+                        _buildDocTile(
+                          'Vehicle Registration',
+                          docs['vehicleRegistration'] ?? vehicleNumber,
+                        ),
+                        _buildDocTile('Insurance', docs['insurance'] ?? ''),
+                        if (vehicleType.isNotEmpty || vehicleNumber.isNotEmpty)
+                          _buildDocTile(
+                            'Vehicle',
+                            '$vehicleType - $vehicleNumber',
+                          ),
+                      ],
+                    ],
                   ),
-                ),
-                style: OutlinedButton.styleFrom(
-                  side: BorderSide(color: Mycolors.red),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ),
+                );
+              },
             ),
-            const SizedBox(height: 20),
-          ],
-        ),
-      ),
     );
   }
 
@@ -229,10 +281,16 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     );
   }
 
-  void _showPersonalInfoDialog() {
+  void _showPersonalInfoDialog({
+    required String currentName,
+    required String currentEmail,
+    required String currentPhone,
+  }) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
+        final nameController = TextEditingController(text: currentName);
+        final phoneController = TextEditingController(text: currentPhone);
         return AlertDialog(
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
@@ -251,7 +309,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                controller: TextEditingController(text: "Sarah Johnson"),
+                controller: nameController,
               ),
               const SizedBox(height: 15),
               TextField(
@@ -261,9 +319,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                controller: TextEditingController(
-                  text: "sarah.johnson@email.com",
-                ),
+                controller: TextEditingController(text: currentEmail),
+                readOnly: true,
               ),
               const SizedBox(height: 15),
               TextField(
@@ -273,7 +330,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                controller: TextEditingController(text: "+91 98765 43210"),
+                controller: phoneController,
               ),
             ],
           ),
@@ -286,14 +343,27 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               ),
             ),
             ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
                 Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Profile updated successfully!'),
-                    backgroundColor: Mycolors.green,
-                  ),
-                );
+                final uid = AuthService.currentUserId;
+                if (uid != null) {
+                  final res = await AuthService.updateUserProfile(
+                    userId: uid,
+                    name: nameController.text.trim(),
+                    phone: phoneController.text.trim(),
+                  );
+                  final ok = res['success'] == true;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        ok
+                            ? 'Profile updated successfully!'
+                            : (res['error'] ?? 'Failed to update profile'),
+                      ),
+                      backgroundColor: ok ? Mycolors.green : Mycolors.red,
+                    ),
+                  );
+                }
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Mycolors.basecolor,
@@ -304,127 +374,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           ],
         );
       },
-    );
-  }
-
-  void _showPaymentMethodsDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          title: Text(
-            "Payment Methods",
-            style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _buildPaymentMethodCard(
-                "Credit Card",
-                "**** 1234",
-                Icons.credit_card,
-                true,
-              ),
-              const SizedBox(height: 10),
-              _buildPaymentMethodCard(
-                "UPI",
-                "sarah@paytm",
-                Icons.account_balance_wallet,
-                false,
-              ),
-              const SizedBox(height: 10),
-              _buildPaymentMethodCard(
-                "Net Banking",
-                "HDFC Bank",
-                Icons.account_balance,
-                false,
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text(
-                "Close",
-                style: GoogleFonts.poppins(color: Colors.grey),
-              ),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: const Text('Payment method added!'),
-                    backgroundColor: Mycolors.green,
-                  ),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Mycolors.basecolor,
-                foregroundColor: Colors.white,
-              ),
-              child: Text("Add New", style: GoogleFonts.poppins()),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _buildPaymentMethodCard(
-    String title,
-    String subtitle,
-    IconData icon,
-    bool isDefault,
-  ) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade100,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: isDefault ? Mycolors.basecolor : Colors.grey.shade300,
-        ),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, color: Mycolors.basecolor, size: 20),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
-                ),
-                Text(
-                  subtitle,
-                  style: GoogleFonts.poppins(
-                    fontSize: 12,
-                    color: Mycolors.gray,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          if (isDefault)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: Mycolors.basecolor,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Text(
-                "Default",
-                style: GoogleFonts.poppins(fontSize: 10, color: Colors.white),
-              ),
-            ),
-        ],
-      ),
     );
   }
 
@@ -527,190 +476,136 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     );
   }
 
-  void _showFavoritesDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          title: Text(
-            "Favorite Locations",
-            style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _buildFavoriteItem("Home", "123 Main Street", Icons.home),
-              _buildFavoriteItem("Office", "456 Business Park", Icons.work),
-              _buildFavoriteItem(
-                "Airport",
-                "International Airport",
-                Icons.flight,
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text(
-                "Close",
-                style: GoogleFonts.poppins(color: Colors.grey),
-              ),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: const Text('Location added to favorites!'),
-                    backgroundColor: Mycolors.green,
-                  ),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Mycolors.basecolor,
-                foregroundColor: Colors.white,
-              ),
-              child: Text("Add New", style: GoogleFonts.poppins()),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _buildFavoriteItem(String title, String address, IconData icon) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade100,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, color: Mycolors.basecolor, size: 20),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
-                ),
-                Text(
-                  address,
-                  style: GoogleFonts.poppins(
-                    fontSize: 12,
-                    color: Mycolors.gray,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showNotificationsDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          title: Text(
-            "Notification Settings",
-            style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              SwitchListTile(
-                title: Text("Ride Updates", style: GoogleFonts.poppins()),
-                value: true,
-                onChanged: (value) {},
-                activeColor: Mycolors.basecolor,
-              ),
-              SwitchListTile(
-                title: Text("Promotional Offers", style: GoogleFonts.poppins()),
-                value: false,
-                onChanged: (value) {},
-                activeColor: Mycolors.basecolor,
-              ),
-              SwitchListTile(
-                title: Text("App Updates", style: GoogleFonts.poppins()),
-                value: true,
-                onChanged: (value) {},
-                activeColor: Mycolors.basecolor,
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text(
-                "Close",
-                style: GoogleFonts.poppins(color: Colors.grey),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   void _showHelpSupportDialog() {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          title: Text(
-            "Help & Support",
-            style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _buildSupportOption("FAQ", Icons.help_outline),
-              _buildSupportOption("Contact Us", Icons.phone),
-              _buildSupportOption("Report Issue", Icons.report),
-              _buildSupportOption("Live Chat", Icons.chat),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text(
-                "Close",
-                style: GoogleFonts.poppins(color: Colors.grey),
+        final TextEditingController subjectController = TextEditingController();
+        final TextEditingController messageController = TextEditingController();
+        bool isSubmitting = false;
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
               ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _buildSupportOption(String title, IconData icon) {
-    return ListTile(
-      leading: Icon(icon, color: Mycolors.basecolor),
-      title: Text(title, style: GoogleFonts.poppins()),
-      onTap: () {
-        Navigator.of(context).pop();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Opening $title...'),
-            backgroundColor: Mycolors.basecolor,
-          ),
+              title: Text(
+                "Help & Support",
+                style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+              ),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Create a support request",
+                      style: GoogleFonts.poppins(
+                        fontSize: 13,
+                        color: Mycolors.gray,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: subjectController,
+                      decoration: InputDecoration(
+                        labelText: "Subject",
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: messageController,
+                      maxLines: 4,
+                      decoration: InputDecoration(
+                        labelText: "Describe your issue",
+                        alignLabelWithHint: true,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text(
+                    "Close",
+                    style: GoogleFonts.poppins(color: Colors.grey),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: isSubmitting
+                      ? null
+                      : () async {
+                          final uid = AuthService.currentUserId;
+                          final subject = subjectController.text.trim();
+                          final message = messageController.text.trim();
+                          if (uid == null ||
+                              subject.isEmpty ||
+                              message.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  'Please fill subject and message',
+                                ),
+                                backgroundColor: Mycolors.red,
+                              ),
+                            );
+                            return;
+                          }
+                          setState(() => isSubmitting = true);
+                          try {
+                            await FirebaseFirestore.instance
+                                .collection('support_tickets')
+                                .add({
+                                  'userId': uid,
+                                  'subject': subject,
+                                  'message': message,
+                                  'status': 'open',
+                                  'createdAt': FieldValue.serverTimestamp(),
+                                });
+                            if (context.mounted) {
+                              Navigator.of(context).pop();
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: const Text(
+                                    'Support request submitted!',
+                                  ),
+                                  backgroundColor: Mycolors.green,
+                                ),
+                              );
+                            }
+                          } catch (e) {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Failed to submit: $e'),
+                                  backgroundColor: Mycolors.red,
+                                ),
+                              );
+                            }
+                          } finally {
+                            if (context.mounted)
+                              setState(() => isSubmitting = false);
+                          }
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Mycolors.basecolor,
+                    foregroundColor: Colors.white,
+                  ),
+                  child: Text(
+                    isSubmitting ? "Submitting..." : "Submit",
+                    style: GoogleFonts.poppins(),
+                  ),
+                ),
+              ],
+            );
+          },
         );
       },
     );
@@ -720,6 +615,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
+        ThemeMode currentMode = AppSettings.themeMode.value;
+        Locale? currentLocale = AppSettings.locale.value;
         return AlertDialog(
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
@@ -731,24 +628,26 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              ListTile(
-                leading: Icon(Icons.language, color: Mycolors.basecolor),
-                title: Text("Language", style: GoogleFonts.poppins()),
-                trailing: Text(
-                  "English",
-                  style: GoogleFonts.poppins(color: Mycolors.gray),
-                ),
-                onTap: () {},
+              Row(
+                children: [
+                  Icon(Icons.dark_mode, color: Mycolors.basecolor),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text("Dark Mode", style: GoogleFonts.poppins()),
+                  ),
+                  Switch(
+                    value: currentMode == ThemeMode.dark,
+                    onChanged: (val) {
+                      AppSettings.themeMode.value = val
+                          ? ThemeMode.dark
+                          : ThemeMode.light;
+                      Navigator.of(context).pop();
+                    },
+                    activeColor: Mycolors.basecolor,
+                  ),
+                ],
               ),
-              ListTile(
-                leading: Icon(Icons.dark_mode, color: Mycolors.basecolor),
-                title: Text("Theme", style: GoogleFonts.poppins()),
-                trailing: Text(
-                  "Light",
-                  style: GoogleFonts.poppins(color: Mycolors.gray),
-                ),
-                onTap: () {},
-              ),
+              const SizedBox(height: 8),
               ListTile(
                 leading: Icon(Icons.location_on, color: Mycolors.basecolor),
                 title: Text("Location Services", style: GoogleFonts.poppins()),
@@ -818,6 +717,25 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           ],
         );
       },
+    );
+  }
+
+  Widget _buildDocTile(String label, String value) {
+    final String text = (value).toString();
+    return ListTile(
+      dense: true,
+      contentPadding: EdgeInsets.zero,
+      leading: Icon(Icons.description, color: Mycolors.basecolor),
+      title: Text(
+        label,
+        style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+      ),
+      subtitle: Text(
+        text.isEmpty ? 'Not available' : text,
+        style: GoogleFonts.poppins(fontSize: 12, color: Mycolors.gray),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
     );
   }
 }

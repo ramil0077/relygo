@@ -24,7 +24,9 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () async {
+            await Navigator.maybePop(context);
+          },
         ),
         title: Text(
           "User Management",

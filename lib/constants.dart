@@ -64,6 +64,36 @@ class AppTheme {
       ),
     );
   }
+
+  static ThemeData get darkTheme {
+    final base = ThemeData.dark();
+    return base.copyWith(
+      primaryColor: Mycolors.basecolor,
+      colorScheme: base.colorScheme.copyWith(
+        primary: Mycolors.basecolor,
+        secondary: Mycolors.orange,
+      ),
+      textTheme: GoogleFonts.poppinsTextTheme(base.textTheme),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Mycolors.basecolor,
+          foregroundColor: Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          textStyle: GoogleFonts.poppins(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class AppSettings {
+  static final ValueNotifier<ThemeMode> themeMode = ValueNotifier(
+    ThemeMode.light,
+  );
+  static final ValueNotifier<Locale?> locale = ValueNotifier<Locale?>(null);
 }
 
 class ResponsiveTextStyles {

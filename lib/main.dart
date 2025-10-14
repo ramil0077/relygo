@@ -14,10 +14,17 @@ class MyApp extends StatelessWidget {
   const MyApp({super.key});
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.theme,
-      home: const AuthWrapper(),
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: AppSettings.themeMode,
+      builder: (context, themeMode, _) {
+        return MaterialApp(
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.theme,
+          darkTheme: AppTheme.darkTheme,
+          themeMode: themeMode,
+          home: const AuthWrapper(),
+        );
+      },
     );
   }
 }
