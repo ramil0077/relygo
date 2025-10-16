@@ -578,7 +578,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
                 title: Text("Maintenance Mode", style: GoogleFonts.poppins()),
                 value: false,
                 onChanged: (value) {},
-                activeColor: Mycolors.orange,
+                activeThumbColor: Mycolors.orange,
               ),
               SwitchListTile(
                 title: Text(
@@ -587,7 +587,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
                 ),
                 value: true,
                 onChanged: (value) {},
-                activeColor: Mycolors.orange,
+                activeThumbColor: Mycolors.orange,
               ),
               SwitchListTile(
                 title: Text(
@@ -596,13 +596,13 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
                 ),
                 value: true,
                 onChanged: (value) {},
-                activeColor: Mycolors.orange,
+                activeThumbColor: Mycolors.orange,
               ),
               SwitchListTile(
                 title: Text("SMS Notifications", style: GoogleFonts.poppins()),
                 value: false,
                 onChanged: (value) {},
-                activeColor: Mycolors.orange,
+                activeThumbColor: Mycolors.orange,
               ),
             ],
           ),
@@ -808,25 +808,25 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
                 title: Text("System Alerts", style: GoogleFonts.poppins()),
                 value: true,
                 onChanged: (value) {},
-                activeColor: Mycolors.orange,
+                activeThumbColor: Mycolors.orange,
               ),
               SwitchListTile(
                 title: Text("User Reports", style: GoogleFonts.poppins()),
                 value: true,
                 onChanged: (value) {},
-                activeColor: Mycolors.orange,
+                activeThumbColor: Mycolors.orange,
               ),
               SwitchListTile(
                 title: Text("Driver Updates", style: GoogleFonts.poppins()),
                 value: false,
                 onChanged: (value) {},
-                activeColor: Mycolors.orange,
+                activeThumbColor: Mycolors.orange,
               ),
               SwitchListTile(
                 title: Text("Revenue Updates", style: GoogleFonts.poppins()),
                 value: true,
                 onChanged: (value) {},
-                activeColor: Mycolors.orange,
+                activeThumbColor: Mycolors.orange,
               ),
             ],
           ),

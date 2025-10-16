@@ -4,6 +4,7 @@ import 'package:relygo/constants.dart';
 import 'package:relygo/screens/booking_confirmation_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:relygo/services/auth_service.dart';
+// Map integration removed
 
 class ServiceBookingScreen extends StatefulWidget {
   const ServiceBookingScreen({super.key});
@@ -21,6 +22,7 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
   final TextEditingController _destinationController = TextEditingController();
   String? _driverId;
   String? _driverName;
+  int? _estimatedPrice;
 
   @override
   void initState() {
@@ -32,6 +34,10 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
         setState(() {
           _driverId = args['driverId']?.toString();
           _driverName = args['driverName']?.toString();
+          final vehicleArg = args['vehicle']?.toString();
+          if (vehicleArg != null && vehicleArg.isNotEmpty) {
+            _selectedVehicle = vehicleArg;
+          }
         });
       }
     });
@@ -96,36 +102,100 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
               ),
               const SizedBox(height: 30),
 
-              // Vehicle Type Selection
-              Text(
-                "Select Vehicle Type",
-                style: GoogleFonts.poppins(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
+              // Vehicle Type Selection (only show if no specific driver selected)
+              if (_driverId == null) ...[
+                Text(
+                  "Select Vehicle Type",
+                  style: GoogleFonts.poppins(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 15),
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildVehicleCard(
-                      "Car",
-                      Icons.directions_car,
-                      "Car",
+                const SizedBox(height: 15),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildVehicleCard(
+                        "Car",
+                        Icons.directions_car,
+                        "Car",
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: _buildVehicleCard(
+                        "Bike",
+                        Icons.two_wheeler,
+                        "Bike",
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: _buildVehicleCard(
+                        "Auto",
+                        Icons.local_taxi,
+                        "Auto",
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 30),
+              ] else ...[
+                // Show selected driver's info
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Mycolors.basecolor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: Mycolors.basecolor.withOpacity(0.3),
                     ),
                   ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: _buildVehicleCard("Bike", Icons.two_wheeler, "Bike"),
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.person,
+                            color: Mycolors.basecolor,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            "Driver: $_driverName",
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: Mycolors.basecolor,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Icon(
+                            _getVehicleIcon(_selectedVehicle),
+                            color: Mycolors.basecolor,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            "Vehicle: $_selectedVehicle",
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: Mycolors.basecolor,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: _buildVehicleCard("Auto", Icons.local_taxi, "Auto"),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 30),
+                ),
+                const SizedBox(height: 20),
+              ],
 
               // Pickup Location
               Text(
@@ -312,7 +382,7 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
                       ),
                     ),
                     Text(
-                      "₹250 - ₹350",
+                      _estimatedPrice != null ? "₹${_estimatedPrice}" : "—",
                       style: GoogleFonts.poppins(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -461,6 +531,19 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
     }
   }
 
+  IconData _getVehicleIcon(String vehicleType) {
+    switch (vehicleType.toLowerCase()) {
+      case 'car':
+        return Icons.directions_car;
+      case 'bike':
+        return Icons.two_wheeler;
+      case 'auto':
+        return Icons.local_taxi;
+      default:
+        return Icons.directions_car;
+    }
+  }
+
   Future<void> _createBooking() async {
     final userId = AuthService.currentUserId;
     if (userId == null) {
@@ -483,6 +566,7 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
         'vehicle': _selectedVehicle,
         'pickup': _pickupController.text.trim(),
         'destination': _destinationController.text.trim(),
+        // map fields removed
         'status': 'pending',
         'createdAt': Timestamp.fromDate(now),
         'scheduledDate': _selectedDate != null
@@ -511,7 +595,7 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
             date: _selectedDate != null
                 ? "${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}"
                 : null,
-            time: _selectedTime != null ? _selectedTime!.format(context) : null,
+            time: _selectedTime?.format(context),
           ),
         ),
       );
@@ -529,4 +613,6 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
       ).showSnackBar(SnackBar(content: Text('Booking failed: $e')));
     }
   }
+
+  // Map-related code removed per requirements
 }

@@ -4,11 +4,13 @@ import 'package:relygo/constants.dart';
 import 'package:relygo/screens/service_booking_screen.dart';
 import 'package:relygo/screens/user_profile_screen.dart';
 import 'package:relygo/screens/chat_detail_screen.dart';
+import 'package:relygo/screens/payment_screen.dart';
 import 'package:relygo/utils/responsive.dart';
 import 'package:relygo/services/user_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:relygo/screens/chat_detail_screen.dart';
 import 'package:relygo/services/admin_service.dart';
+import 'package:relygo/services/auth_service.dart';
+import 'package:relygo/services/chat_service.dart';
 
 class UserDashboardScreen extends StatefulWidget {
   const UserDashboardScreen({super.key});
@@ -22,6 +24,106 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
   String _driverSearchQuery = "";
 
   @override
+  void initState() {
+    super.initState();
+    _checkForAcceptedRequests();
+  }
+
+  void _checkForAcceptedRequests() {
+    // Check for accepted requests that need payment
+    final userId = AuthService.currentUserId;
+    if (userId == null) return;
+
+    FirebaseFirestore.instance
+        .collection('ride_requests')
+        .where('userId', isEqualTo: userId)
+        .where('status', isEqualTo: 'accepted')
+        .snapshots()
+        .listen((snapshot) {
+          for (var doc in snapshot.docs) {
+            final data = doc.data();
+            if (data['status'] == 'accepted' && data['paymentMethod'] == null) {
+              _showPaymentDialog(doc.id, data);
+            }
+          }
+        });
+  }
+
+  void _showPaymentDialog(String requestId, Map<String, dynamic> requestData) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Text(
+            'Ride Accepted!',
+            style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Your driver has accepted your ride request.',
+                style: GoogleFonts.poppins(),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Driver: ${requestData['driverName'] ?? 'Driver'}',
+                style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+              ),
+              Text(
+                'Destination: ${requestData['destination'] ?? 'Destination'}',
+                style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Please proceed to payment to confirm your ride.',
+                style: GoogleFonts.poppins(fontSize: 14, color: Mycolors.gray),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                'Cancel',
+                style: GoogleFonts.poppins(color: Colors.grey),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => PaymentScreen(
+                      requestId: requestId,
+                      driverName: requestData['driverName'] ?? 'Driver',
+                      destination: requestData['destination'] ?? 'Destination',
+                      amount: (requestData['fare'] is num)
+                          ? (requestData['fare'] as num).toDouble()
+                          : 150.0,
+                    ),
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Mycolors.basecolor,
+                foregroundColor: Colors.white,
+              ),
+              child: Text('Pay Now', style: GoogleFonts.poppins()),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
@@ -31,7 +133,7 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
           children: [
             _buildHomeTab(),
             _buildSearchTab(),
-            _buildBookingTab(),
+            // removed booking tab per requirements
             _buildChatTab(),
             _buildProfileTab(),
           ],
@@ -54,9 +156,8 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
           children: [
             _buildNavItem(Icons.home, "Home", 0),
             _buildNavItem(Icons.search, "Search", 1),
-            _buildNavItem(Icons.add, "Book", 2),
-            _buildNavItem(Icons.chat, "Chat", 3),
-            _buildNavItem(Icons.person, "Profile", 4),
+            _buildNavItem(Icons.chat, "Chat", 2),
+            _buildNavItem(Icons.person, "Profile", 3),
           ],
         ),
       ),
@@ -320,6 +421,9 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                         ? Mycolors.green
                         : Mycolors.orange;
                     final distance = d['distanceText'] ?? '';
+                    final price = d['baseFare'] != null
+                        ? '₹${d['baseFare']}'
+                        : '₹150'; // Default price
                     return GestureDetector(
                       onTap: () => _showDriverDetailsSheet(d),
                       child: _buildDriverCard(
@@ -329,6 +433,8 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                         distance,
                         status,
                         statusColor,
+                        price,
+                        d,
                       ),
                     );
                   },
@@ -418,28 +524,7 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                           ],
                         ),
                       ),
-                      ElevatedButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  const ServiceBookingScreen(),
-                              settings: RouteSettings(
-                                arguments: {
-                                  'driverId': driverId,
-                                  'driverName': name,
-                                },
-                              ),
-                            ),
-                          );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Mycolors.basecolor,
-                          foregroundColor: Colors.white,
-                        ),
-                        child: Text('Book', style: GoogleFonts.poppins()),
-                      ),
+                      const SizedBox.shrink(),
                     ],
                   ),
                   const SizedBox(height: 12),
@@ -670,9 +755,96 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
     );
   }
 
-  Widget _buildBookingTab() {
-    return const ServiceBookingScreen();
+  void _promptBookingMode({
+    required String driverId,
+    required String driverName,
+    String? vehicleType,
+  }) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          title: Text(
+            'Book ride',
+            style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('How would you like to book?', style: GoogleFonts.poppins()),
+              const SizedBox(height: 12),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: Icon(Icons.person, color: Mycolors.basecolor),
+                title: Text('This driver', style: GoogleFonts.poppins()),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const ServiceBookingScreen(),
+                      settings: RouteSettings(
+                        arguments: {
+                          'driverId': driverId,
+                          'driverName': driverName,
+                          if (vehicleType != null && vehicleType.isNotEmpty)
+                            'vehicle': vehicleType,
+                        },
+                      ),
+                    ),
+                  );
+                },
+              ),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: Icon(Icons.directions_car, color: Mycolors.orange),
+                title: Text('By vehicle only', style: GoogleFonts.poppins()),
+                subtitle: vehicleType != null && vehicleType.isNotEmpty
+                    ? Text(
+                        vehicleType,
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          color: Mycolors.gray,
+                        ),
+                      )
+                    : null,
+                onTap: () {
+                  Navigator.of(context).pop();
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const ServiceBookingScreen(),
+                      settings: RouteSettings(
+                        arguments: {
+                          if (vehicleType != null && vehicleType.isNotEmpty)
+                            'vehicle': vehicleType,
+                        },
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                'Close',
+                style: GoogleFonts.poppins(color: Colors.grey),
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
+
+  // booking tab removed per requirements
 
   Widget _buildChatTab() {
     return Padding(
@@ -683,31 +855,84 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
           Text("Messages", style: ResponsiveTextStyles.getTitleStyle(context)),
           SizedBox(height: ResponsiveSpacing.getMediumSpacing(context)),
 
+          // Conversations from Firestore
           Expanded(
-            child: ListView(
-              children: [
-                _buildChatCard(
-                  context,
-                  "John Smith",
-                  "Thanks for the great service!",
-                  "2 min ago",
-                  "1",
-                ),
-                _buildChatCard(
-                  context,
-                  "Sarah Johnson",
-                  "I'll be there in 5 minutes",
-                  "1 hour ago",
-                  "",
-                ),
-                _buildChatCard(
-                  context,
-                  "Support Team",
-                  "Your ride has been confirmed",
-                  "2 hours ago",
-                  "",
-                ),
-              ],
+            child: StreamBuilder<List<Map<String, dynamic>>>(
+              stream: ChatService.getUserConversationsStream(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (snapshot.hasError) {
+                  return Center(
+                    child: Text(
+                      'Failed to load messages',
+                      style: GoogleFonts.poppins(color: Mycolors.red),
+                    ),
+                  );
+                }
+                final conversations = snapshot.data ?? [];
+                if (conversations.isEmpty) {
+                  return Center(
+                    child: Text(
+                      'No conversations yet',
+                      style: GoogleFonts.poppins(color: Mycolors.gray),
+                    ),
+                  );
+                }
+                final String? myId = AuthService.currentUserId;
+                return ListView.builder(
+                  itemCount: conversations.length,
+                  itemBuilder: (context, index) {
+                    final c = conversations[index];
+                    final List participants = (c['participants'] is List)
+                        ? (c['participants'] as List)
+                        : [];
+                    final String conversationId = (c['id'] ?? '').toString();
+                    final String lastMessage = (c['lastMessage'] ?? '')
+                        .toString();
+                    final Timestamp? updatedAt = c['updatedAt'] as Timestamp?;
+                    final String timeText = updatedAt != null
+                        ? _formatDate(updatedAt)
+                        : '';
+                    // pick a peerId (the other participant)
+                    String peerId = '';
+                    if (myId != null && participants.isNotEmpty) {
+                      for (final p in participants) {
+                        if (p != myId) {
+                          peerId = p.toString();
+                          break;
+                        }
+                      }
+                    }
+                    final String title = peerId.isNotEmpty
+                        ? 'Chat with $peerId'
+                        : 'Conversation';
+
+                    return GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ChatDetailScreen(
+                              peerName: title,
+                              conversationId: conversationId,
+                              peerId: peerId,
+                            ),
+                          ),
+                        );
+                      },
+                      child: _buildChatCard(
+                        context,
+                        title,
+                        lastMessage.isEmpty ? 'Say hi' : lastMessage,
+                        timeText,
+                        '',
+                      ),
+                    );
+                  },
+                );
+              },
             ),
           ),
         ],
@@ -1147,6 +1372,8 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
     String distance,
     String status,
     Color statusColor,
+    String price,
+    Map<String, dynamic> driverData,
   ) {
     return Container(
       margin: EdgeInsets.only(
@@ -1248,6 +1475,20 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
           ),
           Column(
             children: [
+              Text(
+                price,
+                style: GoogleFonts.poppins(
+                  fontSize: ResponsiveUtils.getResponsiveFontSize(
+                    context,
+                    mobile: 16,
+                    tablet: 18,
+                    desktop: 20,
+                  ),
+                  fontWeight: FontWeight.bold,
+                  color: Mycolors.basecolor,
+                ),
+              ),
+              SizedBox(height: ResponsiveSpacing.getSmallSpacing(context)),
               Container(
                 padding: EdgeInsets.symmetric(
                   horizontal: ResponsiveUtils.getResponsiveSpacing(
@@ -1291,7 +1532,11 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
               SizedBox(height: ResponsiveSpacing.getSmallSpacing(context)),
               ElevatedButton(
                 onPressed: () {
-                  // Book this driver
+                  _promptBookingMode(
+                    driverId: driverData['id']?.toString() ?? '',
+                    driverName: name,
+                    vehicleType: driverData['vehicleType']?.toString(),
+                  );
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Mycolors.basecolor,

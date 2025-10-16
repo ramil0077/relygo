@@ -112,6 +112,8 @@ class _RideManagementScreenState extends State<RideManagementScreen> {
                         statusColor,
                         time,
                         Icons.directions_car,
+                        docs[index].id,
+                        d,
                       );
                     },
                   );
@@ -162,6 +164,8 @@ class _RideManagementScreenState extends State<RideManagementScreen> {
     Color statusColor,
     String time,
     IconData statusIcon,
+    String requestId,
+    Map<String, dynamic> requestData,
   ) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -270,7 +274,52 @@ class _RideManagementScreenState extends State<RideManagementScreen> {
           ),
 
           // Action buttons based on status
-          if (status == "In Progress") ...[
+          if (status == "pending") ...[
+            const SizedBox(height: 15),
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      _acceptRideRequest(requestId);
+                    },
+                    icon: const Icon(Icons.check, size: 18),
+                    label: Text(
+                      "Accept",
+                      style: GoogleFonts.poppins(fontSize: 14),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Mycolors.green,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      _rejectRideRequest(requestId);
+                    },
+                    icon: const Icon(Icons.close, size: 18),
+                    label: Text(
+                      "Reject",
+                      style: GoogleFonts.poppins(fontSize: 14),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Mycolors.red,
+                      side: BorderSide(color: Mycolors.red),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ] else if (status == "In Progress") ...[
             const SizedBox(height: 15),
             Row(
               children: [
@@ -719,5 +768,51 @@ class _RideManagementScreenState extends State<RideManagementScreen> {
         );
       },
     );
+  }
+
+  Future<void> _acceptRideRequest(String requestId) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('ride_requests')
+          .doc(requestId)
+          .update({'status': 'accepted', 'acceptedAt': Timestamp.now()});
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Ride request accepted!'),
+          backgroundColor: Mycolors.green,
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to accept request'),
+          backgroundColor: Mycolors.red,
+        ),
+      );
+    }
+  }
+
+  Future<void> _rejectRideRequest(String requestId) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('ride_requests')
+          .doc(requestId)
+          .update({'status': 'rejected', 'rejectedAt': Timestamp.now()});
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Ride request rejected'),
+          backgroundColor: Mycolors.orange,
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to reject request'),
+          backgroundColor: Mycolors.red,
+        ),
+      );
+    }
   }
 }

@@ -590,8 +590,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                               );
                             }
                           } finally {
-                            if (context.mounted)
+                            if (context.mounted) {
                               setState(() => isSubmitting = false);
+                            }
                           }
                         },
                   style: ElevatedButton.styleFrom(
@@ -643,7 +644,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                           : ThemeMode.light;
                       Navigator.of(context).pop();
                     },
-                    activeColor: Mycolors.basecolor,
+                    activeThumbColor: Mycolors.basecolor,
                   ),
                 ],
               ),
@@ -654,7 +655,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 trailing: Switch(
                   value: true,
                   onChanged: (value) {},
-                  activeColor: Mycolors.basecolor,
+                  activeThumbColor: Mycolors.basecolor,
                 ),
               ),
             ],

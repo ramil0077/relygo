@@ -8,6 +8,7 @@ import 'package:relygo/screens/chat_detail_screen.dart';
 import 'package:relygo/utils/responsive.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:relygo/services/auth_service.dart';
+import 'package:relygo/screens/driver_notifications_screen.dart';
 
 class DriverDashboardScreen extends StatefulWidget {
   const DriverDashboardScreen({super.key});
@@ -46,6 +47,36 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
           ],
         ),
       ),
+      appBar: _selectedIndex == 0
+          ? AppBar(
+              backgroundColor: Colors.white,
+              elevation: 0,
+              title: Text(
+                'Driver Dashboard',
+                style: GoogleFonts.poppins(
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black,
+                ),
+              ),
+              actions: [
+                IconButton(
+                  icon: const Icon(
+                    Icons.notifications_none,
+                    color: Colors.black,
+                  ),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const DriverNotificationsScreen(),
+                      ),
+                    );
+                  },
+                  tooltip: 'Ride Requests',
+                ),
+              ],
+            )
+          : null,
       bottomNavigationBar: Container(
         padding: const EdgeInsets.symmetric(vertical: 10),
         decoration: BoxDecoration(
@@ -69,6 +100,165 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  void _showRequestsBottomSheet() {
+    final String? driverId = AuthService.currentUserId;
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) {
+        if (driverId == null) {
+          return const SizedBox.shrink();
+        }
+        return Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Ride Requests',
+                style: GoogleFonts.poppins(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 18,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Expanded(
+                child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                  stream: FirebaseFirestore.instance
+                      .collection('ride_requests')
+                      .where('driverId', isEqualTo: driverId)
+                      .where('status', isEqualTo: 'pending')
+                      .snapshots(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    if (snapshot.hasError) {
+                      return Center(
+                        child: Text(
+                          'Failed to load requests',
+                          style: GoogleFonts.poppins(color: Mycolors.red),
+                        ),
+                      );
+                    }
+                    final docs = snapshot.data?.docs ?? [];
+                    if (docs.isEmpty) {
+                      return Center(
+                        child: Text(
+                          'No new requests',
+                          style: GoogleFonts.poppins(color: Mycolors.gray),
+                        ),
+                      );
+                    }
+                    return ListView.separated(
+                      itemCount: docs.length,
+                      separatorBuilder: (_, __) => const Divider(height: 1),
+                      itemBuilder: (context, index) {
+                        final doc = docs[index];
+                        final data = doc.data();
+                        final pickup = (data['pickup'] ?? '').toString();
+                        final destination = (data['destination'] ?? '')
+                            .toString();
+                        final userId = (data['userId'] ?? '').toString();
+                        return ListTile(
+                          title: Text(
+                            '$pickup → $destination',
+                            style: GoogleFonts.poppins(
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          subtitle: Text(
+                            'User: $userId',
+                            style: GoogleFonts.poppins(fontSize: 12),
+                          ),
+                          trailing: ElevatedButton(
+                            onPressed: () =>
+                                _promptAcceptWithFare(doc.id, data),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Mycolors.green,
+                              foregroundColor: Colors.white,
+                            ),
+                            child: Text('Accept', style: GoogleFonts.poppins()),
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+      isScrollControlled: true,
+    );
+  }
+
+  void _promptAcceptWithFare(String requestId, Map<String, dynamic> data) {
+    final fareController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          title: Text('Enter Estimated Fare', style: GoogleFonts.poppins()),
+          content: TextField(
+            controller: fareController,
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(
+              labelText: 'Fare (₹)',
+              border: OutlineInputBorder(),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                'Cancel',
+                style: GoogleFonts.poppins(color: Colors.grey),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final fareText = fareController.text.trim();
+                final num? fare = num.tryParse(fareText);
+                if (fare == null) return;
+                Navigator.of(context).pop();
+                await FirebaseFirestore.instance
+                    .collection('ride_requests')
+                    .doc(requestId)
+                    .update({
+                      'status': 'accepted',
+                      'fare': fare,
+                      'updatedAt': FieldValue.serverTimestamp(),
+                    });
+                if (!mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: const Text(
+                      'Request accepted. Waiting for payment.',
+                    ),
+                    backgroundColor: Mycolors.green,
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Mycolors.basecolor,
+                foregroundColor: Colors.white,
+              ),
+              child: Text('Confirm', style: GoogleFonts.poppins()),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -116,7 +306,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                         _isOnline = value;
                       });
                     },
-                    activeColor: Mycolors.green,
+                    activeThumbColor: Mycolors.green,
                   ),
                 ],
               ),

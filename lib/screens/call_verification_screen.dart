@@ -10,7 +10,7 @@ class CallVerificationScreen extends StatefulWidget {
 }
 
 class _CallVerificationScreenState extends State<CallVerificationScreen> {
-  bool _isEligible = true; // This would be determined by backend logic
+  final bool _isEligible = true; // This would be determined by backend logic
 
   @override
   Widget build(BuildContext context) {

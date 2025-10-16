@@ -198,11 +198,11 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                 }
 
                 return ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
+              padding: const EdgeInsets.symmetric(horizontal: 20),
                   itemCount: allUsers.length,
-                  itemBuilder: (context, index) {
+              itemBuilder: (context, index) {
                     final user = allUsers[index];
-                    return _buildUserCard(user);
+                return _buildUserCard(user);
                   },
                 );
               },
@@ -249,85 +249,85 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
     return GestureDetector(
       onTap: () => _showUserBottomSheet(user),
       child: Container(
-        margin: const EdgeInsets.only(bottom: 15),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey.shade300),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.1),
-              blurRadius: 5,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header with status and actions
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 20,
-                      backgroundColor: Mycolors.basecolor.withOpacity(0.1),
-                      child: Text(
-                        user['name'][0],
+      margin: const EdgeInsets.only(bottom: 15),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade300),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            blurRadius: 5,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header with status and actions
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  CircleAvatar(
+                    radius: 20,
+                    backgroundColor: Mycolors.basecolor.withOpacity(0.1),
+                    child: Text(
+                      user['name'][0],
+                      style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Mycolors.basecolor,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        user['name'],
                         style: GoogleFonts.poppins(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          color: Mycolors.basecolor,
+                          color: Colors.black,
                         ),
                       ),
+                      Text(
+                        user['email'],
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          color: Mycolors.gray,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
                     ),
-                    const SizedBox(width: 12),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          user['name'],
-                          style: GoogleFonts.poppins(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black,
-                          ),
-                        ),
-                        Text(
-                          user['email'],
-                          style: GoogleFonts.poppins(
-                            fontSize: 12,
-                            color: Mycolors.gray,
-                          ),
-                        ),
-                      ],
+                    decoration: BoxDecoration(
+                      color: statusColor.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                  ],
-                ),
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: statusColor.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
                       child: Icon(statusIcon, color: statusColor, size: 16),
-                    ),
-                    const SizedBox(width: 8),
+                  ),
+                  const SizedBox(width: 8),
                     const Icon(Icons.chevron_right, color: Colors.grey),
-                  ],
-                ),
-              ],
-            ),
+                ],
+              ),
+            ],
+          ),
 
-            const SizedBox(height: 12),
+          const SizedBox(height: 12),
 
             // Minimal: other details moved to bottom sheet on tap
             // (phone, dates, vehicle, license, stats removed from inline view)
@@ -638,7 +638,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
           content: approve
               ? Text(
                   "Are you sure you want to approve ${user['name']} as a driver?",
-                  style: GoogleFonts.poppins(),
+            style: GoogleFonts.poppins(),
                 )
               : Column(
                   mainAxisSize: MainAxisSize.min,
@@ -662,7 +662,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                       },
                     ),
                   ],
-                ),
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
@@ -678,11 +678,11 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                   if (approve) {
                     final res = await AdminService.approveDriver(user['id']);
                     if (res['success'] == true) {
-                      setState(() {
+                setState(() {
                         user['status'] = 'Approved';
-                      });
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
+                });
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
                           content: const Text('Driver approved successfully!'),
                           backgroundColor: Mycolors.green,
                         ),

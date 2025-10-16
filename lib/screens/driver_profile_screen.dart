@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:relygo/constants.dart';
+import 'package:relygo/services/auth_service.dart';
+import 'package:relygo/screens/signin_screen.dart';
 
 class DriverProfileScreen extends StatefulWidget {
   const DriverProfileScreen({super.key});
@@ -886,25 +888,25 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
                 title: Text("Ride Requests", style: GoogleFonts.poppins()),
                 value: true,
                 onChanged: (value) {},
-                activeColor: Mycolors.basecolor,
+                activeThumbColor: Mycolors.basecolor,
               ),
               SwitchListTile(
                 title: Text("Earnings Updates", style: GoogleFonts.poppins()),
                 value: true,
                 onChanged: (value) {},
-                activeColor: Mycolors.basecolor,
+                activeThumbColor: Mycolors.basecolor,
               ),
               SwitchListTile(
                 title: Text("Promotional Offers", style: GoogleFonts.poppins()),
                 value: false,
                 onChanged: (value) {},
-                activeColor: Mycolors.basecolor,
+                activeThumbColor: Mycolors.basecolor,
               ),
               SwitchListTile(
                 title: Text("App Updates", style: GoogleFonts.poppins()),
                 value: true,
                 onChanged: (value) {},
-                activeColor: Mycolors.basecolor,
+                activeThumbColor: Mycolors.basecolor,
               ),
             ],
           ),
@@ -1012,7 +1014,7 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
                 trailing: Switch(
                   value: true,
                   onChanged: (value) {},
-                  activeColor: Mycolors.basecolor,
+                  activeThumbColor: Mycolors.basecolor,
                 ),
               ),
             ],
@@ -1056,14 +1058,15 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
               ),
             ),
             ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
                 Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Logged out successfully!'),
-                    backgroundColor: Mycolors.green,
-                  ),
-                );
+                await AuthService.signOut();
+                if (context.mounted) {
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(builder: (_) => const SignInScreen()),
+                    (route) => false,
+                  );
+                }
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Mycolors.red,

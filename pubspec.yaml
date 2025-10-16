@@ -49,6 +49,8 @@ dependencies:
   cloudinary_flutter: ^1.0.4
   http: ^1.1.0
   path_provider: ^2.1.1
+  flutter_map: ^6.1.0
+  latlong2: ^0.9.0
 
 dev_dependencies:
   flutter_test:

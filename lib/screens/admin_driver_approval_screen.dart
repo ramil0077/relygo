@@ -204,7 +204,7 @@ class _AdminDriverApprovalScreenState extends State<AdminDriverApprovalScreen> {
                 Icon(Icons.people_outline, size: 64, color: Colors.grey[400]),
                 const SizedBox(height: 16),
                 Text(
-                  'No ${_selectedTab} drivers found',
+                  'No $_selectedTab drivers found',
                   style: GoogleFonts.poppins(
                     fontSize: 16,
                     color: Colors.grey[600],

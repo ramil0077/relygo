@@ -410,7 +410,7 @@ class _DriverRegistrationScreenState extends State<DriverRegistrationScreen> {
                 ),
                 const SizedBox(height: 8),
                 DropdownButtonFormField<String>(
-                  value: _selectedVehicleType,
+                  initialValue: _selectedVehicleType,
                   decoration: InputDecoration(
                     prefixIcon: Icon(
                       Icons.directions_car,

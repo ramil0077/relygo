@@ -1,11 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:relygo/constants.dart';
+import 'package:relygo/services/chat_service.dart';
+import 'package:relygo/services/auth_service.dart';
 
 class ChatDetailScreen extends StatefulWidget {
   final String peerName;
+  final String? conversationId; // optional for backward compatibility
+  final String? peerId; // optional for backward compatibility
 
-  const ChatDetailScreen({super.key, required this.peerName});
+  const ChatDetailScreen({
+    super.key,
+    required this.peerName,
+    this.conversationId,
+    this.peerId,
+  });
 
   @override
   State<ChatDetailScreen> createState() => _ChatDetailScreenState();
@@ -13,10 +22,6 @@ class ChatDetailScreen extends StatefulWidget {
 
 class _ChatDetailScreenState extends State<ChatDetailScreen> {
   final TextEditingController _messageController = TextEditingController();
-  final List<_Message> _messages = <_Message>[
-    _Message(text: 'Hi! I\'m on the way.', isMe: false, time: '2:40 PM'),
-    _Message(text: 'Great, see you soon.', isMe: true, time: '2:41 PM'),
-  ];
 
   @override
   Widget build(BuildContext context) {
@@ -53,45 +58,60 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
       body: Column(
         children: [
           Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: _messages.length,
-              itemBuilder: (context, index) {
-                final m = _messages[index];
-                return Align(
-                  alignment: m.isMe
-                      ? Alignment.centerRight
-                      : Alignment.centerLeft,
-                  child: Container(
-                    margin: const EdgeInsets.only(bottom: 10),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 10,
+            child: StreamBuilder<List<Map<String, dynamic>>>(
+              stream: () {
+                final String? convId = widget.conversationId ??
+                    (widget.peerId != null
+                        ? ChatService.conversationIdWithPeer(widget.peerId!)
+                        : null);
+                if (convId == null || convId.isEmpty) {
+                  return const Stream<List<Map<String, dynamic>>>.empty();
+                }
+                return ChatService.getMessagesStream(convId);
+              }(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (snapshot.hasError) {
+                  return Center(
+                    child: Text(
+                      'Failed to load messages',
+                      style: GoogleFonts.poppins(color: Mycolors.red),
                     ),
-                    decoration: BoxDecoration(
-                      color: m.isMe ? Mycolors.basecolor : Mycolors.lightGray,
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          m.text,
+                  );
+                }
+                final messages = snapshot.data ?? [];
+                return ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: messages.length,
+                  itemBuilder: (context, index) {
+                    final m = messages[index];
+                    final String myId = AuthService.currentUserId ?? '';
+                    final bool isMe = (m['senderId'] ?? '') == myId;
+                    final String text = (m['text'] ?? '').toString();
+                    return Align(
+                      alignment:
+                          isMe ? Alignment.centerRight : Alignment.centerLeft,
+                      child: Container(
+                        margin: const EdgeInsets.only(bottom: 10),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 10,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isMe ? Mycolors.basecolor : Mycolors.lightGray,
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: Text(
+                          text,
                           style: GoogleFonts.poppins(
-                            color: m.isMe ? Colors.white : Colors.black,
+                            color: isMe ? Colors.white : Colors.black,
                           ),
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          m.time,
-                          style: GoogleFonts.poppins(
-                            color: m.isMe ? Colors.white70 : Mycolors.gray,
-                            fontSize: 11,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                      ),
+                    );
+                  },
                 );
               },
             ),
@@ -155,13 +175,13 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     );
   }
 
-  void _send() {
+  Future<void> _send() async {
     final text = _messageController.text.trim();
     if (text.isEmpty) return;
-    setState(() {
-      _messages.add(_Message(text: text, isMe: true, time: _now()));
-      _messageController.clear();
-    });
+    _messageController.clear();
+    final String? peer = widget.peerId;
+    if (peer == null || peer.isEmpty) return;
+    await ChatService.sendMessage(peerId: peer, text: text);
   }
 
   String _now() {
@@ -173,9 +193,4 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   }
 }
 
-class _Message {
-  final String text;
-  final bool isMe;
-  final String time;
-  _Message({required this.text, required this.isMe, required this.time});
-}
+// removed local _Message in favor of Firestore messages

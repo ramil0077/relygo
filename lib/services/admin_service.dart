@@ -149,7 +149,7 @@ class AdminService {
         .snapshots()
         .map((snapshot) {
           return snapshot.docs.map((doc) {
-            final data = doc.data() as Map<String, dynamic>;
+            final data = doc.data();
             data['id'] = doc.id;
             return data;
           }).toList();
@@ -165,7 +165,7 @@ class AdminService {
         .snapshots()
         .map((snapshot) {
           return snapshot.docs.map((doc) {
-            final data = doc.data() as Map<String, dynamic>;
+            final data = doc.data();
             data['id'] = doc.id;
             return data;
           }).toList();
@@ -181,7 +181,7 @@ class AdminService {
         .snapshots()
         .map((snapshot) {
           return snapshot.docs.map((doc) {
-            final data = doc.data() as Map<String, dynamic>;
+            final data = doc.data();
             data['id'] = doc.id;
             return data;
           }).toList();
@@ -196,7 +196,7 @@ class AdminService {
         .snapshots()
         .map((snapshot) {
           return snapshot.docs.map((doc) {
-            final data = doc.data() as Map<String, dynamic>;
+            final data = doc.data();
             data['id'] = doc.id;
             return data;
           }).toList();
