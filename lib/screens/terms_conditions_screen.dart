@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:relygo/constants.dart';
-import 'package:relygo/screens/call_verification_screen.dart';
+
 
 class TermsConditionsScreen extends StatefulWidget {
   const TermsConditionsScreen({super.key});
@@ -216,13 +216,13 @@ class _TermsConditionsScreenState extends State<TermsConditionsScreen> {
                       child: ElevatedButton(
                         onPressed: _acceptTerms
                             ? () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        const CallVerificationScreen(),
-                                  ),
-                                );
+                                // Navigator.push(
+                                //   context,
+                                //   MaterialPageRoute(
+                                //     builder: (context) =>
+                                //         const CallVerificationScreen(),
+                                //   ),
+                                // );
                               }
                             : null,
                         style: ElevatedButton.styleFrom(

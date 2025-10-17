@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:relygo/constants.dart';
-import 'package:relygo/screens/booking_confirmation_screen.dart';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:relygo/services/auth_service.dart';
 // Map integration removed
@@ -586,19 +586,19 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
 
       // Optional: show confirmation screen
       if (!mounted) return;
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => BookingConfirmationScreen(
-            service: _selectedService,
-            vehicle: _selectedVehicle,
-            date: _selectedDate != null
-                ? "${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}"
-                : null,
-            time: _selectedTime?.format(context),
-          ),
-        ),
-      );
+      // Navigator.push(
+      //   context,
+      //   MaterialPageRoute(
+      //     builder: (context) => BookingConfirmationScreen(
+      //       service: _selectedService,
+      //       vehicle: _selectedVehicle,
+      //       date: _selectedDate != null
+      //           ? "${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}"
+      //           : null,
+      //       time: _selectedTime?.format(context),
+      //     ),
+      //   ),
+      // );
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

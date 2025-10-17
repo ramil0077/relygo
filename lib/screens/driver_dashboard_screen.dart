@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:relygo/constants.dart';
-import 'package:relygo/screens/ride_management_screen.dart';
+
 import 'package:relygo/screens/earnings_screen.dart';
 import 'package:relygo/screens/driver_profile_screen.dart';
-import 'package:relygo/screens/chat_detail_screen.dart';
+
 import 'package:relygo/utils/responsive.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:relygo/services/auth_service.dart';
@@ -40,7 +40,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
           index: _selectedIndex,
           children: [
             _buildHomeTab(),
-            _buildRidesTab(),
+           // _buildRidesTab(),
             _buildEarningsTab(),
             _buildChatTab(),
             _buildProfileTab(),
@@ -442,9 +442,9 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
     );
   }
 
-  Widget _buildRidesTab() {
-    return const RideManagementScreen();
-  }
+  // Widget _buildRidesTab() {
+  //   return const RideManagementScreen();
+  // }
 
   Widget _buildEarningsTab() {
     return const EarningsScreen();
@@ -1060,12 +1060,12 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
   ) {
     return GestureDetector(
       onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ChatDetailScreen(peerName: name),
-          ),
-        );
+        // Navigator.push(
+        //   context,
+        //   MaterialPageRoute(
+        //     builder: (context) => ChatDetailScreen(peerName: name),
+        //   ),
+        // );
       },
       child: Container(
         margin: EdgeInsets.only(

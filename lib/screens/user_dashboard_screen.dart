@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:relygo/constants.dart';
 import 'package:relygo/screens/service_booking_screen.dart';
 import 'package:relygo/screens/user_profile_screen.dart';
-import 'package:relygo/screens/chat_detail_screen.dart';
+
 import 'package:relygo/screens/payment_screen.dart';
 import 'package:relygo/utils/responsive.dart';
 import 'package:relygo/services/user_service.dart';
@@ -731,12 +731,12 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                 title: Text('Chat', style: GoogleFonts.poppins()),
                 onTap: () {
                   Navigator.of(context).pop();
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => ChatDetailScreen(peerName: name),
-                    ),
-                  );
+                  // Navigator.push(
+                  //   context,
+                  //   MaterialPageRoute(
+                  //     builder: (context) => ChatDetailScreen(peerName: name),
+                  //   ),
+                  // );
                 },
               ),
             ],
@@ -911,16 +911,16 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
 
                     return GestureDetector(
                       onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => ChatDetailScreen(
-                              peerName: title,
-                              conversationId: conversationId,
-                              peerId: peerId,
-                            ),
-                          ),
-                        );
+                        // Navigator.push(
+                        //   context,
+                        //   MaterialPageRoute(
+                        //     builder: (context) => ChatDetailScreen(
+                        //       peerName: title,
+                        //       conversationId: conversationId,
+                        //       peerId: peerId,
+                        //     ),
+                        //   ),
+                        // );
                       },
                       child: _buildChatCard(
                         context,
@@ -1594,12 +1594,12 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
   ) {
     return GestureDetector(
       onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ChatDetailScreen(peerName: name),
-          ),
-        );
+        // Navigator.push(
+        //   context,
+        //   MaterialPageRoute(
+        //     builder: (context) => ChatDetailScreen(peerName: name),
+        //   ),
+        // );
       },
       child: Container(
         margin: EdgeInsets.only(
