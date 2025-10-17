@@ -11,6 +11,7 @@ import 'package:relygo/screens/admin_driver_approval_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:relygo/screens/admin_user_details_screen.dart';
 import 'package:relygo/screens/admin_driver_chat_screen.dart';
+import 'package:relygo/screens/admin_driver_details_screen.dart';
 import 'package:relygo/screens/admin_analytics_screen.dart';
 import 'package:relygo/services/admin_service.dart';
 
@@ -993,10 +994,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
       margin: const EdgeInsets.only(bottom: 12),
       child: ListTile(
         onTap: () {
+          // Navigate to driver details screen
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => AdminDriverChatScreen(driver: driver),
+              builder: (context) => AdminDriverDetailsScreen(driver: driver),
             ),
           );
         },
@@ -1037,7 +1039,21 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               ),
             ),
             const SizedBox(width: 8),
-            Icon(Icons.chat, size: 20, color: Mycolors.basecolor),
+            GestureDetector(
+              onTap: () {
+                // Only chat icon navigates to chat screen
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => AdminDriverChatScreen(driver: driver),
+                  ),
+                );
+              },
+              child: Container(
+                padding: const EdgeInsets.all(4),
+                child: Icon(Icons.chat, size: 20, color: Mycolors.basecolor),
+              ),
+            ),
           ],
         ),
         shape: RoundedRectangleBorder(
