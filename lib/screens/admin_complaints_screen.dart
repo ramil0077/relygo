@@ -1,40 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:relygo/constants.dart';
+import 'package:relygo/services/admin_service.dart';
+import 'package:intl/intl.dart';
 
-class AdminComplaintsScreen extends StatelessWidget {
+class AdminComplaintsScreen extends StatefulWidget {
   const AdminComplaintsScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final complaints = <_Complaint>[
-      _Complaint(
-        user: 'Sarah Johnson',
-        subject: 'Driver late arrival',
-        status: 'Open',
-        createdAt: '10:21 AM',
-      ),
-      _Complaint(
-        user: 'Mike Wilson',
-        subject: 'Rude behavior',
-        status: 'In Review',
-        createdAt: 'Yesterday',
-      ),
-      _Complaint(
-        user: 'Priya Singh',
-        subject: 'Overcharge',
-        status: 'Resolved',
-        createdAt: '2 days ago',
-      ),
-    ];
+  State<AdminComplaintsScreen> createState() => _AdminComplaintsScreenState();
+}
 
+class _AdminComplaintsScreenState extends State<AdminComplaintsScreen> {
+  String _selectedFilter = 'all';
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
         title: Text(
-          'Complaints',
+          'Complaints Management',
           style: GoogleFonts.poppins(
             fontSize: 20,
             fontWeight: FontWeight.bold,
@@ -42,100 +30,230 @@ class AdminComplaintsScreen extends StatelessWidget {
           ),
         ),
       ),
-      body: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: complaints.length,
-        itemBuilder: (context, index) {
-          final c = complaints[index];
-          return Container(
-            margin: const EdgeInsets.only(bottom: 12),
-            padding: const EdgeInsets.all(16),
+      body: Column(
+        children: [
+          // Filter Tabs
+          Container(
+            margin: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: Mycolors.lightGray,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey.shade300),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.04),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
             ),
             child: Row(
               children: [
-                CircleAvatar(
-                  radius: 20,
-                  backgroundColor: Mycolors.orange.withOpacity(0.1),
-                  child: Text(
-                    c.user[0],
-                    style: GoogleFonts.poppins(
-                      color: Mycolors.orange,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        c.user,
-                        style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        c.subject,
-                        style: GoogleFonts.poppins(color: Mycolors.gray),
-                      ),
-                      const SizedBox(height: 6),
-                      Row(
-                        children: [
-                          _chip(c.status),
-                          const SizedBox(width: 8),
-                          Text(
-                            c.createdAt,
-                            style: GoogleFonts.poppins(
-                              fontSize: 12,
-                              color: Mycolors.gray,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                IconButton(
-                  onPressed: () => _showActions(context, c),
-                  icon: const Icon(Icons.more_vert, color: Colors.grey),
-                ),
+                Expanded(child: _buildFilterTab('all', 'All')),
+                Expanded(child: _buildFilterTab('open', 'Open')),
+                Expanded(child: _buildFilterTab('resolved', 'Resolved')),
               ],
             ),
-          );
-        },
+          ),
+          // Complaints List
+          Expanded(
+            child: StreamBuilder<List<Map<String, dynamic>>>(
+              stream: AdminService.getComplaintsStream(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                if (snapshot.hasError) {
+                  return Center(
+                    child: Text(
+                      'Error loading complaints: ${snapshot.error}',
+                      style: GoogleFonts.poppins(color: Colors.red),
+                    ),
+                  );
+                }
+
+                final allComplaints = snapshot.data ?? [];
+                final complaints = _selectedFilter == 'all'
+                    ? allComplaints
+                    : allComplaints
+                          .where(
+                            (c) =>
+                                (c['status'] ?? 'open')
+                                    .toString()
+                                    .toLowerCase() ==
+                                _selectedFilter,
+                          )
+                          .toList();
+
+                if (complaints.isEmpty) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.check_circle_outline,
+                          size: 64,
+                          color: Colors.grey[400],
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'No complaints found',
+                          style: GoogleFonts.poppins(
+                            fontSize: 16,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
+                return ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  itemCount: complaints.length,
+                  itemBuilder: (context, index) {
+                    final complaint = complaints[index];
+                    return _buildComplaintCard(complaint);
+                  },
+                );
+              },
+            ),
+          ),
+        ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _newComplaint(context),
-        backgroundColor: Mycolors.basecolor,
-        foregroundColor: Colors.white,
-        label: const Text('New'),
-        icon: const Icon(Icons.add),
+    );
+  }
+
+  Widget _buildFilterTab(String value, String label) {
+    final isSelected = _selectedFilter == value;
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _selectedFilter = value;
+        });
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          color: isSelected ? Mycolors.basecolor : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Text(
+          label,
+          textAlign: TextAlign.center,
+          style: GoogleFonts.poppins(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: isSelected ? Colors.white : Colors.black87,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildComplaintCard(Map<String, dynamic> complaint) {
+    final status = complaint['status'] ?? 'open';
+    final createdAt = complaint['createdAt'];
+    final dateStr = createdAt != null
+        ? DateFormat('MMM dd, yyyy hh:mm a').format(createdAt.toDate())
+        : 'N/A';
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade300),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              CircleAvatar(
+                radius: 20,
+                backgroundColor: Mycolors.basecolor.withOpacity(0.1),
+                child: Text(
+                  (complaint['userName'] ?? complaint['userId'] ?? 'U')[0]
+                      .toUpperCase(),
+                  style: GoogleFonts.poppins(
+                    color: Mycolors.basecolor,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      complaint['userName'] ?? complaint['userId'] ?? 'Unknown',
+                      style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      complaint['subject'] ?? 'No subject',
+                      style: GoogleFonts.poppins(
+                        color: Mycolors.gray,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              _chip(status),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            complaint['description'] ?? 'No description',
+            style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey[600]),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                dateStr,
+                style: GoogleFonts.poppins(fontSize: 12, color: Mycolors.gray),
+              ),
+              TextButton(
+                onPressed: () => _showComplaintDetails(complaint),
+                child: Text(
+                  'View Details',
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    color: Mycolors.basecolor,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
 
   Widget _chip(String status) {
     Color color;
-    switch (status) {
-      case 'Open':
+    final statusLower = status.toLowerCase();
+    switch (statusLower) {
+      case 'open':
         color = Mycolors.red;
         break;
-      case 'In Review':
+      case 'in progress':
         color = Mycolors.orange;
         break;
-      default:
+      case 'resolved':
         color = Mycolors.green;
+        break;
+      default:
+        color = Colors.grey;
     }
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -144,9 +262,9 @@ class AdminComplaintsScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
       ),
       child: Text(
-        status,
+        status.toUpperCase(),
         style: GoogleFonts.poppins(
-          fontSize: 12,
+          fontSize: 10,
           color: color,
           fontWeight: FontWeight.w600,
         ),
@@ -154,67 +272,66 @@ class AdminComplaintsScreen extends StatelessWidget {
     );
   }
 
-  void _showActions(BuildContext context, _Complaint c) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (_) {
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: const Icon(Icons.open_in_new),
-                title: const Text('Open'),
-                onTap: () => Navigator.pop(context),
-              ),
-              ListTile(
-                leading: const Icon(Icons.check_circle_outline),
-                title: const Text('Mark Resolved'),
-                onTap: () => Navigator.pop(context),
-              ),
-              ListTile(
-                leading: const Icon(Icons.delete_outline),
-                title: const Text('Delete'),
-                onTap: () => Navigator.pop(context),
-              ),
-            ],
-          ),
-        );
-      },
+  void _showComplaintDetails(Map<String, dynamic> complaint) {
+    final responseController = TextEditingController(
+      text: complaint['adminResponse'] ?? '',
     );
-  }
+    final status = complaint['status'] ?? 'open';
+    final createdAt = complaint['createdAt'];
+    final dateStr = createdAt != null
+        ? DateFormat('MMM dd, yyyy hh:mm a').format(createdAt.toDate())
+        : 'N/A';
 
-  void _newComplaint(BuildContext context) {
     showDialog(
       context: context,
-      builder: (_) {
+      builder: (context) {
         return AlertDialog(
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
           title: Text(
-            'New Complaint',
+            'Complaint Details',
             style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
           ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                decoration: const InputDecoration(labelText: 'User Name'),
-              ),
-              const SizedBox(height: 10),
-              TextField(
-                decoration: const InputDecoration(labelText: 'Subject'),
-              ),
-              const SizedBox(height: 10),
-              TextField(
-                maxLines: 3,
-                decoration: const InputDecoration(labelText: 'Details'),
-              ),
-            ],
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildDetailRow('User', complaint['userName'] ?? 'Unknown'),
+                const SizedBox(height: 12),
+                _buildDetailRow('Subject', complaint['subject'] ?? 'N/A'),
+                const SizedBox(height: 12),
+                _buildDetailRow(
+                  'Description',
+                  complaint['description'] ?? 'N/A',
+                ),
+                const SizedBox(height: 12),
+                _buildDetailRow('Date', dateStr),
+                const SizedBox(height: 12),
+                _buildDetailRow('Status', status.toUpperCase()),
+                const SizedBox(height: 16),
+                Text(
+                  'Admin Response',
+                  style: GoogleFonts.poppins(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: responseController,
+                  decoration: InputDecoration(
+                    hintText: 'Enter your response...',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  maxLines: 4,
+                  enabled: status.toLowerCase() != 'resolved',
+                ),
+              ],
+            ),
           ),
           actions: [
             TextButton(
@@ -224,38 +341,72 @@ class AdminComplaintsScreen extends StatelessWidget {
                 style: GoogleFonts.poppins(color: Colors.grey),
               ),
             ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: const Text('Complaint created'),
-                    backgroundColor: Mycolors.green,
-                  ),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Mycolors.basecolor,
-                foregroundColor: Colors.white,
+            if (status.toLowerCase() != 'resolved')
+              ElevatedButton(
+                onPressed: () async {
+                  if (responseController.text.trim().isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Please enter a response'),
+                        backgroundColor: Mycolors.red,
+                      ),
+                    );
+                    return;
+                  }
+
+                  Navigator.pop(context);
+
+                  final result = await AdminService.updateComplaintStatus(
+                    complaint['id'],
+                    'Resolved',
+                    responseController.text.trim(),
+                  );
+
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          result['success'] == true
+                              ? 'Response sent successfully'
+                              : result['error'],
+                        ),
+                        backgroundColor: result['success'] == true
+                            ? Mycolors.green
+                            : Mycolors.red,
+                      ),
+                    );
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Mycolors.basecolor,
+                  foregroundColor: Colors.white,
+                ),
+                child: Text('Send Response', style: GoogleFonts.poppins()),
               ),
-              child: Text('Create', style: GoogleFonts.poppins()),
-            ),
           ],
         );
       },
     );
   }
-}
 
-class _Complaint {
-  final String user;
-  final String subject;
-  final String status;
-  final String createdAt;
-  _Complaint({
-    required this.user,
-    required this.subject,
-    required this.status,
-    required this.createdAt,
-  });
+  Widget _buildDetailRow(String label, String value) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: GoogleFonts.poppins(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: Colors.grey[600],
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: GoogleFonts.poppins(fontSize: 14, color: Colors.black87),
+        ),
+      ],
+    );
+  }
 }

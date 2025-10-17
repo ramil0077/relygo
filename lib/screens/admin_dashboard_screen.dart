@@ -2,12 +2,17 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:relygo/constants.dart';
-import 'package:relygo/screens/user_management_screen.dart';
+
 import 'package:relygo/screens/driver_management_screen.dart';
-import 'package:relygo/screens/complaint_management_screen.dart';
+import 'package:intl/intl.dart';
+import 'package:relygo/screens/admin_complaints_screen.dart';
 import 'package:relygo/screens/feedback_screen.dart';
 import 'package:relygo/screens/admin_driver_approval_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:relygo/screens/admin_user_details_screen.dart';
+import 'package:relygo/screens/admin_driver_chat_screen.dart';
+import 'package:relygo/screens/admin_analytics_screen.dart';
+import 'package:relygo/services/admin_service.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
   const AdminDashboardScreen({super.key});
@@ -28,7 +33,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   StreamSubscription? _usersSub;
   StreamSubscription? _approvedDriversSub;
   StreamSubscription? _pendingDriversSub;
-  StreamSubscription? _complaintsSub; 
+  StreamSubscription? _complaintsSub;
 
   @override
   void initState() {
@@ -278,7 +283,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const ComplaintManagementScreen(),
+                        builder: (context) => const AdminComplaintsScreen(),
                       ),
                     );
                   },
@@ -289,46 +294,97 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           const SizedBox(height: 30),
 
           // Recent Activity
-          Text(
-            "Recent Activity",
-            style: GoogleFonts.poppins(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                "Recent Activity",
+                style: GoogleFonts.poppins(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
+              TextButton(
+                onPressed: () {
+                  setState(() {
+                    _selectedIndex = 1; // Go to users/activity tab
+                  });
+                },
+                child: Text(
+                  "View All",
+                  style: GoogleFonts.poppins(
+                    fontSize: 14,
+                    color: Mycolors.basecolor,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 15),
 
-          _buildActivityCard(
-            "New Driver Registration",
-            "John Smith completed registration",
-            "2 minutes ago",
-            Mycolors.green,
-            Icons.person_add,
-          ),
-          const SizedBox(height: 10),
-          _buildActivityCard(
-            "Ride Completed",
-            "Airport to Downtown - ₹180",
-            "5 minutes ago",
-            Mycolors.basecolor,
-            Icons.check_circle,
-          ),
-          const SizedBox(height: 10),
-          _buildActivityCard(
-            "User Complaint",
-            "Sarah Johnson reported an issue",
-            "15 minutes ago",
-            Mycolors.red,
-            Icons.report,
-          ),
-          const SizedBox(height: 10),
-          _buildActivityCard(
-            "Payment Processed",
-            "Driver withdrawal - ₹2,500",
-            "1 hour ago",
-            Mycolors.orange,
-            Icons.payment,
+          // Real-time activity from multiple collections
+          StreamBuilder<List<Map<String, dynamic>>>(
+            stream: AdminService.getRecentActivitiesStream(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(20),
+                    child: CircularProgressIndicator(),
+                  ),
+                );
+              }
+
+              if (snapshot.hasError || !snapshot.hasData) {
+                return Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Mycolors.lightGray,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Center(
+                    child: Text(
+                      'No recent activity',
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        color: Mycolors.gray,
+                      ),
+                    ),
+                  ),
+                );
+              }
+
+              final activities = snapshot.data ?? [];
+              if (activities.isEmpty) {
+                return Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Mycolors.lightGray,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Center(
+                    child: Text(
+                      'No recent activity',
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        color: Mycolors.gray,
+                      ),
+                    ),
+                  ),
+                );
+              }
+
+              return Column(
+                children: activities.map((data) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: _buildActivityCardFromData(data),
+                  );
+                }).toList(),
+              );
+            },
           ),
         ],
       ),
@@ -336,7 +392,76 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   }
 
   Widget _buildUsersTab() {
-    return const UserManagementScreen();
+    return Padding(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 20),
+          Text(
+            "User Management",
+            style: GoogleFonts.poppins(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
+          ),
+          const SizedBox(height: 20),
+          Expanded(
+            child: StreamBuilder<List<Map<String, dynamic>>>(
+              stream: AdminService.getAllAppUsersStream(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                if (snapshot.hasError) {
+                  return Center(
+                    child: Text(
+                      'Error loading users',
+                      style: GoogleFonts.poppins(color: Colors.red),
+                    ),
+                  );
+                }
+
+                final users = snapshot.data ?? [];
+
+                if (users.isEmpty) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.people_outline,
+                          size: 64,
+                          color: Colors.grey[400],
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'No users found',
+                          style: GoogleFonts.poppins(
+                            fontSize: 16,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
+                return ListView.builder(
+                  itemCount: users.length,
+                  itemBuilder: (context, index) {
+                    final user = users[index];
+                    return _buildUserCard(user);
+                  },
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildDriversTab() {
@@ -415,6 +540,61 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               ),
             ],
           ),
+          const SizedBox(height: 20),
+
+          // Drivers List
+          Expanded(
+            child: StreamBuilder<List<Map<String, dynamic>>>(
+              stream: AdminService.getAllDriversStream(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                if (snapshot.hasError) {
+                  return Center(
+                    child: Text(
+                      'Error loading drivers',
+                      style: GoogleFonts.poppins(color: Colors.red),
+                    ),
+                  );
+                }
+
+                final drivers = snapshot.data ?? [];
+
+                if (drivers.isEmpty) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.drive_eta,
+                          size: 64,
+                          color: Colors.grey[400],
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'No drivers found',
+                          style: GoogleFonts.poppins(
+                            fontSize: 16,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
+                return ListView.builder(
+                  itemCount: drivers.length,
+                  itemBuilder: (context, index) {
+                    final driver = drivers[index];
+                    return _buildDriverCard(driver);
+                  },
+                );
+              },
+            ),
+          ),
         ],
       ),
     );
@@ -457,50 +637,74 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               const SizedBox(width: 15),
               Expanded(
                 child: _buildActionCard(
-                  "View Analytics",
+                  "Service Report",
                   Icons.analytics,
                   Mycolors.green,
                   () {
-                    // Show analytics cards
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const AdminAnalyticsScreen(),
+                      ),
+                    );
                   },
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 30),
+          const SizedBox(height: 20),
 
-          // Analytics Cards
+          // Feedback Stream
           Expanded(
-            child: ListView(
-              children: [
-                _buildAnalyticsCard(
-                  "Ride Statistics",
-                  "Total Rides: 2,850\nCompleted: 2,750\nCancelled: 100",
-                  Icons.directions_car,
-                  Mycolors.basecolor,
-                ),
-                const SizedBox(height: 15),
-                _buildAnalyticsCard(
-                  "Revenue Analysis",
-                  "Today: ₹15,000\nThis Week: ₹1,05,000\nThis Month: ₹4,20,000",
-                  Icons.attach_money,
-                  Mycolors.green,
-                ),
-                const SizedBox(height: 15),
-                _buildAnalyticsCard(
-                  "User Growth",
-                  "New Users Today: 25\nActive Users: 1,200\nTotal Users: 1,250",
-                  Icons.people,
-                  Mycolors.orange,
-                ),
-                const SizedBox(height: 15),
-                _buildAnalyticsCard(
-                  "Driver Performance",
-                  "Average Rating: 4.6\nActive Drivers: 450\nOnline Now: 120",
-                  Icons.star,
-                  Mycolors.red,
-                ),
-              ],
+            child: StreamBuilder<List<Map<String, dynamic>>>(
+              stream: AdminService.getFeedbackStream(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                if (snapshot.hasError) {
+                  return Center(
+                    child: Text(
+                      'Error loading feedback',
+                      style: GoogleFonts.poppins(color: Colors.red),
+                    ),
+                  );
+                }
+
+                final feedbacks = snapshot.data ?? [];
+
+                if (feedbacks.isEmpty) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.star_outline,
+                          size: 64,
+                          color: Colors.grey[400],
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'No feedback yet',
+                          style: GoogleFonts.poppins(
+                            fontSize: 16,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
+                return ListView.builder(
+                  itemCount: feedbacks.length,
+                  itemBuilder: (context, index) {
+                    final feedback = feedbacks[index];
+                    return _buildFeedbackCard(feedback);
+                  },
+                );
+              },
             ),
           ),
         ],
@@ -581,6 +785,100 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     );
   }
 
+  Widget _buildActivityCardFromData(Map<String, dynamic> data) {
+    String title = 'Activity';
+    String description = '';
+    String time = 'Just now';
+    Color color = Mycolors.basecolor;
+    IconData icon = Icons.info;
+
+    final activityType = data['activityType'] ?? '';
+
+    switch (activityType) {
+      case 'booking':
+        final status = data['status'] ?? '';
+        final pickup = data['pickupLocation'] ?? 'Unknown';
+        final dropoff = data['dropoffLocation'] ?? 'Unknown';
+        final fare = data['fare'] ?? 0;
+
+        if (status == 'completed') {
+          title = 'Ride Completed';
+          description = '$pickup to $dropoff - ₹$fare';
+          color = Mycolors.green;
+          icon = Icons.check_circle;
+        } else if (status == 'cancelled') {
+          title = 'Ride Cancelled';
+          description = '$pickup to $dropoff';
+          color = Mycolors.red;
+          icon = Icons.cancel;
+        } else if (status == 'ongoing') {
+          title = 'Ride in Progress';
+          description = '$pickup to $dropoff';
+          color = Mycolors.blue;
+          icon = Icons.directions_car;
+        } else {
+          title = 'New Booking';
+          description = '$pickup to $dropoff';
+          color = Mycolors.orange;
+          icon = Icons.book_online;
+        }
+        break;
+
+      case 'driver_registration':
+        title = 'New Driver Registration';
+        description = '${data['name'] ?? "Driver"} submitted application';
+        color = Mycolors.green;
+        icon = Icons.person_add;
+        break;
+
+      case 'complaint':
+        title = 'New Complaint';
+        description = data['subject'] ?? 'User reported an issue';
+        color = Mycolors.red;
+        icon = Icons.report;
+        break;
+
+      case 'feedback':
+        title = 'New Feedback';
+        final rating = data['rating'] ?? 0;
+        description = '${data['userName'] ?? "User"} rated $rating stars';
+        color = Mycolors.orange;
+        icon = Icons.star;
+        break;
+
+      default:
+        title = 'System Activity';
+        description = 'Platform update';
+        color = Mycolors.basecolor;
+        icon = Icons.info;
+    }
+
+    // Calculate time ago
+    if (data['createdAt'] != null) {
+      try {
+        final Timestamp timestamp = data['createdAt'];
+        final DateTime dateTime = timestamp.toDate();
+        final Duration difference = DateTime.now().difference(dateTime);
+
+        if (difference.inMinutes < 1) {
+          time = 'Just now';
+        } else if (difference.inMinutes < 60) {
+          time = '${difference.inMinutes} min ago';
+        } else if (difference.inHours < 24) {
+          time =
+              '${difference.inHours} hour${difference.inHours > 1 ? "s" : ""} ago';
+        } else {
+          time =
+              '${difference.inDays} day${difference.inDays > 1 ? "s" : ""} ago';
+        }
+      } catch (e) {
+        time = 'Recently';
+      }
+    }
+
+    return _buildActivityCard(title, description, time, color, icon);
+  }
+
   Widget _buildActivityCard(
     String title,
     String description,
@@ -647,51 +945,168 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     );
   }
 
-  Widget _buildAnalyticsCard(
-    String title,
-    String data,
-    IconData icon,
-    Color color,
-  ) {
+  Widget _buildUserCard(Map<String, dynamic> user) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      margin: const EdgeInsets.only(bottom: 12),
+      child: ListTile(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => AdminUserDetailsScreen(user: user),
+            ),
+          );
+        },
+        leading: CircleAvatar(
+          backgroundColor: Mycolors.basecolor.withOpacity(0.1),
+          child: Text(
+            (user['name'] ?? 'U')[0].toUpperCase(),
+            style: GoogleFonts.poppins(
+              fontWeight: FontWeight.bold,
+              color: Mycolors.basecolor,
+            ),
+          ),
+        ),
+        title: Text(
+          user['name'] ?? 'Unknown',
+          style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+        ),
+        subtitle: Text(
+          user['email'] ?? '',
+          style: GoogleFonts.poppins(fontSize: 12),
+        ),
+        trailing: Icon(Icons.arrow_forward_ios, size: 16, color: Mycolors.gray),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(color: Colors.grey.shade300),
+        ),
+        tileColor: Colors.white,
+      ),
+    );
+  }
+
+  Widget _buildDriverCard(Map<String, dynamic> driver) {
+    final status = driver['status'] ?? 'pending';
+    final statusColor = status == 'approved' ? Mycolors.green : Mycolors.orange;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      child: ListTile(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => AdminDriverChatScreen(driver: driver),
+            ),
+          );
+        },
+        leading: CircleAvatar(
+          backgroundColor: Mycolors.basecolor.withOpacity(0.1),
+          child: Text(
+            (driver['name'] ?? 'D')[0].toUpperCase(),
+            style: GoogleFonts.poppins(
+              fontWeight: FontWeight.bold,
+              color: Mycolors.basecolor,
+            ),
+          ),
+        ),
+        title: Text(
+          driver['name'] ?? 'Unknown',
+          style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+        ),
+        subtitle: Text(
+          driver['vehicleNumber'] ?? driver['email'] ?? '',
+          style: GoogleFonts.poppins(fontSize: 12),
+        ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: statusColor.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                status.toUpperCase(),
+                style: GoogleFonts.poppins(
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                  color: statusColor,
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Icon(Icons.chat, size: 20, color: Mycolors.basecolor),
+          ],
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(color: Colors.grey.shade300),
+        ),
+        tileColor: Colors.white,
+      ),
+    );
+  }
+
+  Widget _buildFeedbackCard(Map<String, dynamic> feedback) {
+    final rating = (feedback['rating'] ?? 0).toDouble();
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.grey.shade300),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            blurRadius: 5,
-            offset: const Offset(0, 2),
-          ),
-        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(icon, color: color, size: 24),
+              CircleAvatar(
+                radius: 16,
+                backgroundColor: Mycolors.orange.withOpacity(0.1),
+                child: Text(
+                  (feedback['userName'] ?? 'U')[0].toUpperCase(),
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: Mycolors.orange,
+                  ),
+                ),
+              ),
               const SizedBox(width: 12),
-              Text(
-                title,
-                style: GoogleFonts.poppins(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      feedback['userName'] ?? 'Anonymous',
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    Row(
+                      children: List.generate(5, (index) {
+                        return Icon(
+                          index < rating ? Icons.star : Icons.star_border,
+                          size: 14,
+                          color: Mycolors.orange,
+                        );
+                      }),
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 15),
+          const SizedBox(height: 12),
           Text(
-            data,
-            style: GoogleFonts.poppins(
-              fontSize: 14,
-              color: Mycolors.gray,
-              height: 1.5,
-            ),
+            feedback['feedback'] ?? feedback['comment'] ?? 'No comment',
+            style: GoogleFonts.poppins(fontSize: 13, color: Colors.grey[600]),
           ),
         ],
       ),
