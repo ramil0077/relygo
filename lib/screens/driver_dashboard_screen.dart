@@ -4,11 +4,15 @@ import 'package:relygo/constants.dart';
 
 import 'package:relygo/screens/earnings_screen.dart';
 import 'package:relygo/screens/driver_profile_screen.dart';
+import 'package:relygo/screens/driver_ride_history_screen.dart';
+import 'package:relygo/screens/driver_reviews_screen.dart';
 
 import 'package:relygo/utils/responsive.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:relygo/services/auth_service.dart';
 import 'package:relygo/screens/driver_notifications_screen.dart';
+import 'package:relygo/services/chat_service.dart';
+import 'package:relygo/screens/chat_detail_screen.dart';
 
 class DriverDashboardScreen extends StatefulWidget {
   const DriverDashboardScreen({super.key});
@@ -39,11 +43,11 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
         child: IndexedStack(
           index: _selectedIndex,
           children: [
-            _buildHomeTab(),
-           // _buildRidesTab(),
-            _buildEarningsTab(),
-            _buildChatTab(),
-            _buildProfileTab(),
+            _buildHomeTab(), // index 0
+            _buildEarningsTab(), // index 1
+            _buildChatTab(), // index 2
+            _buildReviewsTab(), // index 3
+            _buildProfileTab(), // index 4
           ],
         ),
       ),
@@ -93,172 +97,17 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
             _buildNavItem(Icons.home, "Home", 0),
-            _buildNavItem(Icons.directions_car, "Rides", 1),
-            _buildNavItem(Icons.attach_money, "Earnings", 2),
-            _buildNavItem(Icons.chat, "Chat", 3),
+            // Earnings tab is index 1 in the IndexedStack
+            _buildNavItem(Icons.attach_money, "Earnings", 1),
+            // Chat tab is index 2
+            _buildNavItem(Icons.chat, "Chat", 2),
+            // Reviews tab is index 3
+            _buildNavItem(Icons.star, "Reviews", 3),
+            // Profile tab is index 4
             _buildNavItem(Icons.person, "Profile", 4),
           ],
         ),
       ),
-    );
-  }
-
-  void _showRequestsBottomSheet() {
-    final String? driverId = AuthService.currentUserId;
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (context) {
-        if (driverId == null) {
-          return const SizedBox.shrink();
-        }
-        return Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Ride Requests',
-                style: GoogleFonts.poppins(
-                  fontWeight: FontWeight.w700,
-                  fontSize: 18,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Expanded(
-                child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-                  stream: FirebaseFirestore.instance
-                      .collection('ride_requests')
-                      .where('driverId', isEqualTo: driverId)
-                      .where('status', isEqualTo: 'pending')
-                      .snapshots(),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
-                    if (snapshot.hasError) {
-                      return Center(
-                        child: Text(
-                          'Failed to load requests',
-                          style: GoogleFonts.poppins(color: Mycolors.red),
-                        ),
-                      );
-                    }
-                    final docs = snapshot.data?.docs ?? [];
-                    if (docs.isEmpty) {
-                      return Center(
-                        child: Text(
-                          'No new requests',
-                          style: GoogleFonts.poppins(color: Mycolors.gray),
-                        ),
-                      );
-                    }
-                    return ListView.separated(
-                      itemCount: docs.length,
-                      separatorBuilder: (_, __) => const Divider(height: 1),
-                      itemBuilder: (context, index) {
-                        final doc = docs[index];
-                        final data = doc.data();
-                        final pickup = (data['pickup'] ?? '').toString();
-                        final destination = (data['destination'] ?? '')
-                            .toString();
-                        final userId = (data['userId'] ?? '').toString();
-                        return ListTile(
-                          title: Text(
-                            '$pickup → $destination',
-                            style: GoogleFonts.poppins(
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          subtitle: Text(
-                            'User: $userId',
-                            style: GoogleFonts.poppins(fontSize: 12),
-                          ),
-                          trailing: ElevatedButton(
-                            onPressed: () =>
-                                _promptAcceptWithFare(doc.id, data),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Mycolors.green,
-                              foregroundColor: Colors.white,
-                            ),
-                            child: Text('Accept', style: GoogleFonts.poppins()),
-                          ),
-                        );
-                      },
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-      isScrollControlled: true,
-    );
-  }
-
-  void _promptAcceptWithFare(String requestId, Map<String, dynamic> data) {
-    final fareController = TextEditingController();
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          title: Text('Enter Estimated Fare', style: GoogleFonts.poppins()),
-          content: TextField(
-            controller: fareController,
-            keyboardType: TextInputType.number,
-            decoration: const InputDecoration(
-              labelText: 'Fare (₹)',
-              border: OutlineInputBorder(),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text(
-                'Cancel',
-                style: GoogleFonts.poppins(color: Colors.grey),
-              ),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                final fareText = fareController.text.trim();
-                final num? fare = num.tryParse(fareText);
-                if (fare == null) return;
-                Navigator.of(context).pop();
-                await FirebaseFirestore.instance
-                    .collection('ride_requests')
-                    .doc(requestId)
-                    .update({
-                      'status': 'accepted',
-                      'fare': fare,
-                      'updatedAt': FieldValue.serverTimestamp(),
-                    });
-                if (!mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: const Text(
-                      'Request accepted. Waiting for payment.',
-                    ),
-                    backgroundColor: Mycolors.green,
-                  ),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Mycolors.basecolor,
-                foregroundColor: Colors.white,
-              ),
-              child: Text('Confirm', style: GoogleFonts.poppins()),
-            ),
-          ],
-        );
-      },
     );
   }
 
@@ -459,36 +308,93 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
           Text("Messages", style: ResponsiveTextStyles.getTitleStyle(context)),
           SizedBox(height: ResponsiveSpacing.getMediumSpacing(context)),
 
+          // Conversations from Firestore
           Expanded(
-            child: ListView(
-              children: [
-                _buildChatCard(
-                  context,
-                  "Sarah Johnson",
-                  "I'm at the pickup location",
-                  "2 min ago",
-                  "1",
-                ),
-                _buildChatCard(
-                  context,
-                  "Mike Wilson",
-                  "Thanks for the great service!",
-                  "1 hour ago",
-                  "",
-                ),
-                _buildChatCard(
-                  context,
-                  "Support Team",
-                  "Your rating has been updated",
-                  "2 hours ago",
-                  "",
-                ),
-              ],
+            child: StreamBuilder<List<Map<String, dynamic>>>(
+              stream: ChatService.getUserConversationsStream(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (snapshot.hasError) {
+                  return Center(
+                    child: Text(
+                      'Failed to load messages',
+                      style: GoogleFonts.poppins(color: Mycolors.red),
+                    ),
+                  );
+                }
+                final conversations = snapshot.data ?? [];
+                if (conversations.isEmpty) {
+                  return Center(
+                    child: Text(
+                      'No conversations yet',
+                      style: GoogleFonts.poppins(color: Mycolors.gray),
+                    ),
+                  );
+                }
+                final String? myId = AuthService.currentUserId;
+                return ListView.builder(
+                  itemCount: conversations.length,
+                  itemBuilder: (context, index) {
+                    final c = conversations[index];
+                    final List participants = (c['participants'] is List)
+                        ? (c['participants'] as List)
+                        : [];
+                    final String conversationId = (c['id'] ?? '').toString();
+                    final String lastMessage = (c['lastMessage'] ?? '')
+                        .toString();
+                    final Timestamp? updatedAt = c['updatedAt'] as Timestamp?;
+                    final String timeText = updatedAt != null
+                        ? _formatDate(updatedAt)
+                        : '';
+                    // pick a peerId (the other participant)
+                    String peerId = '';
+                    if (myId != null && participants.isNotEmpty) {
+                      for (final p in participants) {
+                        if (p != myId) {
+                          peerId = p.toString();
+                          break;
+                        }
+                      }
+                    }
+                    final String title = peerId.isNotEmpty
+                        ? 'Chat with $peerId'
+                        : 'Conversation';
+
+                    return GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ChatDetailScreen(
+                              peerName: title,
+                              conversationId: conversationId,
+                              peerId: peerId,
+                            ),
+                          ),
+                        );
+                      },
+                      child: _buildChatCard(
+                        context,
+                        title,
+                        lastMessage.isEmpty ? 'Say hi' : lastMessage,
+                        timeText,
+                        '',
+                      ),
+                    );
+                  },
+                );
+              },
             ),
           ),
         ],
       ),
     );
+  }
+
+  Widget _buildReviewsTab() {
+    return const DriverReviewsScreen();
   }
 
   Widget _buildProfileTab() {
@@ -587,7 +493,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                 Mycolors.orange,
                 () {
                   setState(() {
-                    _selectedIndex = 2; // Switch to earnings tab
+                    _selectedIndex = 1; // Switch to earnings tab
                   });
                 },
               ),
@@ -604,9 +510,12 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                 Icons.history,
                 Mycolors.basecolor,
                 () {
-                  setState(() {
-                    _selectedIndex = 1; // Switch to rides tab
-                  });
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const DriverRideHistoryScreen(),
+                    ),
+                  );
                 },
               ),
             ),
@@ -654,7 +563,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                 Mycolors.orange,
                 () {
                   setState(() {
-                    _selectedIndex = 2; // Switch to earnings tab
+                    _selectedIndex = 1; // Switch to earnings tab
                   });
                 },
               ),
@@ -671,9 +580,12 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                 Icons.history,
                 Mycolors.basecolor,
                 () {
-                  setState(() {
-                    _selectedIndex = 1; // Switch to rides tab
-                  });
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const DriverRideHistoryScreen(),
+                    ),
+                  );
                 },
               ),
             ),
@@ -719,7 +631,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
             Mycolors.orange,
             () {
               setState(() {
-                _selectedIndex = 2; // Switch to earnings tab
+                _selectedIndex = 1; // Switch to earnings tab
               });
             },
           ),
@@ -732,9 +644,12 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
             Icons.history,
             Mycolors.basecolor,
             () {
-              setState(() {
-                _selectedIndex = 1; // Switch to rides tab
-              });
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const DriverRideHistoryScreen(),
+                ),
+              );
             },
           ),
         ),
@@ -929,10 +844,15 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                 ),
               ),
             ),
-            child: Icon(
-              Icons.directions_car,
-              color: Mycolors.basecolor,
-              size: ResponsiveUtils.getResponsiveIconSize(
+            child: Image.asset(
+              'assets/logooo.png',
+              width: ResponsiveUtils.getResponsiveIconSize(
+                context,
+                mobile: 24,
+                tablet: 26,
+                desktop: 28,
+              ),
+              height: ResponsiveUtils.getResponsiveIconSize(
                 context,
                 mobile: 24,
                 tablet: 26,
@@ -1236,5 +1156,21 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
         ],
       ),
     );
+  }
+
+  String _formatDate(Timestamp timestamp) {
+    final date = timestamp.toDate();
+    final now = DateTime.now();
+    final difference = now.difference(date);
+
+    if (difference.inDays > 0) {
+      return '${difference.inDays}d ago';
+    } else if (difference.inHours > 0) {
+      return '${difference.inHours}h ago';
+    } else if (difference.inMinutes > 0) {
+      return '${difference.inMinutes}m ago';
+    } else {
+      return 'Just now';
+    }
   }
 }

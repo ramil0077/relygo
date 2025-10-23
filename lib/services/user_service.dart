@@ -20,6 +20,82 @@ class UserService {
         );
   }
 
+  /// Stream a single user's document by id
+  static Stream<Map<String, dynamic>?> streamUserById(String userId) {
+    return _firestore.collection('users').doc(userId).snapshots().map((doc) {
+      if (!doc.exists) return null;
+      final data = doc.data();
+      if (data == null) return null;
+      return {...data, 'id': doc.id};
+    });
+  }
+
+  /// Update user document with partial fields
+  static Future<void> updateUserFields(
+    String userId,
+    Map<String, dynamic> fields,
+  ) async {
+    await _firestore
+        .collection('users')
+        .doc(userId)
+        .set(fields, SetOptions(merge: true));
+  }
+
+  /// Update personal profile fields
+  static Future<void> updatePersonalInfo({
+    required String userId,
+    String? name,
+    String? email,
+    String? phone,
+    String? licenseNumber,
+    String? photoUrl,
+  }) async {
+    final update = <String, dynamic>{};
+    if (name != null) update['name'] = name;
+    if (email != null) update['email'] = email;
+    if (phone != null) update['phone'] = phone;
+    if (licenseNumber != null) update['licenseNumber'] = licenseNumber;
+    if (photoUrl != null) update['photoUrl'] = photoUrl;
+    if (update.isEmpty) return;
+    update['updatedAt'] = FieldValue.serverTimestamp();
+    await updateUserFields(userId, update);
+  }
+
+  /// Update vehicle details for a driver
+  static Future<void> updateVehicleInfo({
+    required String userId,
+    String? vehicleType,
+    String? vehicleModel,
+    String? registrationNumber,
+    String? yearOfManufacture,
+  }) async {
+    final update = <String, dynamic>{};
+    if (vehicleType != null) update['vehicle.type'] = vehicleType;
+    if (vehicleModel != null) update['vehicle.model'] = vehicleModel;
+    if (registrationNumber != null)
+      update['vehicle.registrationNumber'] = registrationNumber;
+    if (yearOfManufacture != null) update['vehicle.year'] = yearOfManufacture;
+    if (update.isEmpty) return;
+    update['updatedAt'] = FieldValue.serverTimestamp();
+    await updateUserFields(userId, update);
+  }
+
+  /// Update bank details for payouts
+  static Future<void> updateBankDetails({
+    required String userId,
+    String? bankName,
+    String? accountNumber,
+    String? ifsc,
+  }) async {
+    final update = <String, dynamic>{};
+    if (bankName != null) update['bank.bankName'] = bankName;
+    if (accountNumber != null) update['bank.accountNumber'] = accountNumber;
+    if (ifsc != null) update['bank.ifsc'] = ifsc;
+    if (update.isEmpty) return;
+    update['updatedAt'] = FieldValue.serverTimestamp();
+    await updateUserFields(userId, update);
+  }
+
   /// Get all available drivers
   static Stream<List<Map<String, dynamic>>> getAvailableDriversStream() {
     return _firestore

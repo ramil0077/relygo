@@ -54,19 +54,7 @@ class _SignInScreenState extends State<SignInScreen> {
               Center(
                 child: Column(
                   children: [
-                    Container(
-                      width: 80,
-                      height: 80,
-                      decoration: BoxDecoration(
-                        color: Mycolors.basecolor,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: const Icon(
-                        Icons.directions_car,
-                        color: Colors.white,
-                        size: 40,
-                      ),
-                    ),
+                    Image.asset('assets/logooo.png', width: 80, height: 80),
                     const SizedBox(height: 20),
                     Text(
                       "Welcome to RelyGO",
@@ -379,7 +367,7 @@ class _SignInScreenState extends State<SignInScreen> {
                   Expanded(
                     child: _buildSignUpOption(
                       "Driver",
-                      Icons.drive_eta,
+                      'assets/logooo.png',
                       "Join as a driver to earn money",
                       () {
                         Navigator.pop(context);
@@ -415,7 +403,7 @@ class _SignInScreenState extends State<SignInScreen> {
 
   Widget _buildSignUpOption(
     String title,
-    IconData icon,
+    dynamic icon,
     String description,
     VoidCallback onTap,
   ) {
@@ -430,7 +418,9 @@ class _SignInScreenState extends State<SignInScreen> {
         ),
         child: Column(
           children: [
-            Icon(icon, color: Mycolors.basecolor, size: 32),
+            icon is String
+                ? Image.asset(icon, width: 32, height: 32)
+                : Icon(icon, color: Mycolors.basecolor, size: 32),
             const SizedBox(height: 8),
             Text(
               title,

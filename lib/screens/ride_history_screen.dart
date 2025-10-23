@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:relygo/constants.dart';
-import 'package:relygo/screens/rating_review_screen.dart';
+import 'package:relygo/screens/review_submission_screen.dart';
 import 'package:relygo/services/user_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -92,6 +92,8 @@ class _RideHistoryScreenState extends State<RideHistoryScreen> {
                     final icon = status == 'Cancelled'
                         ? Icons.cancel
                         : Icons.directions_car;
+                    final rideId = r['id'] ?? r['rideId'] ?? '';
+                    final driverId = r['driverId'] ?? '';
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 15),
                       child: _buildRideCard(
@@ -104,6 +106,8 @@ class _RideHistoryScreenState extends State<RideHistoryScreen> {
                         time,
                         rating,
                         icon,
+                        rideId,
+                        driverId,
                       ),
                     );
                   },
@@ -155,6 +159,8 @@ class _RideHistoryScreenState extends State<RideHistoryScreen> {
     String time,
     String rating,
     IconData icon,
+    String rideId,
+    String driverId,
   ) {
     return Container(
       margin: const EdgeInsets.only(bottom: 15),
@@ -314,8 +320,12 @@ class _RideHistoryScreenState extends State<RideHistoryScreen> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) =>
-                              RatingReviewScreen(driverName: driverName),
+                          builder: (context) => ReviewSubmissionScreen(
+                            driverId: driverId,
+                            driverName: driverName,
+                            rideId: rideId,
+                            destination: destination,
+                          ),
                         ),
                       );
                     },
@@ -469,74 +479,6 @@ class _RideHistoryScreenState extends State<RideHistoryScreen> {
                 "Close",
                 style: GoogleFonts.poppins(color: Colors.grey),
               ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _showRateDriverDialog(String driverName) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          title: Text(
-            "Rate Driver",
-            style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                "How was your experience with $driverName?",
-                style: GoogleFonts.poppins(),
-              ),
-              const SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(5, (index) {
-                  return Icon(Icons.star, color: Colors.orange, size: 30);
-                }),
-              ),
-              const SizedBox(height: 20),
-              TextField(
-                decoration: InputDecoration(
-                  labelText: "Comments (Optional)",
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                maxLines: 3,
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text(
-                "Cancel",
-                style: GoogleFonts.poppins(color: Colors.grey),
-              ),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: const Text('Rating submitted!'),
-                    backgroundColor: Mycolors.green,
-                  ),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Mycolors.basecolor,
-                foregroundColor: Colors.white,
-              ),
-              child: Text("Submit", style: GoogleFonts.poppins()),
             ),
           ],
         );

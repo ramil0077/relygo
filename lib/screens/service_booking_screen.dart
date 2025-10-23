@@ -86,7 +86,7 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
                   Expanded(
                     child: _buildServiceTypeCard(
                       "Ride",
-                      Icons.directions_car,
+                      'assets/logooo.png',
                       "Ride",
                     ),
                   ),
@@ -118,7 +118,7 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
                     Expanded(
                       child: _buildVehicleCard(
                         "Car",
-                        Icons.directions_car,
+                        'assets/logooo.png',
                         "Car",
                       ),
                     ),
@@ -425,7 +425,7 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
     );
   }
 
-  Widget _buildServiceTypeCard(String title, IconData icon, String value) {
+  Widget _buildServiceTypeCard(String title, dynamic icon, String value) {
     bool isSelected = _selectedService == value;
     return GestureDetector(
       onTap: () {
@@ -445,11 +445,13 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
         ),
         child: Column(
           children: [
-            Icon(
-              icon,
-              color: isSelected ? Colors.white : Mycolors.basecolor,
-              size: 30,
-            ),
+            icon is String
+                ? Image.asset(icon, width: 30, height: 30)
+                : Icon(
+                    icon,
+                    color: isSelected ? Colors.white : Mycolors.basecolor,
+                    size: 30,
+                  ),
             const SizedBox(height: 10),
             Text(
               title,
@@ -465,7 +467,7 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
     );
   }
 
-  Widget _buildVehicleCard(String title, IconData icon, String value) {
+  Widget _buildVehicleCard(String title, dynamic icon, String value) {
     bool isSelected = _selectedVehicle == value;
     return GestureDetector(
       onTap: () {
@@ -485,11 +487,13 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
         ),
         child: Column(
           children: [
-            Icon(
-              icon,
-              color: isSelected ? Colors.white : Mycolors.basecolor,
-              size: 24,
-            ),
+            icon is String
+                ? Image.asset(icon, width: 24, height: 24)
+                : Icon(
+                    icon,
+                    color: isSelected ? Colors.white : Mycolors.basecolor,
+                    size: 24,
+                  ),
             const SizedBox(height: 8),
             Text(
               title,

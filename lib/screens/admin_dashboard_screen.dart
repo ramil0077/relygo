@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:relygo/constants.dart';
+import 'package:relygo/utils/responsive.dart';
 
 import 'package:relygo/screens/driver_management_screen.dart';
-import 'package:intl/intl.dart';
 import 'package:relygo/screens/admin_complaints_screen.dart';
 import 'package:relygo/screens/feedback_screen.dart';
 import 'package:relygo/screens/admin_driver_approval_screen.dart';
@@ -92,24 +92,34 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
-        child: IndexedStack(
-          index: _selectedIndex,
-          children: [
-            _buildHomeTab(),
-            _buildUsersTab(),
-            _buildDriversTab(),
-            _buildAnalyticsTab(),
-          ],
+        child: ResponsiveLayoutBuilder(
+          builder: (context, constraints) {
+            return IndexedStack(
+              index: _selectedIndex,
+              children: [
+                _buildHomeTab(),
+                _buildUsersTab(),
+                _buildDriversTab(),
+                const AdminComplaintsScreen(),
+                _buildAnalyticsTab(),
+              ],
+            );
+          },
         ),
       ),
       bottomNavigationBar: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10),
+        padding: ResponsiveUtils.getResponsiveVerticalPadding(context),
         decoration: BoxDecoration(
           color: Colors.white,
           boxShadow: [
             BoxShadow(
               color: Colors.grey.withOpacity(0.2),
-              blurRadius: 10,
+              blurRadius: ResponsiveUtils.getResponsiveElevation(
+                context,
+                mobile: 10,
+                tablet: 12,
+                desktop: 15,
+              ),
               offset: const Offset(0, -5),
             ),
           ],
@@ -120,7 +130,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             _buildNavItem(Icons.dashboard, "Dashboard", 0),
             _buildNavItem(Icons.people, "Users", 1),
             _buildNavItem(Icons.drive_eta, "Drivers", 2),
-            _buildNavItem(Icons.analytics, "Analytics", 3),
+            _buildNavItem(Icons.report_problem, "Complaints", 3),
+            _buildNavItem(Icons.analytics, "Analytics", 4),
           ],
         ),
       ),
@@ -129,11 +140,13 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
 
   Widget _buildHomeTab() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: ResponsiveUtils.getResponsivePadding(context),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: 20),
+          SizedBox(
+            height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 20),
+          ),
           // Header
           Row(
             children: [
@@ -144,7 +157,12 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     Text(
                       "Admin Dashboard",
                       style: GoogleFonts.poppins(
-                        fontSize: 24,
+                        fontSize: ResponsiveUtils.getResponsiveFontSize(
+                          context,
+                          mobile: 24,
+                          tablet: 28,
+                          desktop: 32,
+                        ),
                         fontWeight: FontWeight.bold,
                         color: Colors.black,
                       ),
@@ -152,7 +170,12 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     Text(
                       "Manage your platform efficiently",
                       style: GoogleFonts.poppins(
-                        fontSize: 16,
+                        fontSize: ResponsiveUtils.getResponsiveFontSize(
+                          context,
+                          mobile: 16,
+                          tablet: 18,
+                          desktop: 20,
+                        ),
                         color: Mycolors.gray,
                       ),
                     ),
@@ -160,139 +183,475 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 ),
               ),
               CircleAvatar(
-                radius: 25,
+                radius: ResponsiveUtils.getResponsiveIconSize(
+                  context,
+                  mobile: 25,
+                  tablet: 30,
+                  desktop: 35,
+                ),
                 backgroundColor: Mycolors.orange.withOpacity(0.1),
                 child: Icon(
                   Icons.admin_panel_settings,
                   color: Mycolors.orange,
-                  size: 30,
+                  size: ResponsiveUtils.getResponsiveIconSize(
+                    context,
+                    mobile: 30,
+                    tablet: 35,
+                    desktop: 40,
+                  ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 30),
+          SizedBox(
+            height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 30),
+          ),
 
           // Stats Overview
-          Row(
-            children: [
-              Expanded(
-                child: _buildStatCard(
-                  _totalUsers.toString(),
-                  "Total Users",
-                  Icons.people,
-                  Mycolors.basecolor,
+          ResponsiveWidget(
+            mobile: Column(
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildStatCard(
+                        _totalUsers.toString(),
+                        "Total Users",
+                        Icons.people,
+                        Mycolors.basecolor,
+                      ),
+                    ),
+                    SizedBox(
+                      width: ResponsiveUtils.getResponsiveSpacing(
+                        context,
+                        mobile: 15,
+                      ),
+                    ),
+                    Expanded(
+                      child: _buildStatCard(
+                        _activeDrivers.toString(),
+                        "Active Drivers",
+                        Icons.drive_eta,
+                        Mycolors.green,
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-              const SizedBox(width: 15),
-              Expanded(
-                child: _buildStatCard(
-                  _activeDrivers.toString(),
-                  "Active Drivers",
-                  Icons.drive_eta,
-                  Mycolors.green,
+                SizedBox(
+                  height: ResponsiveUtils.getResponsiveSpacing(
+                    context,
+                    mobile: 15,
+                  ),
                 ),
-              ),
-            ],
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildStatCard(
+                        _pendingApprovals.toString(),
+                        "Pending Approvals",
+                        Icons.pending,
+                        Mycolors.orange,
+                      ),
+                    ),
+                    SizedBox(
+                      width: ResponsiveUtils.getResponsiveSpacing(
+                        context,
+                        mobile: 15,
+                      ),
+                    ),
+                    Expanded(
+                      child: _buildStatCard(
+                        _openComplaints.toString(),
+                        "Open Complaints",
+                        Icons.report,
+                        Mycolors.red,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            tablet: Column(
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildStatCard(
+                        _totalUsers.toString(),
+                        "Total Users",
+                        Icons.people,
+                        Mycolors.basecolor,
+                      ),
+                    ),
+                    SizedBox(
+                      width: ResponsiveUtils.getResponsiveSpacing(
+                        context,
+                        mobile: 15,
+                      ),
+                    ),
+                    Expanded(
+                      child: _buildStatCard(
+                        _activeDrivers.toString(),
+                        "Active Drivers",
+                        Icons.drive_eta,
+                        Mycolors.green,
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: ResponsiveUtils.getResponsiveSpacing(
+                    context,
+                    mobile: 15,
+                  ),
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildStatCard(
+                        _pendingApprovals.toString(),
+                        "Pending Approvals",
+                        Icons.pending,
+                        Mycolors.orange,
+                      ),
+                    ),
+                    SizedBox(
+                      width: ResponsiveUtils.getResponsiveSpacing(
+                        context,
+                        mobile: 15,
+                      ),
+                    ),
+                    Expanded(
+                      child: _buildStatCard(
+                        _openComplaints.toString(),
+                        "Open Complaints",
+                        Icons.report,
+                        Mycolors.red,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            desktop: Row(
+              children: [
+                Expanded(
+                  child: _buildStatCard(
+                    _totalUsers.toString(),
+                    "Total Users",
+                    Icons.people,
+                    Mycolors.basecolor,
+                  ),
+                ),
+                SizedBox(
+                  width: ResponsiveUtils.getResponsiveSpacing(
+                    context,
+                    mobile: 15,
+                  ),
+                ),
+                Expanded(
+                  child: _buildStatCard(
+                    _activeDrivers.toString(),
+                    "Active Drivers",
+                    Icons.drive_eta,
+                    Mycolors.green,
+                  ),
+                ),
+                SizedBox(
+                  width: ResponsiveUtils.getResponsiveSpacing(
+                    context,
+                    mobile: 15,
+                  ),
+                ),
+                Expanded(
+                  child: _buildStatCard(
+                    _pendingApprovals.toString(),
+                    "Pending Approvals",
+                    Icons.pending,
+                    Mycolors.orange,
+                  ),
+                ),
+                SizedBox(
+                  width: ResponsiveUtils.getResponsiveSpacing(
+                    context,
+                    mobile: 15,
+                  ),
+                ),
+                Expanded(
+                  child: _buildStatCard(
+                    _openComplaints.toString(),
+                    "Open Complaints",
+                    Icons.report,
+                    Mycolors.red,
+                  ),
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: 15),
-          Row(
-            children: [
-              Expanded(
-                child: _buildStatCard(
-                  _pendingApprovals.toString(),
-                  "Pending Approvals",
-                  Icons.pending,
-                  Mycolors.orange,
-                ),
-              ),
-              const SizedBox(width: 15),
-              Expanded(
-                child: _buildStatCard(
-                  _openComplaints.toString(),
-                  "Open Complaints",
-                  Icons.report,
-                  Mycolors.red,
-                ),
-              ),
-            ],
+          SizedBox(
+            height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 30),
           ),
-          const SizedBox(height: 30),
 
           // Quick Actions
           Text(
             "Quick Actions",
             style: GoogleFonts.poppins(
-              fontSize: 20,
+              fontSize: ResponsiveUtils.getResponsiveFontSize(
+                context,
+                mobile: 20,
+                tablet: 24,
+                desktop: 28,
+              ),
               fontWeight: FontWeight.bold,
               color: Colors.black,
             ),
           ),
-          const SizedBox(height: 20),
-
-          Row(
-            children: [
-              Expanded(
-                child: _buildActionCard(
-                  "Manage Users",
-                  Icons.people,
-                  Mycolors.basecolor,
-                  () {
-                    setState(() {
-                      _selectedIndex = 1; // Switch to users tab
-                    });
-                  },
-                ),
-              ),
-              const SizedBox(width: 15),
-              Expanded(
-                child: _buildActionCard(
-                  "Manage Drivers",
-                  Icons.drive_eta,
-                  Mycolors.orange,
-                  () {
-                    setState(() {
-                      _selectedIndex = 2; // Switch to drivers tab
-                    });
-                  },
-                ),
-              ),
-            ],
+          SizedBox(
+            height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 20),
           ),
-          const SizedBox(height: 15),
 
-          Row(
-            children: [
-              Expanded(
-                child: _buildActionCard(
-                  "View Analytics",
-                  Icons.analytics,
-                  Mycolors.green,
-                  () {
-                    setState(() {
-                      _selectedIndex = 3; // Switch to analytics tab
-                    });
-                  },
-                ),
-              ),
-              const SizedBox(width: 15),
-              Expanded(
-                child: _buildActionCard(
-                  "Complaints",
-                  Icons.report,
-                  Mycolors.red,
-                  () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const AdminComplaintsScreen(),
+          ResponsiveWidget(
+            mobile: Column(
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildActionCard(
+                        "Manage Users",
+                        Icons.people,
+                        Mycolors.basecolor,
+                        () {
+                          setState(() {
+                            _selectedIndex = 1; // Switch to users tab
+                          });
+                        },
                       ),
-                    );
-                  },
+                    ),
+                    SizedBox(
+                      width: ResponsiveUtils.getResponsiveSpacing(
+                        context,
+                        mobile: 15,
+                      ),
+                    ),
+                    Expanded(
+                      child: _buildActionCard(
+                        "Manage Drivers",
+                        Icons.drive_eta,
+                        Mycolors.orange,
+                        () {
+                          setState(() {
+                            _selectedIndex = 2; // Switch to drivers tab
+                          });
+                        },
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-            ],
+                SizedBox(
+                  height: ResponsiveUtils.getResponsiveSpacing(
+                    context,
+                    mobile: 15,
+                  ),
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildActionCard(
+                        "View Analytics",
+                        Icons.analytics,
+                        Mycolors.green,
+                        () {
+                          setState(() {
+                            _selectedIndex = 3; // Switch to analytics tab
+                          });
+                        },
+                      ),
+                    ),
+                    SizedBox(
+                      width: ResponsiveUtils.getResponsiveSpacing(
+                        context,
+                        mobile: 15,
+                      ),
+                    ),
+                    Expanded(
+                      child: _buildActionCard(
+                        "Complaints",
+                        Icons.report,
+                        Mycolors.red,
+                        () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  const AdminComplaintsScreen(),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            tablet: Column(
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildActionCard(
+                        "Manage Users",
+                        Icons.people,
+                        Mycolors.basecolor,
+                        () {
+                          setState(() {
+                            _selectedIndex = 1; // Switch to users tab
+                          });
+                        },
+                      ),
+                    ),
+                    SizedBox(
+                      width: ResponsiveUtils.getResponsiveSpacing(
+                        context,
+                        mobile: 15,
+                      ),
+                    ),
+                    Expanded(
+                      child: _buildActionCard(
+                        "Manage Drivers",
+                        Icons.drive_eta,
+                        Mycolors.orange,
+                        () {
+                          setState(() {
+                            _selectedIndex = 2; // Switch to drivers tab
+                          });
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: ResponsiveUtils.getResponsiveSpacing(
+                    context,
+                    mobile: 15,
+                  ),
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildActionCard(
+                        "View Analytics",
+                        Icons.analytics,
+                        Mycolors.green,
+                        () {
+                          setState(() {
+                            _selectedIndex = 3; // Switch to analytics tab
+                          });
+                        },
+                      ),
+                    ),
+                    SizedBox(
+                      width: ResponsiveUtils.getResponsiveSpacing(
+                        context,
+                        mobile: 15,
+                      ),
+                    ),
+                    Expanded(
+                      child: _buildActionCard(
+                        "Complaints",
+                        Icons.report,
+                        Mycolors.red,
+                        () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  const AdminComplaintsScreen(),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            desktop: Row(
+              children: [
+                Expanded(
+                  child: _buildActionCard(
+                    "Manage Users",
+                    Icons.people,
+                    Mycolors.basecolor,
+                    () {
+                      setState(() {
+                        _selectedIndex = 1; // Switch to users tab
+                      });
+                    },
+                  ),
+                ),
+                SizedBox(
+                  width: ResponsiveUtils.getResponsiveSpacing(
+                    context,
+                    mobile: 15,
+                  ),
+                ),
+                Expanded(
+                  child: _buildActionCard(
+                    "Manage Drivers",
+                    Icons.drive_eta,
+                    Mycolors.orange,
+                    () {
+                      setState(() {
+                        _selectedIndex = 2; // Switch to drivers tab
+                      });
+                    },
+                  ),
+                ),
+                SizedBox(
+                  width: ResponsiveUtils.getResponsiveSpacing(
+                    context,
+                    mobile: 15,
+                  ),
+                ),
+                Expanded(
+                  child: _buildActionCard(
+                    "View Analytics",
+                    Icons.analytics,
+                    Mycolors.green,
+                    () {
+                      setState(() {
+                        _selectedIndex = 3; // Switch to analytics tab
+                      });
+                    },
+                  ),
+                ),
+                SizedBox(
+                  width: ResponsiveUtils.getResponsiveSpacing(
+                    context,
+                    mobile: 15,
+                  ),
+                ),
+                Expanded(
+                  child: _buildActionCard(
+                    "Complaints",
+                    Icons.report,
+                    Mycolors.red,
+                    () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const AdminComplaintsScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: 30),
+          SizedBox(
+            height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 30),
+          ),
 
           // Recent Activity
           Row(
@@ -301,7 +660,12 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               Text(
                 "Recent Activity",
                 style: GoogleFonts.poppins(
-                  fontSize: 20,
+                  fontSize: ResponsiveUtils.getResponsiveFontSize(
+                    context,
+                    mobile: 20,
+                    tablet: 24,
+                    desktop: 28,
+                  ),
                   fontWeight: FontWeight.bold,
                   color: Colors.black,
                 ),
@@ -315,7 +679,12 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 child: Text(
                   "View All",
                   style: GoogleFonts.poppins(
-                    fontSize: 14,
+                    fontSize: ResponsiveUtils.getResponsiveFontSize(
+                      context,
+                      mobile: 14,
+                      tablet: 16,
+                      desktop: 18,
+                    ),
                     color: Mycolors.basecolor,
                     fontWeight: FontWeight.w600,
                   ),
@@ -323,7 +692,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 15),
+          SizedBox(
+            height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 15),
+          ),
 
           // Real-time activity from multiple collections
           StreamBuilder<List<Map<String, dynamic>>>(
@@ -394,20 +765,29 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
 
   Widget _buildUsersTab() {
     return Padding(
-      padding: const EdgeInsets.all(20),
+      padding: ResponsiveUtils.getResponsivePadding(context),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: 20),
+          SizedBox(
+            height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 20),
+          ),
           Text(
             "User Management",
             style: GoogleFonts.poppins(
-              fontSize: 24,
+              fontSize: ResponsiveUtils.getResponsiveFontSize(
+                context,
+                mobile: 24,
+                tablet: 28,
+                desktop: 32,
+              ),
               fontWeight: FontWeight.bold,
               color: Colors.black,
             ),
           ),
-          const SizedBox(height: 20),
+          SizedBox(
+            height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 20),
+          ),
           Expanded(
             child: StreamBuilder<List<Map<String, dynamic>>>(
               stream: AdminService.getAllAppUsersStream(),
@@ -467,19 +847,28 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
 
   Widget _buildDriversTab() {
     return Padding(
-      padding: const EdgeInsets.all(20),
+      padding: ResponsiveUtils.getResponsivePadding(context),
       child: Column(
         children: [
-          const SizedBox(height: 20),
+          SizedBox(
+            height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 20),
+          ),
           Text(
             "Driver Management",
             style: GoogleFonts.poppins(
-              fontSize: 24,
+              fontSize: ResponsiveUtils.getResponsiveFontSize(
+                context,
+                mobile: 24,
+                tablet: 28,
+                desktop: 32,
+              ),
               fontWeight: FontWeight.bold,
               color: Colors.black,
             ),
           ),
-          const SizedBox(height: 20),
+          SizedBox(
+            height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 20),
+          ),
 
           // Quick Actions
           Row(
@@ -603,19 +992,28 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
 
   Widget _buildAnalyticsTab() {
     return Padding(
-      padding: const EdgeInsets.all(20),
+      padding: ResponsiveUtils.getResponsivePadding(context),
       child: Column(
         children: [
-          const SizedBox(height: 20),
+          SizedBox(
+            height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 20),
+          ),
           Text(
             "Analytics & Feedback",
             style: GoogleFonts.poppins(
-              fontSize: 24,
+              fontSize: ResponsiveUtils.getResponsiveFontSize(
+                context,
+                mobile: 24,
+                tablet: 28,
+                desktop: 32,
+              ),
               fontWeight: FontWeight.bold,
               color: Colors.black,
             ),
           ),
-          const SizedBox(height: 20),
+          SizedBox(
+            height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 20),
+          ),
 
           // Quick Actions
           Row(
@@ -720,20 +1118,43 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     Color color,
   ) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: ResponsiveUtils.getResponsivePadding(context),
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(
+          ResponsiveUtils.getResponsiveBorderRadius(
+            context,
+            mobile: 16,
+            tablet: 18,
+            desktop: 20,
+          ),
+        ),
         border: Border.all(color: color.withOpacity(0.3)),
       ),
       child: Column(
         children: [
-          Icon(icon, color: color, size: 30),
-          const SizedBox(height: 10),
+          Icon(
+            icon,
+            color: color,
+            size: ResponsiveUtils.getResponsiveIconSize(
+              context,
+              mobile: 30,
+              tablet: 35,
+              desktop: 40,
+            ),
+          ),
+          SizedBox(
+            height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 10),
+          ),
           Text(
             value,
             style: GoogleFonts.poppins(
-              fontSize: 20,
+              fontSize: ResponsiveUtils.getResponsiveFontSize(
+                context,
+                mobile: 20,
+                tablet: 24,
+                desktop: 28,
+              ),
               fontWeight: FontWeight.bold,
               color: color,
             ),
@@ -741,7 +1162,12 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           Text(
             label,
             style: GoogleFonts.poppins(
-              fontSize: 14,
+              fontSize: ResponsiveUtils.getResponsiveFontSize(
+                context,
+                mobile: 14,
+                tablet: 16,
+                desktop: 18,
+              ),
               color: color,
               fontWeight: FontWeight.w600,
             ),
@@ -761,20 +1187,43 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(20),
+        padding: ResponsiveUtils.getResponsivePadding(context),
         decoration: BoxDecoration(
           color: color.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(
+            ResponsiveUtils.getResponsiveBorderRadius(
+              context,
+              mobile: 16,
+              tablet: 18,
+              desktop: 20,
+            ),
+          ),
           border: Border.all(color: color.withOpacity(0.3)),
         ),
         child: Column(
           children: [
-            Icon(icon, color: color, size: 30),
-            const SizedBox(height: 10),
+            Icon(
+              icon,
+              color: color,
+              size: ResponsiveUtils.getResponsiveIconSize(
+                context,
+                mobile: 30,
+                tablet: 35,
+                desktop: 40,
+              ),
+            ),
+            SizedBox(
+              height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 10),
+            ),
             Text(
               title,
               style: GoogleFonts.poppins(
-                fontSize: 14,
+                fontSize: ResponsiveUtils.getResponsiveFontSize(
+                  context,
+                  mobile: 14,
+                  tablet: 16,
+                  desktop: 18,
+                ),
                 fontWeight: FontWeight.w600,
                 color: color,
               ),
@@ -888,15 +1337,27 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     IconData icon,
   ) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: ResponsiveUtils.getResponsivePadding(context),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(
+          ResponsiveUtils.getResponsiveBorderRadius(
+            context,
+            mobile: 12,
+            tablet: 14,
+            desktop: 16,
+          ),
+        ),
         border: Border.all(color: Colors.grey.shade300),
         boxShadow: [
           BoxShadow(
             color: Colors.grey.withOpacity(0.1),
-            blurRadius: 5,
+            blurRadius: ResponsiveUtils.getResponsiveElevation(
+              context,
+              mobile: 5,
+              tablet: 6,
+              desktop: 8,
+            ),
             offset: const Offset(0, 2),
           ),
         ],
@@ -904,14 +1365,32 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: ResponsiveUtils.getResponsivePadding(context),
             decoration: BoxDecoration(
               color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(
+                ResponsiveUtils.getResponsiveBorderRadius(
+                  context,
+                  mobile: 12,
+                  tablet: 14,
+                  desktop: 16,
+                ),
+              ),
             ),
-            child: Icon(icon, color: color, size: 20),
+            child: Icon(
+              icon,
+              color: color,
+              size: ResponsiveUtils.getResponsiveIconSize(
+                context,
+                mobile: 20,
+                tablet: 24,
+                desktop: 28,
+              ),
+            ),
           ),
-          const SizedBox(width: 16),
+          SizedBox(
+            width: ResponsiveUtils.getResponsiveSpacing(context, mobile: 16),
+          ),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -919,7 +1398,12 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 Text(
                   title,
                   style: GoogleFonts.poppins(
-                    fontSize: 16,
+                    fontSize: ResponsiveUtils.getResponsiveFontSize(
+                      context,
+                      mobile: 16,
+                      tablet: 18,
+                      desktop: 20,
+                    ),
                     fontWeight: FontWeight.w600,
                     color: Colors.black,
                   ),
@@ -927,14 +1411,24 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 Text(
                   description,
                   style: GoogleFonts.poppins(
-                    fontSize: 14,
+                    fontSize: ResponsiveUtils.getResponsiveFontSize(
+                      context,
+                      mobile: 14,
+                      tablet: 16,
+                      desktop: 18,
+                    ),
                     color: Mycolors.gray,
                   ),
                 ),
                 Text(
                   time,
                   style: GoogleFonts.poppins(
-                    fontSize: 12,
+                    fontSize: ResponsiveUtils.getResponsiveFontSize(
+                      context,
+                      mobile: 12,
+                      tablet: 14,
+                      desktop: 16,
+                    ),
                     color: Mycolors.gray,
                   ),
                 ),
@@ -1143,13 +1637,25 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           Icon(
             icon,
             color: isSelected ? Mycolors.orange : Colors.grey,
-            size: 24,
+            size: ResponsiveUtils.getResponsiveIconSize(
+              context,
+              mobile: 24,
+              tablet: 28,
+              desktop: 32,
+            ),
           ),
-          const SizedBox(height: 4),
+          SizedBox(
+            height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 4),
+          ),
           Text(
             label,
             style: GoogleFonts.poppins(
-              fontSize: 12,
+              fontSize: ResponsiveUtils.getResponsiveFontSize(
+                context,
+                mobile: 12,
+                tablet: 14,
+                desktop: 16,
+              ),
               color: isSelected ? Mycolors.orange : Colors.grey,
               fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
             ),

@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:relygo/constants.dart';
 import 'package:relygo/services/auth_service.dart';
 import 'package:relygo/screens/signin_screen.dart';
+import 'package:relygo/screens/complaint_submission_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 // AppSettings are defined in constants.dart
 
@@ -480,183 +481,82 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        final TextEditingController subjectController = TextEditingController();
-        final TextEditingController messageController = TextEditingController();
-        bool isSubmitting = false;
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return AlertDialog(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              title: Text(
-                "Help & Support",
-                style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
-              ),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Create a support request",
-                      style: GoogleFonts.poppins(
-                        fontSize: 13,
-                        color: Mycolors.gray,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    TextField(
-                      controller: subjectController,
-                      decoration: InputDecoration(
-                        labelText: "Subject",
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    TextField(
-                      controller: messageController,
-                      maxLines: 4,
-                      decoration: InputDecoration(
-                        labelText: "Describe your issue",
-                        alignLabelWithHint: true,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: Text(
-                    "Close",
-                    style: GoogleFonts.poppins(color: Colors.grey),
-                  ),
-                ),
-                ElevatedButton(
-                  onPressed: isSubmitting
-                      ? null
-                      : () async {
-                          final uid = AuthService.currentUserId;
-                          final subject = subjectController.text.trim();
-                          final message = messageController.text.trim();
-                          if (uid == null ||
-                              subject.isEmpty ||
-                              message.isEmpty) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  'Please fill subject and message',
-                                ),
-                                backgroundColor: Mycolors.red,
-                              ),
-                            );
-                            return;
-                          }
-                          setState(() => isSubmitting = true);
-                          try {
-                            await FirebaseFirestore.instance
-                                .collection('support_tickets')
-                                .add({
-                                  'userId': uid,
-                                  'subject': subject,
-                                  'message': message,
-                                  'status': 'open',
-                                  'createdAt': FieldValue.serverTimestamp(),
-                                });
-                            if (context.mounted) {
-                              Navigator.of(context).pop();
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: const Text(
-                                    'Support request submitted!',
-                                  ),
-                                  backgroundColor: Mycolors.green,
-                                ),
-                              );
-                            }
-                          } catch (e) {
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text('Failed to submit: $e'),
-                                  backgroundColor: Mycolors.red,
-                                ),
-                              );
-                            }
-                          } finally {
-                            if (context.mounted) {
-                              setState(() => isSubmitting = false);
-                            }
-                          }
-                        },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Mycolors.basecolor,
-                    foregroundColor: Colors.white,
-                  ),
-                  child: Text(
-                    isSubmitting ? "Submitting..." : "Submit",
-                    style: GoogleFonts.poppins(),
-                  ),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
-
-  void _showSettingsDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        ThemeMode currentMode = AppSettings.themeMode.value;
-        Locale? currentLocale = AppSettings.locale.value;
         return AlertDialog(
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
           title: Text(
-            "Settings",
+            "Help & Support",
             style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Row(
-                children: [
-                  Icon(Icons.dark_mode, color: Mycolors.basecolor),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text("Dark Mode", style: GoogleFonts.poppins()),
-                  ),
-                  Switch(
-                    value: currentMode == ThemeMode.dark,
-                    onChanged: (val) {
-                      AppSettings.themeMode.value = val
-                          ? ThemeMode.dark
-                          : ThemeMode.light;
-                      Navigator.of(context).pop();
-                    },
-                    activeThumbColor: Mycolors.basecolor,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
+              // Submit Complaint Option
               ListTile(
-                leading: Icon(Icons.location_on, color: Mycolors.basecolor),
-                title: Text("Location Services", style: GoogleFonts.poppins()),
-                trailing: Switch(
-                  value: true,
-                  onChanged: (value) {},
-                  activeThumbColor: Mycolors.basecolor,
+                leading: Icon(Icons.report_problem, color: Mycolors.red),
+                title: Text(
+                  "Submit Complaint",
+                  style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
                 ),
+                subtitle: Text(
+                  "Report issues or problems",
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    color: Mycolors.gray,
+                  ),
+                ),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const ComplaintSubmissionScreen(),
+                    ),
+                  );
+                },
+              ),
+              const Divider(),
+
+              // Contact Support
+              ListTile(
+                leading: Icon(Icons.support_agent, color: Mycolors.basecolor),
+                title: Text(
+                  "Contact Support",
+                  style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+                ),
+                subtitle: Text(
+                  "Get help from our support team",
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    color: Mycolors.gray,
+                  ),
+                ),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  _showContactSupportDialog();
+                },
+              ),
+              const Divider(),
+
+              // FAQ
+              ListTile(
+                leading: Icon(Icons.help_outline, color: Mycolors.orange),
+                title: Text(
+                  "Frequently Asked Questions",
+                  style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+                ),
+                subtitle: Text(
+                  "Find answers to common questions",
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    color: Mycolors.gray,
+                  ),
+                ),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  _showFAQDialog();
+                },
               ),
             ],
           ),
@@ -671,6 +571,175 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           ],
         );
       },
+    );
+  }
+
+  void _showContactSupportDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Text(
+            "Contact Support",
+            style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "Get in touch with our support team:",
+                style: GoogleFonts.poppins(fontSize: 14, color: Mycolors.gray),
+              ),
+              const SizedBox(height: 16),
+              _buildContactItem(
+                Icons.phone,
+                "Phone",
+                "+91 9876543210",
+                Colors.green,
+              ),
+              _buildContactItem(
+                Icons.email,
+                "Email",
+                "support@relygo.com",
+                Mycolors.basecolor,
+              ),
+              _buildContactItem(
+                Icons.chat,
+                "Live Chat",
+                "Available 24/7",
+                Mycolors.orange,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                "Close",
+                style: GoogleFonts.poppins(color: Colors.grey),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildContactItem(
+    IconData icon,
+    String title,
+    String value,
+    Color color,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        children: [
+          Icon(icon, color: color, size: 20),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    color: Mycolors.gray,
+                  ),
+                ),
+                Text(
+                  value,
+                  style: GoogleFonts.poppins(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showFAQDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Text(
+            "Frequently Asked Questions",
+            style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildFAQItem(
+                  "How do I book a ride?",
+                  "Open the app, enter your destination, select a vehicle type, and confirm your booking.",
+                ),
+                _buildFAQItem(
+                  "How do I pay for my ride?",
+                  "You can pay using cash, UPI, or card. Payment options are shown during booking.",
+                ),
+                _buildFAQItem(
+                  "What if my driver doesn't arrive?",
+                  "Contact support immediately. We'll help you find an alternative or provide a refund.",
+                ),
+                _buildFAQItem(
+                  "How do I rate my driver?",
+                  "After completing your ride, you can rate and review your driver in the ride history section.",
+                ),
+                _buildFAQItem(
+                  "Can I cancel my ride?",
+                  "Yes, you can cancel your ride before the driver arrives. Cancellation fees may apply.",
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                "Close",
+                style: GoogleFonts.poppins(color: Colors.grey),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildFAQItem(String question, String answer) {
+    return ExpansionTile(
+      title: Text(
+        question,
+        style: GoogleFonts.poppins(
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          color: Colors.black,
+        ),
+      ),
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+          child: Text(
+            answer,
+            style: GoogleFonts.poppins(fontSize: 13, color: Mycolors.gray),
+          ),
+        ),
+      ],
     );
   }
 

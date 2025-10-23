@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:relygo/constants.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:relygo/services/auth_service.dart';
 
 class EarningsScreen extends StatefulWidget {
   const EarningsScreen({super.key});
@@ -47,70 +49,91 @@ class _EarningsScreenState extends State<EarningsScreen> {
               ),
             ),
 
-            // Earnings Summary
-            Container(
-              margin: const EdgeInsets.all(20),
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    Mycolors.basecolor,
-                    Mycolors.basecolor.withOpacity(0.8),
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Mycolors.basecolor.withOpacity(0.3),
-                    blurRadius: 10,
-                    offset: const Offset(0, 5),
-                  ),
-                ],
-              ),
-              child: Column(
-                children: [
-                  Text(
-                    "Total Earnings",
-                    style: GoogleFonts.poppins(
-                      fontSize: 16,
-                      color: Colors.white.withOpacity(0.9),
+            // Earnings Summary (from Firestore)
+            StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+              stream: _getEarningsStream(),
+              builder: (context, snapshot) {
+                final docs = snapshot.data?.docs ?? [];
+                num total = 0;
+                for (final d in docs) {
+                  final fare = d.data()['fare'];
+                  if (fare is num) total += fare;
+                }
+                final int rideCount = docs.length;
+                final String totalText = '₹${total.toStringAsFixed(0)}';
+                final String avgText = rideCount > 0
+                    ? '₹${(total / rideCount).toStringAsFixed(0)}'
+                    : '₹0';
+
+                return Container(
+                  margin: const EdgeInsets.all(20),
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Mycolors.basecolor,
+                        Mycolors.basecolor.withOpacity(0.8),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    _getTotalEarnings(),
-                    style: GoogleFonts.poppins(
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildEarningsStat(
-                          "Rides",
-                          _getRideCount(),
-                          Icons.directions_car,
-                        ),
-                      ),
-                      Expanded(
-                        child: _buildEarningsStat(
-                          "Hours",
-                          _getHoursWorked(),
-                          Icons.access_time,
-                        ),
-                      ),
-                      Expanded(
-                        child: _buildEarningsStat("Rating", "4.8", Icons.star),
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Mycolors.basecolor.withOpacity(0.3),
+                        blurRadius: 10,
+                        offset: const Offset(0, 5),
                       ),
                     ],
                   ),
-                ],
-              ),
+                  child: Column(
+                    children: [
+                      Text(
+                        "Total Earnings",
+                        style: GoogleFonts.poppins(
+                          fontSize: 16,
+                          color: Colors.white.withOpacity(0.9),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        totalText,
+                        style: GoogleFonts.poppins(
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildEarningsStat(
+                              "Paid Rides",
+                              rideCount.toString(),
+                              Icons.directions_car,
+                            ),
+                          ),
+                          Expanded(
+                            child: _buildEarningsStat(
+                              "Avg Fare",
+                              avgText,
+                              Icons.attach_money,
+                            ),
+                          ),
+                          Expanded(
+                            child: _buildEarningsStat(
+                              "Status",
+                              "Paid",
+                              Icons.check_circle,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                );
+              },
             ),
 
             // Earnings Breakdown
@@ -144,124 +167,129 @@ class _EarningsScreenState extends State<EarningsScreen> {
             ),
             const SizedBox(height: 15),
 
-            // Earnings List
+            // Earnings List - Firestore
             Expanded(
-              child: ListView(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                children: [
-                  _buildEarningsItem(
-                    "Airport to Downtown",
-                    "2.5 km",
-                    "₹180",
-                    "2 hours ago",
-                    Mycolors.green,
-                  ),
-                  _buildEarningsItem(
-                    "Mall to Station",
-                    "1.8 km",
-                    "₹120",
-                    "4 hours ago",
-                    Mycolors.green,
-                  ),
-                  _buildEarningsItem(
-                    "Hospital Pickup",
-                    "3.2 km",
-                    "₹200",
-                    "6 hours ago",
-                    Mycolors.green,
-                  ),
-                  _buildEarningsItem(
-                    "Office to Home",
-                    "4.1 km",
-                    "₹250",
-                    "Yesterday",
-                    Mycolors.green,
-                  ),
-                  _buildEarningsItem(
-                    "Station to Airport",
-                    "5.2 km",
-                    "₹300",
-                    "2 days ago",
-                    Mycolors.green,
-                  ),
-                  _buildEarningsItem(
-                    "Downtown to Mall",
-                    "2.8 km",
-                    "₹160",
-                    "3 days ago",
-                    Mycolors.green,
-                  ),
-                  _buildEarningsItem(
-                    "Bonus - Peak Hours",
-                    "Extra",
-                    "₹50",
-                    "Yesterday",
-                    Mycolors.orange,
-                  ),
-                  _buildEarningsItem(
-                    "Referral Bonus",
-                    "Extra",
-                    "₹100",
-                    "1 week ago",
-                    Mycolors.orange,
-                  ),
-                ],
+              child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                stream: _getEarningsStream(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  if (snapshot.hasError) {
+                    return Center(
+                      child: Text(
+                        'Failed to load earnings',
+                        style: GoogleFonts.poppins(color: Mycolors.red),
+                      ),
+                    );
+                  }
+                  final docs = snapshot.data?.docs ?? [];
+                  if (docs.isEmpty) {
+                    return Center(
+                      child: Text(
+                        'No earnings found',
+                        style: GoogleFonts.poppins(color: Mycolors.gray),
+                      ),
+                    );
+                  }
+                  return ListView.builder(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    itemCount: docs.length,
+                    itemBuilder: (context, index) {
+                      final doc = docs[index];
+                      final data = doc.data();
+                      final pickup = (data['pickup'] ?? '').toString();
+                      final destination = (data['destination'] ?? 'Ride')
+                          .toString();
+                      final fare = data['fare'];
+                      final status = (data['status'] ?? '').toString();
+                      final paidAt = data['paidAt'] as Timestamp?;
+                      final method = (data['paymentMethod'] ?? '').toString();
+                      final timeText = paidAt != null
+                          ? _formatTimeAgo(paidAt.toDate())
+                          : '';
+                      final amount = fare != null ? '₹$fare' : '₹0';
+                      final color = status == 'paid'
+                          ? Mycolors.green
+                          : Mycolors.orange;
+
+                      return _buildEarningsItem(
+                        '$pickup → $destination',
+                        method.isNotEmpty ? 'Paid • $method' : 'Paid',
+                        amount,
+                        timeText,
+                        color,
+                      );
+                    },
+                  );
+                },
               ),
             ),
 
-            // Bottom Summary
-            Container(
-              margin: const EdgeInsets.all(20),
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Mycolors.lightGray,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            // Bottom Summary (from Firestore)
+            StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+              stream: _getEarningsStream(),
+              builder: (context, snapshot) {
+                final docs = snapshot.data?.docs ?? [];
+                num total = 0;
+                for (final d in docs) {
+                  final fare = d.data()['fare'];
+                  if (fare is num) total += fare;
+                }
+                return Container(
+                  margin: const EdgeInsets.all(20),
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Mycolors.lightGray,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
                     children: [
-                      Text(
-                        "Available Balance",
-                        style: GoogleFonts.poppins(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.black,
-                        ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "Available Balance",
+                            style: GoogleFonts.poppins(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black,
+                            ),
+                          ),
+                          Text(
+                            '₹${total.toStringAsFixed(0)}',
+                            style: GoogleFonts.poppins(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Mycolors.basecolor,
+                            ),
+                          ),
+                        ],
                       ),
-                      Text(
-                        _getTotalEarnings(),
-                        style: GoogleFonts.poppins(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Mycolors.basecolor,
-                        ),
+                      const SizedBox(height: 10),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "Pending",
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              color: Mycolors.gray,
+                            ),
+                          ),
+                          Text(
+                            "₹0",
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              color: Mycolors.gray,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                  const SizedBox(height: 10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        "Pending",
-                        style: GoogleFonts.poppins(
-                          fontSize: 14,
-                          color: Mycolors.gray,
-                        ),
-                      ),
-                      Text(
-                        "₹0",
-                        style: GoogleFonts.poppins(
-                          fontSize: 14,
-                          color: Mycolors.gray,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+                );
+              },
             ),
           ],
         ),
@@ -397,48 +425,59 @@ class _EarningsScreenState extends State<EarningsScreen> {
     );
   }
 
+  Stream<QuerySnapshot<Map<String, dynamic>>> _getEarningsStream() {
+    final driverId = AuthService.currentUserId;
+    if (driverId == null) return const Stream.empty();
+
+    DateTime startDate;
+    final now = DateTime.now();
+
+    switch (_selectedPeriod) {
+      case "Today":
+        startDate = DateTime(now.year, now.month, now.day);
+        break;
+      case "Week":
+        startDate = now.subtract(const Duration(days: 7));
+        break;
+      case "Month":
+        startDate = DateTime(now.year, now.month, 1);
+        break;
+      case "All":
+        startDate = DateTime(2020); // Very old date
+        break;
+      default:
+        startDate = DateTime(now.year, now.month, now.day);
+    }
+
+    return FirebaseFirestore.instance
+        .collection('ride_requests')
+        .where('driverId', isEqualTo: driverId)
+        .where('status', isEqualTo: 'paid')
+        .where(
+          'createdAt',
+          isGreaterThanOrEqualTo: Timestamp.fromDate(startDate),
+        )
+        .orderBy('createdAt', descending: true)
+        .snapshots();
+  }
+
   String _getTotalEarnings() {
-    switch (_selectedPeriod) {
-      case "Today":
-        return "₹1,250";
-      case "Week":
-        return "₹8,750";
-      case "Month":
-        return "₹35,000";
-      case "All":
-        return "₹1,25,000";
-      default:
-        return "₹1,250";
-    }
+    // This will be calculated from Firestore data
+    return "₹0"; // Placeholder - would need to calculate from stream
   }
 
-  String _getRideCount() {
-    switch (_selectedPeriod) {
-      case "Today":
-        return "8";
-      case "Week":
-        return "56";
-      case "Month":
-        return "224";
-      case "All":
-        return "1,200";
-      default:
-        return "8";
-    }
-  }
+  String _formatTimeAgo(DateTime dateTime) {
+    final now = DateTime.now();
+    final difference = now.difference(dateTime);
 
-  String _getHoursWorked() {
-    switch (_selectedPeriod) {
-      case "Today":
-        return "6.5";
-      case "Week":
-        return "45.5";
-      case "Month":
-        return "182";
-      case "All":
-        return "1,200";
-      default:
-        return "6.5";
+    if (difference.inDays > 0) {
+      return '${difference.inDays} day${difference.inDays == 1 ? '' : 's'} ago';
+    } else if (difference.inHours > 0) {
+      return '${difference.inHours} hour${difference.inHours == 1 ? '' : 's'} ago';
+    } else if (difference.inMinutes > 0) {
+      return '${difference.inMinutes} minute${difference.inMinutes == 1 ? '' : 's'} ago';
+    } else {
+      return 'Just now';
     }
   }
 

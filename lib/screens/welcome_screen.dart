@@ -63,7 +63,7 @@ class WelcomeScreen extends StatelessWidget {
           context,
           "Chauffeur job",
           "Earn money with your car",
-          Icons.directions_car,
+          'assets/logooo.png',
           [
             "• Flexible working hours",
             "• Competitive earnings",
@@ -107,7 +107,7 @@ class WelcomeScreen extends StatelessWidget {
             context,
             "Chauffeur job",
             "Earn money with your car",
-            Icons.directions_car,
+            'assets/logooo.png',
             [
               "• Flexible working hours",
               "• Competitive earnings",
@@ -157,7 +157,7 @@ class WelcomeScreen extends StatelessWidget {
                 context,
                 "Chauffeur job",
                 "Earn money with your car",
-                Icons.directions_car,
+                'assets/logooo.png',
                 [
                   "• Flexible working hours",
                   "• Competitive earnings",
@@ -205,7 +205,7 @@ class WelcomeScreen extends StatelessWidget {
     BuildContext context,
     String title,
     String subtitle,
-    IconData icon,
+    dynamic icon,
     List<String> features,
     VoidCallback onTap,
   ) {
@@ -254,16 +254,32 @@ class WelcomeScreen extends StatelessWidget {
                 color: Colors.white.withOpacity(0.2),
                 shape: BoxShape.circle,
               ),
-              child: Icon(
-                icon,
-                color: Colors.white,
-                size: ResponsiveUtils.getResponsiveIconSize(
-                  context,
-                  mobile: 30,
-                  tablet: 35,
-                  desktop: 40,
-                ),
-              ),
+              child: icon is String
+                  ? Image.asset(
+                      icon,
+                      width: ResponsiveUtils.getResponsiveIconSize(
+                        context,
+                        mobile: 30,
+                        tablet: 35,
+                        desktop: 40,
+                      ),
+                      height: ResponsiveUtils.getResponsiveIconSize(
+                        context,
+                        mobile: 30,
+                        tablet: 35,
+                        desktop: 40,
+                      ),
+                    )
+                  : Icon(
+                      icon,
+                      color: Colors.white,
+                      size: ResponsiveUtils.getResponsiveIconSize(
+                        context,
+                        mobile: 30,
+                        tablet: 35,
+                        desktop: 40,
+                      ),
+                    ),
             ),
             SizedBox(height: ResponsiveSpacing.getMediumSpacing(context)),
             Text(

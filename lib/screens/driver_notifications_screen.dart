@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:relygo/constants.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:relygo/services/auth_service.dart';
+import 'package:relygo/services/ride_completion_service.dart';
 
 class DriverNotificationsScreen extends StatefulWidget {
   const DriverNotificationsScreen({super.key});
@@ -35,7 +36,6 @@ class _DriverNotificationsScreenState extends State<DriverNotificationsScreen> {
               stream: FirebaseFirestore.instance
                   .collection('ride_requests')
                   .where('driverId', isEqualTo: driverId)
-                  .orderBy('createdAt', descending: true)
                   .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
@@ -259,12 +259,19 @@ class _DriverNotificationsScreenState extends State<DriverNotificationsScreen> {
                 final num? fare = num.tryParse(controller.text.trim());
                 if (fare == null) return;
                 Navigator.of(context).pop();
+
+                // Set drop time (e.g., 30 minutes from now)
+                final dropTime = DateTime.now().add(
+                  const Duration(minutes: 30),
+                );
+
                 await FirebaseFirestore.instance
                     .collection('ride_requests')
                     .doc(requestId)
                     .update({
                       'status': 'accepted',
                       'fare': fare,
+                      'dropTime': Timestamp.fromDate(dropTime),
                       'updatedAt': FieldValue.serverTimestamp(),
                     });
               },
