@@ -539,18 +539,8 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                 children: [
                   Expanded(
                     child: ElevatedButton.icon(
-                      onPressed: () {
-                        setState(() {
-                          feedback['status'] = 'Published';
-                        });
-                        Navigator.of(context).pop();
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Feedback published successfully!'),
-                            backgroundColor: Mycolors.green,
-                          ),
-                        );
-                      },
+                      onPressed: () =>
+                          _moderateFeedback(feedback['id'], 'Published'),
                       icon: const Icon(Icons.visibility, size: 18),
                       label: Text("Publish", style: GoogleFonts.poppins()),
                       style: ElevatedButton.styleFrom(
@@ -562,18 +552,8 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                   const SizedBox(width: 10),
                   Expanded(
                     child: ElevatedButton.icon(
-                      onPressed: () {
-                        setState(() {
-                          feedback['status'] = 'Hidden';
-                        });
-                        Navigator.of(context).pop();
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Feedback hidden'),
-                            backgroundColor: Mycolors.orange,
-                          ),
-                        );
-                      },
+                      onPressed: () =>
+                          _moderateFeedback(feedback['id'], 'Hidden'),
                       icon: const Icon(Icons.visibility_off, size: 18),
                       label: Text("Hide", style: GoogleFonts.poppins()),
                       style: ElevatedButton.styleFrom(
@@ -598,6 +578,27 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
         );
       },
     );
+  }
+
+  Future<void> _moderateFeedback(String feedbackId, String status) async {
+    Navigator.of(context).pop();
+
+    final result = await AdminService.updateFeedbackStatus(feedbackId, status);
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            result['success'] == true
+                ? 'Feedback status updated successfully'
+                : result['error'],
+          ),
+          backgroundColor: result['success'] == true
+              ? Mycolors.green
+              : Mycolors.red,
+        ),
+      );
+    }
   }
 
   Color _getRatingColor(double rating) {

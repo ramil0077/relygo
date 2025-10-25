@@ -155,6 +155,7 @@ class _DriverManagementScreenState extends State<DriverManagementScreen> {
                       d['vehicleType'] ?? '',
                       '',
                       '',
+                      d['id'] ?? '',
                     );
                   },
                 );
@@ -205,6 +206,7 @@ class _DriverManagementScreenState extends State<DriverManagementScreen> {
     String vehicleType,
     String lastActive,
     String earnings,
+    String driverId,
   ) {
     return Container(
       margin: const EdgeInsets.only(bottom: 15),
@@ -288,7 +290,7 @@ class _DriverManagementScreenState extends State<DriverManagementScreen> {
                   const SizedBox(width: 8),
                   PopupMenuButton<String>(
                     onSelected: (value) {
-                      _handleDriverAction(value, name);
+                      _handleDriverAction(value, name, driverId);
                     },
                     itemBuilder: (context) => [
                       PopupMenuItem(
@@ -462,7 +464,7 @@ class _DriverManagementScreenState extends State<DriverManagementScreen> {
     return 'Pending';
   }
 
-  void _handleDriverAction(String action, String driverName) {
+  void _handleDriverAction(String action, String driverName, String driverId) {
     switch (action) {
       case "view":
         _showDriverDetailsDialog(driverName);
@@ -471,13 +473,13 @@ class _DriverManagementScreenState extends State<DriverManagementScreen> {
         _showEditDriverDialog(driverName);
         break;
       case "approve":
-        _showApproveDriverDialog(driverName);
+        _approveDriver(driverId, driverName);
         break;
       case "suspend":
-        _showSuspendDriverDialog(driverName);
+        _suspendDriver(driverId, driverName);
         break;
       case "delete":
-        _showDeleteDriverDialog(driverName);
+        _deleteDriver(driverId, driverName);
         break;
     }
   }
@@ -606,142 +608,95 @@ class _DriverManagementScreenState extends State<DriverManagementScreen> {
     );
   }
 
-  void _showApproveDriverDialog(String driverName) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          title: Text(
-            "Approve Driver",
-            style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
-          ),
+  Future<void> _approveDriver(String driverId, String driverName) async {
+    final result = await AdminService.approveDriver(driverId);
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
           content: Text(
-            "Are you sure you want to approve $driverName as a driver?",
-            style: GoogleFonts.poppins(),
+            result['success'] == true
+                ? 'Driver approved successfully'
+                : result['error'],
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text(
-                "Cancel",
-                style: GoogleFonts.poppins(color: Colors.grey),
-              ),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('$driverName has been approved!'),
-                    backgroundColor: Mycolors.green,
-                  ),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Mycolors.green,
-                foregroundColor: Colors.white,
-              ),
-              child: Text("Approve", style: GoogleFonts.poppins()),
-            ),
-          ],
-        );
-      },
-    );
+          backgroundColor: result['success'] == true
+              ? Mycolors.green
+              : Mycolors.red,
+        ),
+      );
+    }
   }
 
-  void _showSuspendDriverDialog(String driverName) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          title: Text(
-            "Suspend Driver",
-            style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
-          ),
+  Future<void> _suspendDriver(String driverId, String driverName) async {
+    final result = await AdminService.suspendDriver(driverId);
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
           content: Text(
-            "Are you sure you want to suspend $driverName?",
-            style: GoogleFonts.poppins(),
+            result['success'] == true
+                ? 'Driver suspended successfully'
+                : result['error'],
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text(
-                "Cancel",
-                style: GoogleFonts.poppins(color: Colors.grey),
-              ),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('$driverName has been suspended'),
-                    backgroundColor: Mycolors.orange,
-                  ),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Mycolors.orange,
-                foregroundColor: Colors.white,
-              ),
-              child: Text("Suspend", style: GoogleFonts.poppins()),
-            ),
-          ],
-        );
-      },
-    );
+          backgroundColor: result['success'] == true
+              ? Mycolors.orange
+              : Mycolors.red,
+        ),
+      );
+    }
   }
 
-  void _showDeleteDriverDialog(String driverName) {
-    showDialog(
+  Future<void> _deleteDriver(String driverId, String driverName) async {
+    final confirmed = await showDialog<bool>(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          title: Text(
-            "Delete Driver",
-            style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
-          ),
-          content: Text(
-            "Are you sure you want to permanently delete $driverName? This action cannot be undone.",
-            style: GoogleFonts.poppins(),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text(
-                "Cancel",
-                style: GoogleFonts.poppins(color: Colors.grey),
-              ),
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(
+          "Delete Driver",
+          style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+        ),
+        content: Text(
+          "Are you sure you want to permanently delete $driverName? This action cannot be undone.",
+          style: GoogleFonts.poppins(),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(
+              "Cancel",
+              style: GoogleFonts.poppins(color: Colors.grey),
             ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('$driverName has been deleted'),
-                    backgroundColor: Mycolors.red,
-                  ),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Mycolors.red,
-                foregroundColor: Colors.white,
-              ),
-              child: Text("Delete", style: GoogleFonts.poppins()),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Mycolors.red,
+              foregroundColor: Colors.white,
             ),
-          ],
-        );
-      },
+            child: Text("Delete", style: GoogleFonts.poppins()),
+          ),
+        ],
+      ),
     );
+
+    if (confirmed == true) {
+      final result = await AdminService.deleteDriver(driverId);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              result['success'] == true
+                  ? 'Driver deleted successfully'
+                  : result['error'],
+            ),
+            backgroundColor: result['success'] == true
+                ? Mycolors.red
+                : Mycolors.red,
+          ),
+        );
+      }
+    }
   }
 
   void _showAddDriverDialog() {

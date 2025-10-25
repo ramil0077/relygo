@@ -29,7 +29,6 @@ class AdminService {
       final QuerySnapshot querySnapshot = await _firestore
           .collection('users')
           .where('userType', isEqualTo: 'driver')
-         
           .get();
 
       return querySnapshot.docs.map((doc) {
@@ -145,7 +144,7 @@ class AdminService {
         .collection('users')
         .where('userType', isEqualTo: 'driver')
         .where('status', isEqualTo: 'pending')
-    
+        .orderBy('createdAt', descending: true)
         .snapshots()
         .map((snapshot) {
           return snapshot.docs.map((doc) {
@@ -161,7 +160,7 @@ class AdminService {
     return _firestore
         .collection('users')
         .where('userType', isEqualTo: 'driver')
-      
+        .orderBy('createdAt', descending: true)
         .snapshots()
         .map((snapshot) {
           return snapshot.docs.map((doc) {
@@ -177,7 +176,7 @@ class AdminService {
     return _firestore
         .collection('users')
         .where('userType', isEqualTo: 'user')
-      
+        .orderBy('createdAt', descending: true)
         .snapshots()
         .map((snapshot) {
           return snapshot.docs.map((doc) {
@@ -192,7 +191,7 @@ class AdminService {
   static Stream<List<Map<String, dynamic>>> getAllUsersAndDriversStream() {
     return _firestore
         .collection('users')
-    
+        .orderBy('createdAt', descending: true)
         .snapshots()
         .map((snapshot) {
           return snapshot.docs.map((doc) {
@@ -233,7 +232,7 @@ class AdminService {
     return _firestore
         .collection('bookings')
         .where('userId', isEqualTo: userId)
-      
+        .orderBy('createdAt', descending: true)
         .snapshots()
         .map((snapshot) {
           return snapshot.docs.map((doc) {
@@ -248,7 +247,7 @@ class AdminService {
   static Stream<List<Map<String, dynamic>>> getComplaintsStream() {
     return _firestore
         .collection('complaints')
-       
+        .orderBy('createdAt', descending: true)
         .snapshots()
         .map((snapshot) {
           return snapshot.docs.map((doc) {
@@ -266,7 +265,7 @@ class AdminService {
     return _firestore
         .collection('complaints')
         .where('userId', isEqualTo: userId)
-       
+        .orderBy('createdAt', descending: true)
         .snapshots()
         .map((snapshot) {
           return snapshot.docs.map((doc) {
@@ -325,7 +324,7 @@ class AdminService {
     return _firestore
         .collection('messages')
         .where('driverId', isEqualTo: driverId)
-      
+        .orderBy('createdAt', descending: false)
         .snapshots()
         .map((snapshot) {
           return snapshot.docs.map((doc) {
@@ -371,7 +370,7 @@ class AdminService {
         // Get recent bookings
         final bookingsSnapshot = await _firestore
             .collection('bookings')
-            
+            .orderBy('createdAt', descending: true)
             .limit(3)
             .get();
 
@@ -387,7 +386,7 @@ class AdminService {
             .collection('users')
             .where('userType', whereIn: ['driver', 'Driver'])
             .where('status', whereIn: ['pending', 'Pending'])
-           
+            .orderBy('createdAt', descending: true)
             .limit(2)
             .get();
 
@@ -401,7 +400,7 @@ class AdminService {
         // Get recent complaints
         final complaintsSnapshot = await _firestore
             .collection('complaints')
-            
+            .orderBy('createdAt', descending: true)
             .limit(2)
             .get();
 
@@ -415,7 +414,7 @@ class AdminService {
         // Get recent feedback
         final feedbackSnapshot = await _firestore
             .collection('feedback')
-          
+            .orderBy('createdAt', descending: true)
             .limit(2)
             .get();
 
@@ -507,6 +506,71 @@ class AdminService {
         'averageRating': 0.0,
         'activeDrivers': 0,
         'totalUsers': 0,
+      };
+    }
+  }
+
+  /// Suspend a driver
+  static Future<Map<String, dynamic>> suspendDriver(String driverId) async {
+    try {
+      await _firestore.collection('users').doc(driverId).update({
+        'status': 'suspended',
+        'suspendedAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+
+      return {'success': true, 'message': 'Driver suspended successfully'};
+    } catch (e) {
+      return {'success': false, 'error': 'Failed to suspend driver: $e'};
+    }
+  }
+
+  /// Reactivate a suspended driver
+  static Future<Map<String, dynamic>> reactivateDriver(String driverId) async {
+    try {
+      await _firestore.collection('users').doc(driverId).update({
+        'status': 'approved',
+        'reactivatedAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+
+      return {'success': true, 'message': 'Driver reactivated successfully'};
+    } catch (e) {
+      return {'success': false, 'error': 'Failed to reactivate driver: $e'};
+    }
+  }
+
+  /// Delete a driver
+  static Future<Map<String, dynamic>> deleteDriver(String driverId) async {
+    try {
+      await _firestore.collection('users').doc(driverId).delete();
+
+      return {'success': true, 'message': 'Driver deleted successfully'};
+    } catch (e) {
+      return {'success': false, 'error': 'Failed to delete driver: $e'};
+    }
+  }
+
+  /// Update feedback status
+  static Future<Map<String, dynamic>> updateFeedbackStatus(
+    String feedbackId,
+    String status,
+  ) async {
+    try {
+      await _firestore.collection('feedback').doc(feedbackId).update({
+        'status': status,
+        'moderatedAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+
+      return {
+        'success': true,
+        'message': 'Feedback status updated successfully',
+      };
+    } catch (e) {
+      return {
+        'success': false,
+        'error': 'Failed to update feedback status: $e',
       };
     }
   }
