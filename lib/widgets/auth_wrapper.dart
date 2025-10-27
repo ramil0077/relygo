@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:relygo/screens/signin_screen.dart';
-import 'package:relygo/screens/user_dashboard_screen.dart';
-import 'package:relygo/screens/driver_dashboard_screen.dart';
+import 'package:relygo/screens/responsive_user_dashboard_screen.dart';
+import 'package:relygo/screens/responsive_driver_dashboard_screen.dart';
 import 'package:relygo/screens/admin_dashboard_screen.dart';
 import 'package:relygo/services/auth_service.dart';
 
@@ -43,21 +43,21 @@ class AuthWrapper extends StatelessWidget {
             // Show appropriate dashboard based on user type and status
             switch (userType.toLowerCase()) {
               case 'user':
-                return const UserDashboardScreen();
+                return const ResponsiveUserDashboardScreen();
               case 'driver':
                 if (status == 'pending') {
                   return _buildPendingApprovalScreen(context, 'Driver');
                 } else if (status == 'rejected') {
                   return _buildRejectedScreen(context, 'Driver');
                 } else if (status == 'approved') {
-                  return const DriverDashboardScreen();
+                  return const ResponsiveDriverDashboardScreen();
                 } else {
                   return _buildPendingApprovalScreen(context, 'Driver');
                 }
               case 'admin':
                 return const AdminDashboardScreen();
               default:
-                return const UserDashboardScreen();
+                return const ResponsiveUserDashboardScreen();
             }
           },
         );
