@@ -144,7 +144,6 @@ class AdminService {
         .collection('users')
         .where('userType', isEqualTo: 'driver')
         .where('status', isEqualTo: 'pending')
-        .orderBy('createdAt', descending: true)
         .snapshots()
         .map((snapshot) {
           return snapshot.docs.map((doc) {
@@ -160,7 +159,6 @@ class AdminService {
     return _firestore
         .collection('users')
         .where('userType', isEqualTo: 'driver')
-        .orderBy('createdAt', descending: true)
         .snapshots()
         .map((snapshot) {
           return snapshot.docs.map((doc) {
@@ -176,7 +174,6 @@ class AdminService {
     return _firestore
         .collection('users')
         .where('userType', isEqualTo: 'user')
-        .orderBy('createdAt', descending: true)
         .snapshots()
         .map((snapshot) {
           return snapshot.docs.map((doc) {
@@ -189,17 +186,13 @@ class AdminService {
 
   /// Listen to all users (drivers and non-drivers) in real-time
   static Stream<List<Map<String, dynamic>>> getAllUsersAndDriversStream() {
-    return _firestore
-        .collection('users')
-        .orderBy('createdAt', descending: true)
-        .snapshots()
-        .map((snapshot) {
-          return snapshot.docs.map((doc) {
-            final data = doc.data();
-            data['id'] = doc.id;
-            return data;
-          }).toList();
-        });
+    return _firestore.collection('users').snapshots().map((snapshot) {
+      return snapshot.docs.map((doc) {
+        final data = doc.data();
+        data['id'] = doc.id;
+        return data;
+      }).toList();
+    });
   }
 
   /// Listen to feedback/reviews with optional filters
@@ -232,7 +225,6 @@ class AdminService {
     return _firestore
         .collection('bookings')
         .where('userId', isEqualTo: userId)
-        .orderBy('createdAt', descending: true)
         .snapshots()
         .map((snapshot) {
           return snapshot.docs.map((doc) {
@@ -245,17 +237,13 @@ class AdminService {
 
   /// Get all complaints
   static Stream<List<Map<String, dynamic>>> getComplaintsStream() {
-    return _firestore
-        .collection('complaints')
-        .orderBy('createdAt', descending: true)
-        .snapshots()
-        .map((snapshot) {
-          return snapshot.docs.map((doc) {
-            final data = doc.data();
-            data['id'] = doc.id;
-            return data;
-          }).toList();
-        });
+    return _firestore.collection('complaints').snapshots().map((snapshot) {
+      return snapshot.docs.map((doc) {
+        final data = doc.data();
+        data['id'] = doc.id;
+        return data;
+      }).toList();
+    });
   }
 
   /// Get complaints by user
@@ -265,7 +253,6 @@ class AdminService {
     return _firestore
         .collection('complaints')
         .where('userId', isEqualTo: userId)
-        .orderBy('createdAt', descending: true)
         .snapshots()
         .map((snapshot) {
           return snapshot.docs.map((doc) {
@@ -324,7 +311,6 @@ class AdminService {
     return _firestore
         .collection('messages')
         .where('driverId', isEqualTo: driverId)
-        .orderBy('createdAt', descending: false)
         .snapshots()
         .map((snapshot) {
           return snapshot.docs.map((doc) {
@@ -386,7 +372,6 @@ class AdminService {
             .collection('users')
             .where('userType', whereIn: ['driver', 'Driver'])
             .where('status', whereIn: ['pending', 'Pending'])
-            .orderBy('createdAt', descending: true)
             .limit(2)
             .get();
 
@@ -573,5 +558,287 @@ class AdminService {
         'error': 'Failed to update feedback status: $e',
       };
     }
+  }
+
+  /// Get all bookings with user and driver details
+  static Stream<List<Map<String, dynamic>>> getAllBookingsStream() {
+    return _firestore
+        .collection('bookings')
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .asyncMap((snapshot) async {
+          List<Map<String, dynamic>> bookingsWithDetails = [];
+
+          for (var doc in snapshot.docs) {
+            final bookingData = doc.data();
+            bookingData['id'] = doc.id;
+
+            try {
+              // Get user details
+              if (bookingData['userId'] != null) {
+                final userDoc = await _firestore
+                    .collection('users')
+                    .doc(bookingData['userId'])
+                    .get();
+                if (userDoc.exists) {
+                  bookingData['userDetails'] = userDoc.data();
+                }
+              }
+
+              // Get driver details
+              if (bookingData['driverId'] != null) {
+                final driverDoc = await _firestore
+                    .collection('users')
+                    .doc(bookingData['driverId'])
+                    .get();
+                if (driverDoc.exists) {
+                  bookingData['driverDetails'] = driverDoc.data();
+                }
+              }
+
+              bookingsWithDetails.add(bookingData);
+            } catch (e) {
+              print('Error getting booking details: $e');
+              bookingsWithDetails.add(bookingData);
+            }
+          }
+
+          return bookingsWithDetails;
+        });
+  }
+
+  /// Get booking statistics
+  static Future<Map<String, dynamic>> getBookingStats() async {
+    try {
+      final QuerySnapshot allBookings = await _firestore
+          .collection('bookings')
+          .get();
+
+      final QuerySnapshot completedBookings = await _firestore
+          .collection('bookings')
+          .where('status', isEqualTo: 'completed')
+          .get();
+
+      final QuerySnapshot cancelledBookings = await _firestore
+          .collection('bookings')
+          .where('status', isEqualTo: 'cancelled')
+          .get();
+
+      final QuerySnapshot ongoingBookings = await _firestore
+          .collection('bookings')
+          .where('status', isEqualTo: 'ongoing')
+          .get();
+
+      final QuerySnapshot pendingBookings = await _firestore
+          .collection('bookings')
+          .where('status', isEqualTo: 'pending')
+          .get();
+
+      // Calculate total revenue
+      double totalRevenue = 0;
+      for (var doc in completedBookings.docs) {
+        final data = doc.data() as Map<String, dynamic>;
+        totalRevenue += (data['fare'] ?? 0).toDouble();
+      }
+
+      return {
+        'totalBookings': allBookings.docs.length,
+        'completedBookings': completedBookings.docs.length,
+        'cancelledBookings': cancelledBookings.docs.length,
+        'ongoingBookings': ongoingBookings.docs.length,
+        'pendingBookings': pendingBookings.docs.length,
+        'totalRevenue': totalRevenue,
+        'averageFare': completedBookings.docs.length > 0
+            ? totalRevenue / completedBookings.docs.length
+            : 0.0,
+      };
+    } catch (e) {
+      print('Error getting booking stats: $e');
+      return {
+        'totalBookings': 0,
+        'completedBookings': 0,
+        'cancelledBookings': 0,
+        'ongoingBookings': 0,
+        'pendingBookings': 0,
+        'totalRevenue': 0.0,
+        'averageFare': 0.0,
+      };
+    }
+  }
+
+  /// Get bookings by status
+  static Stream<List<Map<String, dynamic>>> getBookingsByStatusStream(
+    String status,
+  ) {
+    return _firestore
+        .collection('bookings')
+        .where('status', isEqualTo: status)
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .asyncMap((snapshot) async {
+          List<Map<String, dynamic>> bookingsWithDetails = [];
+
+          for (var doc in snapshot.docs) {
+            final bookingData = doc.data();
+            bookingData['id'] = doc.id;
+
+            try {
+              // Get user details
+              if (bookingData['userId'] != null) {
+                final userDoc = await _firestore
+                    .collection('users')
+                    .doc(bookingData['userId'])
+                    .get();
+                if (userDoc.exists) {
+                  bookingData['userDetails'] = userDoc.data();
+                }
+              }
+
+              // Get driver details
+              if (bookingData['driverId'] != null) {
+                final driverDoc = await _firestore
+                    .collection('users')
+                    .doc(bookingData['driverId'])
+                    .get();
+                if (driverDoc.exists) {
+                  bookingData['driverDetails'] = driverDoc.data();
+                }
+              }
+
+              bookingsWithDetails.add(bookingData);
+            } catch (e) {
+              print('Error getting booking details: $e');
+              bookingsWithDetails.add(bookingData);
+            }
+          }
+
+          return bookingsWithDetails;
+        });
+  }
+
+  /// Get booking details by ID
+  static Future<Map<String, dynamic>?> getBookingDetails(
+    String bookingId,
+  ) async {
+    try {
+      final DocumentSnapshot bookingDoc = await _firestore
+          .collection('bookings')
+          .doc(bookingId)
+          .get();
+
+      if (!bookingDoc.exists) return null;
+
+      final bookingData = bookingDoc.data() as Map<String, dynamic>;
+      bookingData['id'] = bookingDoc.id;
+
+      // Get user details
+      if (bookingData['userId'] != null) {
+        final userDoc = await _firestore
+            .collection('users')
+            .doc(bookingData['userId'])
+            .get();
+        if (userDoc.exists) {
+          bookingData['userDetails'] = userDoc.data();
+        }
+      }
+
+      // Get driver details
+      if (bookingData['driverId'] != null) {
+        final driverDoc = await _firestore
+            .collection('users')
+            .doc(bookingData['driverId'])
+            .get();
+        if (driverDoc.exists) {
+          bookingData['driverDetails'] = driverDoc.data();
+        }
+      }
+
+      return bookingData;
+    } catch (e) {
+      print('Error getting booking details: $e');
+      return null;
+    }
+  }
+
+  /// Update booking status
+  static Future<Map<String, dynamic>> updateBookingStatus(
+    String bookingId,
+    String status,
+    String? adminNote,
+  ) async {
+    try {
+      final Map<String, dynamic> updateData = {
+        'status': status,
+        'updatedAt': FieldValue.serverTimestamp(),
+      };
+
+      if (adminNote != null && adminNote.isNotEmpty) {
+        updateData['adminNote'] = adminNote;
+      }
+
+      await _firestore.collection('bookings').doc(bookingId).update(updateData);
+
+      return {
+        'success': true,
+        'message': 'Booking status updated successfully',
+      };
+    } catch (e) {
+      return {'success': false, 'error': 'Failed to update booking status: $e'};
+    }
+  }
+
+  /// Get bookings by date range
+  static Stream<List<Map<String, dynamic>>> getBookingsByDateRangeStream(
+    DateTime startDate,
+    DateTime endDate,
+  ) {
+    return _firestore
+        .collection('bookings')
+        .where(
+          'createdAt',
+          isGreaterThanOrEqualTo: Timestamp.fromDate(startDate),
+        )
+        .where('createdAt', isLessThanOrEqualTo: Timestamp.fromDate(endDate))
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .asyncMap((snapshot) async {
+          List<Map<String, dynamic>> bookingsWithDetails = [];
+
+          for (var doc in snapshot.docs) {
+            final bookingData = doc.data();
+            bookingData['id'] = doc.id;
+
+            try {
+              // Get user details
+              if (bookingData['userId'] != null) {
+                final userDoc = await _firestore
+                    .collection('users')
+                    .doc(bookingData['userId'])
+                    .get();
+                if (userDoc.exists) {
+                  bookingData['userDetails'] = userDoc.data();
+                }
+              }
+
+              // Get driver details
+              if (bookingData['driverId'] != null) {
+                final driverDoc = await _firestore
+                    .collection('users')
+                    .doc(bookingData['driverId'])
+                    .get();
+                if (driverDoc.exists) {
+                  bookingData['driverDetails'] = driverDoc.data();
+                }
+              }
+
+              bookingsWithDetails.add(bookingData);
+            } catch (e) {
+              print('Error getting booking details: $e');
+              bookingsWithDetails.add(bookingData);
+            }
+          }
+
+          return bookingsWithDetails;
+        });
   }
 }
