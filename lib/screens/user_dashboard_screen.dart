@@ -133,7 +133,7 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
           children: [
             _buildHomeTab(),
             _buildSearchTab(),
-            // removed booking tab per requirements
+            _buildHistoryTab(),
             _buildChatTab(),
             _buildProfileTab(),
           ],
@@ -156,8 +156,9 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
           children: [
             _buildNavItem(Icons.home, "Home", 0),
             _buildNavItem(Icons.search, "Search", 1),
-            _buildNavItem(Icons.chat, "Chat", 2),
-            _buildNavItem(Icons.person, "Profile", 3),
+            _buildNavItem(Icons.history, "History", 2),
+            _buildNavItem(Icons.chat, "Chat", 3),
+            _buildNavItem(Icons.person, "Profile", 4),
           ],
         ),
       ),
@@ -848,7 +849,329 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
     );
   }
 
-  // booking tab removed per requirements
+  Widget _buildHistoryTab() {
+    final userId = AuthService.currentUserId;
+    if (userId == null) {
+      return const Center(child: Text('Please log in to view history'));
+    }
+
+    return Padding(
+      padding: ResponsiveUtils.getResponsivePadding(context),
+      child: Column(
+        children: [
+          SizedBox(height: ResponsiveSpacing.getMediumSpacing(context)),
+          Text(
+            'Booking History',
+            style: GoogleFonts.poppins(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
+          ),
+          SizedBox(height: ResponsiveSpacing.getMediumSpacing(context)),
+
+          // Active Booking Tracking
+          StreamBuilder<Map<String, dynamic>?>(
+            stream: UserService.getActiveBookingStream(userId),
+            builder: (context, snapshot) {
+              if (snapshot.hasData && snapshot.data != null) {
+                final activeBooking = snapshot.data!;
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 20),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Mycolors.green.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Mycolors.green.withOpacity(0.3)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.local_taxi,
+                            color: Mycolors.green,
+                            size: 24,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Active Ride',
+                            style: GoogleFonts.poppins(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Mycolors.green,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        'Status: ${activeBooking['status']?.toString().toUpperCase() ?? 'UNKNOWN'}',
+                        style: GoogleFonts.poppins(fontSize: 14),
+                      ),
+                      if (activeBooking['driverDetails'] != null) ...[
+                        const SizedBox(height: 8),
+                        Text(
+                          'Driver: ${activeBooking['driverDetails']['name'] ?? 'Unknown'}',
+                          style: GoogleFonts.poppins(fontSize: 14),
+                        ),
+                      ],
+                      const SizedBox(height: 12),
+                      ElevatedButton(
+                        onPressed: () {
+                          // TODO: Implement tracking screen
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Tracking feature coming soon!'),
+                              backgroundColor: Mycolors.green,
+                            ),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Mycolors.green,
+                          foregroundColor: Colors.white,
+                        ),
+                        child: Text('Track Driver'),
+                      ),
+                    ],
+                  ),
+                );
+              }
+              return const SizedBox.shrink();
+            },
+          ),
+
+          // Booking History List
+          Expanded(
+            child: StreamBuilder<List<Map<String, dynamic>>>(
+              stream: UserService.getUserBookingHistoryStream(userId),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                if (snapshot.hasError) {
+                  return Center(
+                    child: Text(
+                      'Error loading history',
+                      style: GoogleFonts.poppins(color: Colors.red),
+                    ),
+                  );
+                }
+
+                final bookings = snapshot.data ?? [];
+
+                if (bookings.isEmpty) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.history, size: 64, color: Colors.grey[400]),
+                        const SizedBox(height: 16),
+                        Text(
+                          'No booking history',
+                          style: GoogleFonts.poppins(
+                            fontSize: 16,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
+                return ListView.builder(
+                  itemCount: bookings.length,
+                  itemBuilder: (context, index) {
+                    final booking = bookings[index];
+                    return _buildBookingHistoryCard(booking);
+                  },
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBookingHistoryCard(Map<String, dynamic> booking) {
+    final status = booking['status'] ?? 'unknown';
+    final driverDetails = booking['driverDetails'] as Map<String, dynamic>?;
+
+    Color statusColor;
+    IconData statusIcon;
+
+    switch (status.toLowerCase()) {
+      case 'completed':
+        statusColor = Mycolors.green;
+        statusIcon = Icons.check_circle;
+        break;
+      case 'cancelled':
+        statusColor = Mycolors.red;
+        statusIcon = Icons.cancel;
+        break;
+      case 'ongoing':
+        statusColor = Mycolors.orange;
+        statusIcon = Icons.local_taxi;
+        break;
+      default:
+        statusColor = Colors.grey;
+        statusIcon = Icons.help;
+    }
+
+    String formattedDate = 'Recently';
+    try {
+      if (booking['createdAt'] != null) {
+        final Timestamp timestamp = booking['createdAt'];
+        final DateTime dateTime = timestamp.toDate();
+        formattedDate = '${dateTime.day}/${dateTime.month}/${dateTime.year}';
+      }
+    } catch (e) {
+      formattedDate = 'Recently';
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Status and Date
+          Row(
+            children: [
+              Icon(statusIcon, color: statusColor, size: 20),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: statusColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  status.toUpperCase(),
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: statusColor,
+                  ),
+                ),
+              ),
+              const Spacer(),
+              Text(
+                formattedDate,
+                style: GoogleFonts.poppins(
+                  fontSize: 12,
+                  color: Colors.grey[600],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+
+          // Route
+          Row(
+            children: [
+              Icon(Icons.location_on, color: Mycolors.red, size: 16),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  booking['pickupLocation'] ?? 'Unknown pickup',
+                  style: GoogleFonts.poppins(fontSize: 14),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              Icon(Icons.location_on, color: Mycolors.green, size: 16),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  booking['dropoffLocation'] ?? 'Unknown dropoff',
+                  style: GoogleFonts.poppins(fontSize: 14),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+
+          // Driver and Fare
+          Row(
+            children: [
+              Icon(Icons.person, color: Colors.grey[600], size: 16),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  driverDetails?['name'] ?? 'Driver not assigned',
+                  style: GoogleFonts.poppins(fontSize: 14),
+                ),
+              ),
+              if (booking['fare'] != null) ...[
+                Text(
+                  '₹${booking['fare']}',
+                  style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Mycolors.basecolor,
+                  ),
+                ),
+              ],
+            ],
+          ),
+
+          // Action buttons for completed rides
+          if (status.toLowerCase() == 'completed' && driverDetails != null) ...[
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: () => _showFeedbackDialog(booking),
+                    icon: Icon(Icons.star, size: 16),
+                    label: Text('Rate & Review'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Mycolors.orange,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () => _showComplaintDialog(booking),
+                    icon: Icon(Icons.report_problem, size: 16),
+                    label: Text('Complain'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Mycolors.red,
+                      side: BorderSide(color: Mycolors.red),
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
 
   Widget _buildChatTab() {
     return Padding(
@@ -1772,6 +2095,292 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
             style: ResponsiveTextStyles.getNavLabelStyle(context, isSelected),
           ),
         ],
+      ),
+    );
+  }
+
+  void _showFeedbackDialog(Map<String, dynamic> booking) {
+    final driverDetails = booking['driverDetails'] as Map<String, dynamic>?;
+    if (driverDetails == null) return;
+
+    int selectedRating = 5;
+    final TextEditingController reviewController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Row(
+            children: [
+              Icon(Icons.star, color: Mycolors.orange, size: 24),
+              const SizedBox(width: 12),
+              Text(
+                'Rate & Review',
+                style: GoogleFonts.poppins(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 18,
+                ),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Driver: ${driverDetails['name'] ?? 'Unknown'}',
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Rate your experience:',
+                style: GoogleFonts.poppins(fontSize: 14),
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: List.generate(5, (index) {
+                  return GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        selectedRating = index + 1;
+                      });
+                    },
+                    child: Icon(
+                      index < selectedRating ? Icons.star : Icons.star_border,
+                      color: Mycolors.orange,
+                      size: 32,
+                    ),
+                  );
+                }),
+              ),
+              const SizedBox(height: 16),
+              Text('Write a review:', style: GoogleFonts.poppins(fontSize: 14)),
+              const SizedBox(height: 8),
+              TextField(
+                controller: reviewController,
+                maxLines: 3,
+                decoration: InputDecoration(
+                  hintText: 'Share your experience...',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                'Cancel',
+                style: GoogleFonts.poppins(color: Colors.grey),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                if (reviewController.text.trim().isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Please write a review'),
+                      backgroundColor: Mycolors.red,
+                    ),
+                  );
+                  return;
+                }
+
+                final userId = AuthService.currentUserId;
+                if (userId == null) return;
+
+                final result = await UserService.submitFeedback(
+                  userId: userId,
+                  driverId: driverDetails['id'] ?? '',
+                  bookingId: booking['id'] ?? '',
+                  rating: selectedRating,
+                  review: reviewController.text.trim(),
+                );
+
+                Navigator.of(context).pop();
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      result['success'] ? result['message'] : result['error'],
+                    ),
+                    backgroundColor: result['success']
+                        ? Mycolors.green
+                        : Mycolors.red,
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Mycolors.orange,
+                foregroundColor: Colors.white,
+              ),
+              child: Text('Submit'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showComplaintDialog(Map<String, dynamic> booking) {
+    final driverDetails = booking['driverDetails'] as Map<String, dynamic>?;
+    if (driverDetails == null) return;
+
+    final TextEditingController subjectController = TextEditingController();
+    final TextEditingController descriptionController = TextEditingController();
+    String selectedCategory = 'general';
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Row(
+            children: [
+              Icon(Icons.report_problem, color: Mycolors.red, size: 24),
+              const SizedBox(width: 12),
+              Text(
+                'Submit Complaint',
+                style: GoogleFonts.poppins(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 18,
+                ),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Driver: ${driverDetails['name'] ?? 'Unknown'}',
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text('Category:', style: GoogleFonts.poppins(fontSize: 14)),
+              const SizedBox(height: 8),
+              DropdownButtonFormField<String>(
+                value: selectedCategory,
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                items: [
+                  DropdownMenuItem(value: 'general', child: Text('General')),
+                  DropdownMenuItem(
+                    value: 'behavior',
+                    child: Text('Driver Behavior'),
+                  ),
+                  DropdownMenuItem(
+                    value: 'vehicle',
+                    child: Text('Vehicle Condition'),
+                  ),
+                  DropdownMenuItem(value: 'route', child: Text('Route Issues')),
+                  DropdownMenuItem(
+                    value: 'payment',
+                    child: Text('Payment Issues'),
+                  ),
+                ],
+                onChanged: (value) {
+                  setState(() {
+                    selectedCategory = value ?? 'general';
+                  });
+                },
+              ),
+              const SizedBox(height: 16),
+              Text('Subject:', style: GoogleFonts.poppins(fontSize: 14)),
+              const SizedBox(height: 8),
+              TextField(
+                controller: subjectController,
+                decoration: InputDecoration(
+                  hintText: 'Brief description of the issue',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text('Description:', style: GoogleFonts.poppins(fontSize: 14)),
+              const SizedBox(height: 8),
+              TextField(
+                controller: descriptionController,
+                maxLines: 3,
+                decoration: InputDecoration(
+                  hintText: 'Detailed description of the complaint...',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                'Cancel',
+                style: GoogleFonts.poppins(color: Colors.grey),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                if (subjectController.text.trim().isEmpty ||
+                    descriptionController.text.trim().isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Please fill in all fields'),
+                      backgroundColor: Mycolors.red,
+                    ),
+                  );
+                  return;
+                }
+
+                final userId = AuthService.currentUserId;
+                if (userId == null) return;
+
+                final result = await UserService.submitComplaint(
+                  userId: userId,
+                  driverId: driverDetails['id'] ?? '',
+                  bookingId: booking['id'] ?? '',
+                  subject: subjectController.text.trim(),
+                  description: descriptionController.text.trim(),
+                );
+
+                Navigator.of(context).pop();
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      result['success'] ? result['message'] : result['error'],
+                    ),
+                    backgroundColor: result['success']
+                        ? Mycolors.green
+                        : Mycolors.red,
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Mycolors.red,
+                foregroundColor: Colors.white,
+              ),
+              child: Text('Submit'),
+            ),
+          ],
+        ),
       ),
     );
   }

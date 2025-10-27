@@ -287,34 +287,6 @@ class UserService {
     }
   }
 
-  /// Submit complaint
-  static Future<Map<String, dynamic>> submitComplaint({
-    required String userId,
-    required String userName,
-    required String subject,
-    required String description,
-    String? driverId,
-    String? bookingId,
-  }) async {
-    try {
-      await _firestore.collection('complaints').add({
-        'userId': userId,
-        'userName': userName,
-        'subject': subject,
-        'description': description,
-        'driverId': driverId,
-        'bookingId': bookingId,
-        'status': 'open',
-        'createdAt': FieldValue.serverTimestamp(),
-        'updatedAt': FieldValue.serverTimestamp(),
-      });
-
-      return {'success': true, 'message': 'Complaint submitted successfully'};
-    } catch (e) {
-      return {'success': false, 'error': 'Failed to submit complaint: $e'};
-    }
-  }
-
   /// Get user notifications
   static Stream<List<Map<String, dynamic>>> getUserNotificationsStream(
     String userId,
@@ -400,6 +372,219 @@ class UserService {
             data['id'] = doc.id;
             return data;
           }).toList();
+        });
+  }
+
+  /// Submit a complaint
+  static Future<Map<String, dynamic>> submitComplaint({
+    required String userId,
+    required String driverId,
+    required String bookingId,
+    required String subject,
+    required String description,
+    String? category,
+  }) async {
+    try {
+      await _firestore.collection('complaints').add({
+        'userId': userId,
+        'driverId': driverId,
+        'bookingId': bookingId,
+        'subject': subject,
+        'description': description,
+        'category': category ?? 'general',
+        'status': 'pending',
+        'createdAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+
+      return {'success': true, 'message': 'Complaint submitted successfully'};
+    } catch (e) {
+      return {'success': false, 'error': 'Failed to submit complaint: $e'};
+    }
+  }
+
+  /// Submit feedback/review for a completed ride
+  static Future<Map<String, dynamic>> submitFeedback({
+    required String userId,
+    required String driverId,
+    required String bookingId,
+    required int rating,
+    required String review,
+    String? category,
+  }) async {
+    try {
+      await _firestore.collection('feedback').add({
+        'userId': userId,
+        'driverId': driverId,
+        'bookingId': bookingId,
+        'rating': rating,
+        'review': review,
+        'category': category ?? 'general',
+        'status': 'active',
+        'createdAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+
+      return {'success': true, 'message': 'Feedback submitted successfully'};
+    } catch (e) {
+      return {'success': false, 'error': 'Failed to submit feedback: $e'};
+    }
+  }
+
+  /// Get user's booking history
+  static Stream<List<Map<String, dynamic>>> getUserBookingHistoryStream(
+    String userId,
+  ) {
+    return _firestore
+        .collection('bookings')
+        .where('userId', isEqualTo: userId)
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .asyncMap((snapshot) async {
+          List<Map<String, dynamic>> bookingsWithDetails = [];
+
+          for (var doc in snapshot.docs) {
+            final bookingData = doc.data();
+            bookingData['id'] = doc.id;
+
+            try {
+              // Get driver details
+              if (bookingData['driverId'] != null) {
+                final driverDoc = await _firestore
+                    .collection('users')
+                    .doc(bookingData['driverId'])
+                    .get();
+                if (driverDoc.exists) {
+                  bookingData['driverDetails'] = driverDoc.data();
+                }
+              }
+
+              bookingsWithDetails.add(bookingData);
+            } catch (e) {
+              print('Error getting booking details: $e');
+              bookingsWithDetails.add(bookingData);
+            }
+          }
+
+          return bookingsWithDetails;
+        });
+  }
+
+  /// Get driver reviews and ratings from feedback collection
+  static Stream<List<Map<String, dynamic>>> getDriverFeedbackStream(
+    String driverId,
+  ) {
+    return _firestore
+        .collection('feedback')
+        .where('driverId', isEqualTo: driverId)
+        .where('status', isEqualTo: 'active')
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .asyncMap((snapshot) async {
+          List<Map<String, dynamic>> reviewsWithDetails = [];
+
+          for (var doc in snapshot.docs) {
+            final reviewData = doc.data();
+            reviewData['id'] = doc.id;
+
+            try {
+              // Get user details
+              if (reviewData['userId'] != null) {
+                final userDoc = await _firestore
+                    .collection('users')
+                    .doc(reviewData['userId'])
+                    .get();
+                if (userDoc.exists) {
+                  reviewData['userDetails'] = userDoc.data();
+                }
+              }
+
+              reviewsWithDetails.add(reviewData);
+            } catch (e) {
+              print('Error getting review details: $e');
+              reviewsWithDetails.add(reviewData);
+            }
+          }
+
+          return reviewsWithDetails;
+        });
+  }
+
+  /// Get driver average rating
+  static Future<Map<String, dynamic>> getDriverRatingStats(
+    String driverId,
+  ) async {
+    try {
+      final QuerySnapshot feedbackQuery = await _firestore
+          .collection('feedback')
+          .where('driverId', isEqualTo: driverId)
+          .where('status', isEqualTo: 'active')
+          .get();
+
+      if (feedbackQuery.docs.isEmpty) {
+        return {
+          'averageRating': 0.0,
+          'totalReviews': 0,
+          'ratingBreakdown': {1: 0, 2: 0, 3: 0, 4: 0, 5: 0},
+        };
+      }
+
+      double totalRating = 0;
+      Map<int, int> ratingBreakdown = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0};
+
+      for (var doc in feedbackQuery.docs) {
+        final data = doc.data() as Map<String, dynamic>;
+        final rating = data['rating'] ?? 0;
+        totalRating += rating.toDouble();
+        ratingBreakdown[rating] = (ratingBreakdown[rating] ?? 0) + 1;
+      }
+
+      return {
+        'averageRating': totalRating / feedbackQuery.docs.length,
+        'totalReviews': feedbackQuery.docs.length,
+        'ratingBreakdown': ratingBreakdown,
+      };
+    } catch (e) {
+      print('Error getting driver rating stats: $e');
+      return {
+        'averageRating': 0.0,
+        'totalReviews': 0,
+        'ratingBreakdown': {1: 0, 2: 0, 3: 0, 4: 0, 5: 0},
+      };
+    }
+  }
+
+  /// Get user's active booking for tracking
+  static Stream<Map<String, dynamic>?> getActiveBookingStream(String userId) {
+    return _firestore
+        .collection('bookings')
+        .where('userId', isEqualTo: userId)
+        .where('status', whereIn: ['pending', 'accepted', 'ongoing'])
+        .limit(1)
+        .snapshots()
+        .asyncMap((snapshot) async {
+          if (snapshot.docs.isEmpty) return null;
+
+          final bookingData = snapshot.docs.first.data();
+          bookingData['id'] = snapshot.docs.first.id;
+
+          try {
+            // Get driver details
+            if (bookingData['driverId'] != null) {
+              final driverDoc = await _firestore
+                  .collection('users')
+                  .doc(bookingData['driverId'])
+                  .get();
+              if (driverDoc.exists) {
+                bookingData['driverDetails'] = driverDoc.data();
+              }
+            }
+
+            return bookingData;
+          } catch (e) {
+            print('Error getting active booking details: $e');
+            return bookingData;
+          }
         });
   }
 }
