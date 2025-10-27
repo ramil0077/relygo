@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:relygo/constants.dart';
 import 'package:relygo/screens/review_submission_screen.dart';
 import 'package:relygo/services/user_service.dart';
+import 'package:relygo/services/auth_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class RideHistoryScreen extends StatefulWidget {
@@ -52,7 +53,9 @@ class _RideHistoryScreenState extends State<RideHistoryScreen> {
           // Rides List - Firestore
           Expanded(
             child: StreamBuilder<List<Map<String, dynamic>>>(
-              stream: UserService.getCurrentUserRidesStream(),
+              stream: UserService.getUserBookingsStream(
+                AuthService.currentUserId ?? '',
+              ),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
@@ -78,22 +81,25 @@ class _RideHistoryScreenState extends State<RideHistoryScreen> {
                   padding: const EdgeInsets.all(20),
                   itemCount: rides.length,
                   itemBuilder: (context, index) {
-                    final r = rides[index];
-                    final destination = r['destination'] ?? r['to'] ?? 'Ride';
-                    final driverName = r['driverName'] ?? '';
-                    final distance = r['distanceText'] ?? '';
-                    final price = r['fare'] != null ? '₹${r['fare']}' : '';
-                    final status = _statusString(r['status']);
+                    final booking = rides[index];
+                    final destination =
+                        booking['dropoffLocation'] ?? 'Destination';
+                    final driverName = booking['driverName'] ?? 'Driver';
+                    final distance = booking['distance'] ?? 'N/A';
+                    final price = booking['fare'] != null
+                        ? '₹${booking['fare']}'
+                        : '₹0';
+                    final status = _statusString(booking['status']);
                     final statusColor = _statusColor(status);
-                    final time = _formatDate(r['createdAt']);
-                    final rating = (r['rating'] is num)
-                        ? (r['rating'] as num).toString()
+                    final time = _formatDate(booking['createdAt']);
+                    final rating = (booking['rating'] is num)
+                        ? (booking['rating'] as num).toString()
                         : '0.0';
                     final icon = status == 'Cancelled'
                         ? Icons.cancel
                         : Icons.directions_car;
-                    final rideId = r['id'] ?? r['rideId'] ?? '';
-                    final driverId = r['driverId'] ?? '';
+                    final bookingId = booking['id'] ?? '';
+                    final driverId = booking['driverId'] ?? '';
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 15),
                       child: _buildRideCard(
@@ -106,7 +112,7 @@ class _RideHistoryScreenState extends State<RideHistoryScreen> {
                         time,
                         rating,
                         icon,
-                        rideId,
+                        bookingId,
                         driverId,
                       ),
                     );
@@ -283,7 +289,7 @@ class _RideHistoryScreenState extends State<RideHistoryScreen> {
           ),
 
           // Action buttons based on status
-          if (status == "Completed") ...[
+          if (status == "Completed" || status == "Paid") ...[
             const SizedBox(height: 15),
             Row(
               children: [
@@ -397,6 +403,65 @@ class _RideHistoryScreenState extends State<RideHistoryScreen> {
                 ),
               ],
             ),
+          ] else if (status == "Pending" ||
+              status == "Accepted" ||
+              status == "Ongoing") ...[
+            const SizedBox(height: 15),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      _showRideDetailsDialog(
+                        destination,
+                        driverName,
+                        distance,
+                        price,
+                        time,
+                        rating,
+                      );
+                    },
+                    icon: const Icon(Icons.info, size: 18),
+                    label: Text(
+                      "View Details",
+                      style: GoogleFonts.poppins(fontSize: 14),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Mycolors.basecolor,
+                      side: BorderSide(color: Mycolors.basecolor),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Ride is $status'),
+                          backgroundColor: Mycolors.basecolor,
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.timeline, size: 18),
+                    label: Text(
+                      "Track Ride",
+                      style: GoogleFonts.poppins(fontSize: 14),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Mycolors.green,
+                      side: BorderSide(color: Mycolors.green),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ],
         ],
       ),
@@ -407,8 +472,11 @@ class _RideHistoryScreenState extends State<RideHistoryScreen> {
     final v = (raw ?? '').toString().toLowerCase();
     if (v == 'completed') return 'Completed';
     if (v == 'cancelled') return 'Cancelled';
-    if (v == 'scheduled') return 'Scheduled';
-    return 'Completed';
+    if (v == 'pending') return 'Pending';
+    if (v == 'accepted') return 'Accepted';
+    if (v == 'ongoing') return 'Ongoing';
+    if (v == 'paid') return 'Paid';
+    return 'Pending';
   }
 
   Color _statusColor(String status) {
@@ -417,8 +485,14 @@ class _RideHistoryScreenState extends State<RideHistoryScreen> {
         return Mycolors.green;
       case 'Cancelled':
         return Mycolors.red;
-      case 'Scheduled':
+      case 'Pending':
+        return Mycolors.orange;
+      case 'Accepted':
         return Mycolors.basecolor;
+      case 'Ongoing':
+        return Mycolors.basecolor;
+      case 'Paid':
+        return Mycolors.green;
       default:
         return Mycolors.gray;
     }
