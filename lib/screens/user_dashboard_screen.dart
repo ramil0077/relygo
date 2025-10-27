@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:relygo/constants.dart';
 import 'package:relygo/screens/service_booking_screen.dart';
 import 'package:relygo/screens/user_profile_screen.dart';
-
+import 'package:relygo/screens/driver_tracking_screen.dart';
 import 'package:relygo/screens/payment_screen.dart';
 import 'package:relygo/utils/responsive.dart';
 import 'package:relygo/services/user_service.dart';
@@ -11,6 +11,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:relygo/services/admin_service.dart';
 import 'package:relygo/services/auth_service.dart';
 import 'package:relygo/services/chat_service.dart';
+import 'package:relygo/screens/chat_detail_screen.dart';
 
 class UserDashboardScreen extends StatefulWidget {
   const UserDashboardScreen({super.key});
@@ -618,7 +619,7 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                       leading: Icon(Icons.phone, color: Mycolors.green),
                       title: Text(phone, style: GoogleFonts.poppins()),
                       onTap: () {
-                        _showContactOptions(name, phone);
+                        _showContactOptions(name, phone, driverId);
                       },
                     ),
                   const SizedBox(height: 8),
@@ -698,7 +699,7 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
     );
   }
 
-  void _showContactOptions(String name, String phone) {
+  void _showContactOptions(String name, String phone, String driverId) {
     showDialog(
       context: context,
       builder: (context) {
@@ -732,12 +733,13 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                 title: Text('Chat', style: GoogleFonts.poppins()),
                 onTap: () {
                   Navigator.of(context).pop();
-                  // Navigator.push(
-                  //   context,
-                  //   MaterialPageRoute(
-                  //     builder: (context) => ChatDetailScreen(peerName: name),
-                  //   ),
-                  // );
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          ChatDetailScreen(peerName: name, peerId: driverId),
+                    ),
+                  );
                 },
               ),
             ],
@@ -920,11 +922,13 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                       const SizedBox(height: 12),
                       ElevatedButton(
                         onPressed: () {
-                          // TODO: Implement tracking screen
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Tracking feature coming soon!'),
-                              backgroundColor: Mycolors.green,
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => DriverTrackingScreen(
+                                bookingId: activeBooking['id'] ?? '',
+                                bookingData: activeBooking,
+                              ),
                             ),
                           );
                         },
@@ -1238,16 +1242,16 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
 
                     return GestureDetector(
                       onTap: () {
-                        // Navigator.push(
-                        //   context,
-                        //   MaterialPageRoute(
-                        //     builder: (context) => ChatDetailScreen(
-                        //       peerName: title,
-                        //       conversationId: conversationId,
-                        //       peerId: peerId,
-                        //     ),
-                        //   ),
-                        // );
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ChatDetailScreen(
+                              peerName: title,
+                              conversationId: conversationId,
+                              peerId: peerId,
+                            ),
+                          ),
+                        );
                       },
                       child: _buildChatCard(
                         context,
