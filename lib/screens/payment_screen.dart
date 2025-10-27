@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:relygo/constants.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:relygo/screens/user_dashboard_screen.dart';
 
 class PaymentScreen extends StatefulWidget {
   final String requestId;
@@ -364,9 +365,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
                   child: ElevatedButton(
                     onPressed: () {
                       Navigator.of(context).pop(); // Close dialog
-                      // Navigate to home screen
-                      Navigator.of(context).pushNamedAndRemoveUntil(
-                        '/user-dashboard',
+                      // Navigate to user dashboard screen
+                      Navigator.of(context).pushAndRemoveUntil(
+                        MaterialPageRoute(
+                          builder: (context) => const UserDashboardScreen(),
+                        ),
                         (route) => false,
                       );
                     },

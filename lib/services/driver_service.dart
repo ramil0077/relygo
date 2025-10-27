@@ -37,7 +37,7 @@ class DriverService {
         .collection('bookings')
         .where('driverId', isEqualTo: driverId)
         .where('status', isEqualTo: 'pending')
-        .orderBy('createdAt', descending: true)
+        
         .snapshots()
         .map((snapshot) {
       return snapshot.docs.map((doc) {
@@ -55,7 +55,7 @@ class DriverService {
     return _firestore
         .collection('bookings')
         .where('driverId', isEqualTo: driverId)
-        .orderBy('createdAt', descending: true)
+       
         .snapshots()
         .map((snapshot) {
       return snapshot.docs.map((doc) {
@@ -233,7 +233,7 @@ class DriverService {
     return _firestore
         .collection('notifications')
         .where('driverId', isEqualTo: driverId)
-        .orderBy('createdAt', descending: true)
+      
         .limit(50)
         .snapshots()
         .map((snapshot) {

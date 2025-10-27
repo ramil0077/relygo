@@ -4,6 +4,7 @@ import 'package:relygo/constants.dart';
 import 'package:relygo/services/auth_service.dart';
 import 'package:relygo/screens/signin_screen.dart';
 import 'package:relygo/screens/complaint_submission_screen.dart';
+import 'package:relygo/screens/ride_history_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 // AppSettings are defined in constants.dart
 
@@ -168,7 +169,12 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                         "View your ride history",
                         Icons.history,
                         () {
-                          _showRideHistoryDialog();
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const RideHistoryScreen(),
+                            ),
+                          );
                         },
                       ),
                       _buildProfileOption(
@@ -375,105 +381,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           ],
         );
       },
-    );
-  }
-
-  void _showRideHistoryDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          title: Text(
-            "Ride History",
-            style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _buildRideHistoryItem(
-                "Airport to Downtown",
-                "₹180",
-                "2 hours ago",
-                "Completed",
-              ),
-              _buildRideHistoryItem(
-                "Mall to Station",
-                "₹120",
-                "Yesterday",
-                "Completed",
-              ),
-              _buildRideHistoryItem(
-                "Hospital Pickup",
-                "₹200",
-                "2 days ago",
-                "Completed",
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text(
-                "Close",
-                style: GoogleFonts.poppins(color: Colors.grey),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _buildRideHistoryItem(
-    String route,
-    String price,
-    String time,
-    String status,
-  ) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade100,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                route,
-                style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
-              ),
-              Text(
-                time,
-                style: GoogleFonts.poppins(fontSize: 12, color: Mycolors.gray),
-              ),
-            ],
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                price,
-                style: GoogleFonts.poppins(
-                  fontWeight: FontWeight.bold,
-                  color: Mycolors.basecolor,
-                ),
-              ),
-              Text(
-                status,
-                style: GoogleFonts.poppins(fontSize: 12, color: Mycolors.green),
-              ),
-            ],
-          ),
-        ],
-      ),
     );
   }
 
