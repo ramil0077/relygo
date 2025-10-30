@@ -4,6 +4,7 @@ import 'package:relygo/constants.dart';
 import 'package:relygo/services/auth_service.dart';
 import 'package:relygo/services/user_service.dart';
 import 'package:relygo/screens/signin_screen.dart';
+import 'package:relygo/services/driver_service.dart';
 
 class DriverProfileScreen extends StatefulWidget {
   const DriverProfileScreen({super.key});
@@ -143,24 +144,34 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
                       const SizedBox(height: 30),
 
                       // Driver Stats
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _buildStatCard(
-                              "150",
-                              "Total Rides",
-                              Icons.directions_car,
-                            ),
-                          ),
-                          const SizedBox(width: 15),
-                          Expanded(
-                            child: _buildStatCard(
-                              "₹45,000",
-                              "Total Earnings",
-                              Icons.attach_money,
-                            ),
-                          ),
-                        ],
+                      FutureBuilder<Map<String, dynamic>>(
+                        future: DriverService.getDriverEarnings(userId),
+                        builder: (context, snapshot) {
+                          final data = snapshot.data ?? {};
+                          final totalRides = data['totalRides']?.toString() ?? '0';
+                          final totalEarnings = data['totalEarnings'] != null
+                              ? '₹${data['totalEarnings'].toStringAsFixed(0)}'
+                              : '₹0';
+                          return Row(
+                            children: [
+                              Expanded(
+                                child: _buildStatCard(
+                                  totalRides,
+                                  "Total Rides",
+                                  Icons.directions_car,
+                                ),
+                              ),
+                              const SizedBox(width: 15),
+                              Expanded(
+                                child: _buildStatCard(
+                                  totalEarnings,
+                                  "Total Earnings",
+                                  Icons.attach_money,
+                                ),
+                              ),
+                            ],
+                          );
+                        },
                       ),
                       const SizedBox(height: 15),
                       Row(
