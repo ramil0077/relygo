@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:relygo/constants.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:razorpay_flutter/razorpay_flutter.dart';
+import 'package:relygo/services/payment_service.dart';
 import 'package:relygo/screens/user_dashboard_screen.dart';
 
 class PaymentScreen extends StatefulWidget {
@@ -25,6 +27,45 @@ class PaymentScreen extends StatefulWidget {
 class _PaymentScreenState extends State<PaymentScreen> {
   String _selectedPaymentMethod = 'card';
   bool _isProcessing = false;
+  PaymentService? _paymentService;
+
+  // NOTE: Use your Razorpay Test Key here for dummy/test payments
+  static const String _razorpayTestKey = 'rzp_test_1DP5mmOlF5G5ag';
+
+  @override
+  void initState() {
+    super.initState();
+    _paymentService = PaymentService(
+      onOpen: () {
+        setState(() {
+          _isProcessing = true;
+        });
+      },
+      onSuccess: (PaymentSuccessResponse response) async {
+        await _markPaid(method: _selectedPaymentMethod);
+        if (!mounted) return;
+        await _showSuccessDialog();
+        setState(() {
+          _isProcessing = false;
+        });
+      },
+      onError: (PaymentFailureResponse response) {
+        if (!mounted) return;
+        setState(() {
+          _isProcessing = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Payment failed. Please try again.')),
+        );
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    _paymentService?.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -251,44 +292,47 @@ class _PaymentScreenState extends State<PaymentScreen> {
   }
 
   Future<void> _processPayment() async {
-    setState(() {
-      _isProcessing = true;
-    });
-
-    try {
-      // Simulate payment processing
-      await Future.delayed(const Duration(seconds: 2));
-
-      // Update the ride request status to 'paid'
-      await FirebaseFirestore.instance
-          .collection('ride_requests')
-          .doc(widget.requestId)
-          .update({
-            'status': 'paid',
-            'paymentMethod': _selectedPaymentMethod,
-            'paidAt': Timestamp.now(),
+    // Cash: directly mark paid without Razorpay flow
+    if (_selectedPaymentMethod == 'cash') {
+      setState(() {
+        _isProcessing = true;
+      });
+      try {
+        await _markPaid(method: 'cash');
+        if (!mounted) return;
+        await _showSuccessDialog();
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isProcessing = false;
           });
-
-      if (!mounted) return;
-
-      // Show success dialog
-      await _showSuccessDialog();
-    } catch (e) {
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Payment failed. Please try again.'),
-          backgroundColor: Mycolors.red,
-        ),
-      );
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isProcessing = false;
-        });
+        }
       }
+      return;
     }
+
+    // Card/UPI: open Razorpay test checkout
+    final int amountPaise = (widget.amount * 100).toInt();
+    _paymentService?.openCheckout(
+      key: _razorpayTestKey,
+      amountInPaise: amountPaise,
+      name: 'RelyGo Ride',
+      description: 'Payment for ${widget.destination}',
+      prefillEmail: 'test@example.com',
+      prefillContact: '9999999999',
+      notes: {'requestId': widget.requestId, 'driverName': widget.driverName},
+    );
+  }
+
+  Future<void> _markPaid({required String method}) async {
+    await FirebaseFirestore.instance
+        .collection('ride_requests')
+        .doc(widget.requestId)
+        .update({
+          'status': 'paid',
+          'paymentMethod': method,
+          'paidAt': Timestamp.now(),
+        });
   }
 
   Future<void> _showSuccessDialog() async {

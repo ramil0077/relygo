@@ -6,6 +6,7 @@ import 'package:relygo/screens/user_profile_screen.dart';
 import 'package:relygo/screens/driver_tracking_screen.dart';
 import 'package:relygo/screens/payment_screen.dart';
 import 'package:relygo/utils/responsive.dart';
+import 'package:relygo/widgets/animated_bottom_nav_bar.dart';
 import 'package:relygo/services/user_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:relygo/services/admin_service.dart';
@@ -140,29 +141,36 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.2),
-              blurRadius: 10,
-              offset: const Offset(0, -5),
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            _buildNavItem(Icons.home, "Home", 0),
-            _buildNavItem(Icons.search, "Search", 1),
-            _buildNavItem(Icons.history, "History", 2),
-            _buildNavItem(Icons.chat, "Chat", 3),
-            _buildNavItem(Icons.person, "Profile", 4),
-          ],
-        ),
+      bottomNavigationBar: AnimatedBottomNavBar(
+        currentIndex: _selectedIndex,
+        onTap: (index) {
+          setState(() {
+            _selectedIndex = index;
+          });
+        },
+        items: const [
+          NavBarItem(icon: Icons.home, label: 'Home'),
+          NavBarItem(icon: Icons.search, label: 'Search'),
+          NavBarItem(icon: Icons.history, label: 'History'),
+          NavBarItem(icon: Icons.chat, label: 'Chat'),
+          NavBarItem(icon: Icons.person, label: 'Profile'),
+        ],
       ),
+      floatingActionButton: _selectedIndex == 0
+          ? FloatingQuickActionButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const ServiceBookingScreen(),
+                  ),
+                );
+              },
+              icon: Icons.add,
+              tooltip: 'Book a Ride',
+            )
+          : null,
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
 
@@ -2068,37 +2076,6 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildNavItem(IconData icon, String label, int index) {
-    bool isSelected = _selectedIndex == index;
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _selectedIndex = index;
-        });
-      },
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            icon,
-            color: isSelected ? Mycolors.basecolor : Colors.grey,
-            size: ResponsiveUtils.getResponsiveIconSize(
-              context,
-              mobile: 24,
-              tablet: 26,
-              desktop: 28,
-            ),
-          ),
-          SizedBox(height: ResponsiveSpacing.getSmallSpacing(context) / 2),
-          Text(
-            label,
-            style: ResponsiveTextStyles.getNavLabelStyle(context, isSelected),
-          ),
-        ],
       ),
     );
   }

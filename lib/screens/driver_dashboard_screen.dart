@@ -8,6 +8,7 @@ import 'package:relygo/screens/driver_ride_history_screen.dart';
 import 'package:relygo/screens/driver_reviews_screen.dart';
 
 import 'package:relygo/utils/responsive.dart';
+import 'package:relygo/widgets/animated_bottom_nav_bar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:relygo/services/auth_service.dart';
 import 'package:relygo/screens/driver_notifications_screen.dart';
@@ -81,32 +82,20 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
               ],
             )
           : null,
-      bottomNavigationBar: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.2),
-              blurRadius: 10,
-              offset: const Offset(0, -5),
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            _buildNavItem(Icons.home, "Home", 0),
-            // Earnings tab is index 1 in the IndexedStack
-            _buildNavItem(Icons.attach_money, "Earnings", 1),
-            // Chat tab is index 2
-            _buildNavItem(Icons.chat, "Chat", 2),
-            // Reviews tab is index 3
-            _buildNavItem(Icons.star, "Reviews", 3),
-            // Profile tab is index 4
-            _buildNavItem(Icons.person, "Profile", 4),
-          ],
-        ),
+      bottomNavigationBar: AnimatedBottomNavBar(
+        currentIndex: _selectedIndex,
+        onTap: (index) {
+          setState(() {
+            _selectedIndex = index;
+          });
+        },
+        items: const [
+          NavBarItem(icon: Icons.home, label: 'Home'),
+          NavBarItem(icon: Icons.attach_money, label: 'Earnings'),
+          NavBarItem(icon: Icons.chat, label: 'Chat'),
+          NavBarItem(icon: Icons.star, label: 'Reviews'),
+          NavBarItem(icon: Icons.person, label: 'Profile'),
+        ],
       ),
     );
   }
@@ -1123,37 +1112,6 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildNavItem(IconData icon, String label, int index) {
-    bool isSelected = _selectedIndex == index;
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _selectedIndex = index;
-        });
-      },
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            icon,
-            color: isSelected ? Mycolors.basecolor : Colors.grey,
-            size: ResponsiveUtils.getResponsiveIconSize(
-              context,
-              mobile: 24,
-              tablet: 26,
-              desktop: 28,
-            ),
-          ),
-          SizedBox(height: ResponsiveSpacing.getSmallSpacing(context) / 2),
-          Text(
-            label,
-            style: ResponsiveTextStyles.getNavLabelStyle(context, isSelected),
-          ),
-        ],
       ),
     );
   }
