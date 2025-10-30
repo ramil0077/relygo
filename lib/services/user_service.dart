@@ -122,7 +122,6 @@ class UserService {
     return _firestore
         .collection('rides')
         .where('userId', isEqualTo: userId)
-       
         .snapshots()
         .map(
           (snapshot) => snapshot.docs.map((doc) {
@@ -188,7 +187,6 @@ class UserService {
     return _firestore
         .collection('bookings')
         .where('userId', isEqualTo: userId)
-       
         .snapshots()
         .map((snapshot) {
           return snapshot.docs.map((doc) {
@@ -294,7 +292,6 @@ class UserService {
     return _firestore
         .collection('notifications')
         .where('userId', isEqualTo: userId)
-       
         .limit(50)
         .snapshots()
         .map((snapshot) {
@@ -364,7 +361,6 @@ class UserService {
     return _firestore
         .collection('reviews')
         .where('driverId', isEqualTo: driverId)
-       
         .snapshots()
         .map((snapshot) {
           return snapshot.docs.map((doc) {
@@ -438,7 +434,7 @@ class UserService {
     return _firestore
         .collection('bookings')
         .where('userId', isEqualTo: userId)
-       
+        .where('status', whereIn: ['completed', 'ongoing'])
         .snapshots()
         .asyncMap((snapshot) async {
           List<Map<String, dynamic>> bookingsWithDetails = [];
@@ -458,7 +454,6 @@ class UserService {
                   bookingData['driverDetails'] = driverDoc.data();
                 }
               }
-
               bookingsWithDetails.add(bookingData);
             } catch (e) {
               print('Error getting booking details: $e');
@@ -478,7 +473,6 @@ class UserService {
         .collection('feedback')
         .where('driverId', isEqualTo: driverId)
         .where('status', isEqualTo: 'active')
-    
         .snapshots()
         .asyncMap((snapshot) async {
           List<Map<String, dynamic>> reviewsWithDetails = [];

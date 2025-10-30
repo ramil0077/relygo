@@ -12,7 +12,6 @@ import 'package:relygo/widgets/animated_bottom_nav_bar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:relygo/services/auth_service.dart';
 import 'package:relygo/screens/driver_notifications_screen.dart';
-import 'package:relygo/services/chat_service.dart';
 import 'package:relygo/screens/chat_detail_screen.dart';
 
 class DriverDashboardScreen extends StatefulWidget {
@@ -289,96 +288,51 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
   }
 
   Widget _buildChatTab() {
-    return Padding(
-      padding: ResponsiveUtils.getResponsivePadding(context),
-      child: Column(
-        children: [
-          SizedBox(height: ResponsiveSpacing.getMediumSpacing(context)),
-          Text("Messages", style: ResponsiveTextStyles.getTitleStyle(context)),
-          SizedBox(height: ResponsiveSpacing.getMediumSpacing(context)),
-
-          // Conversations from Firestore
-          Expanded(
-            child: StreamBuilder<List<Map<String, dynamic>>>(
-              stream: ChatService.getUserConversationsStream(),
+    final driverId = AuthService.currentUserId;
+    return Scaffold(
+      body: driverId == null
+          ? const Center(child: Text('Please log in to chat.'))
+          : StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection('bookings')
+                  .where('driverId', isEqualTo: driverId)
+                  .where(
+                    'status',
+                    whereIn: ['accepted', 'ongoing', 'completed'],
+                  )
+                  .snapshots(),
               builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
+                if (!snapshot.hasData) {
                   return const Center(child: CircularProgressIndicator());
                 }
-                if (snapshot.hasError) {
-                  return Center(
-                    child: Text(
-                      'Failed to load messages',
-                      style: GoogleFonts.poppins(color: Mycolors.red),
-                    ),
-                  );
+                final bookings = snapshot.data!.docs;
+                if (bookings.isEmpty) {
+                  return const Center(child: Text('No current user chats.'));
                 }
-                final conversations = snapshot.data ?? [];
-                if (conversations.isEmpty) {
-                  return Center(
-                    child: Text(
-                      'No conversations yet',
-                      style: GoogleFonts.poppins(color: Mycolors.gray),
-                    ),
-                  );
-                }
-                final String? myId = AuthService.currentUserId;
-                return ListView.builder(
-                  itemCount: conversations.length,
-                  itemBuilder: (context, index) {
-                    final c = conversations[index];
-                    final List participants = (c['participants'] is List)
-                        ? (c['participants'] as List)
-                        : [];
-                    final String conversationId = (c['id'] ?? '').toString();
-                    final String lastMessage = (c['lastMessage'] ?? '')
-                        .toString();
-                    final Timestamp? updatedAt = c['updatedAt'] as Timestamp?;
-                    final String timeText = updatedAt != null
-                        ? _formatDate(updatedAt)
-                        : '';
-                    // pick a peerId (the other participant)
-                    String peerId = '';
-                    if (myId != null && participants.isNotEmpty) {
-                      for (final p in participants) {
-                        if (p != myId) {
-                          peerId = p.toString();
-                          break;
-                        }
-                      }
-                    }
-                    final String title = peerId.isNotEmpty
-                        ? 'Chat with $peerId'
-                        : 'Conversation';
-
-                    return GestureDetector(
+                return ListView(
+                  children: bookings.map((doc) {
+                    final data = doc.data() as Map<String, dynamic>;
+                    return ListTile(
+                      leading: const Icon(Icons.person),
+                      title: Text(data['userName'] ?? 'User'),
+                      subtitle: Text("Booking: ${doc.id}"),
+                      trailing: const Icon(Icons.chat),
                       onTap: () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => ChatDetailScreen(
-                              peerName: title,
-                              conversationId: conversationId,
-                              peerId: peerId,
+                            builder: (_) => ChatDetailScreen(
+                              peerName: data['userName'] ?? 'User',
+                              peerId: data['userId'] ?? '',
                             ),
                           ),
                         );
                       },
-                      child: _buildChatCard(
-                        context,
-                        title,
-                        lastMessage.isEmpty ? 'Say hi' : lastMessage,
-                        timeText,
-                        '',
-                      ),
                     );
-                  },
+                  }).toList(),
                 );
               },
             ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -958,177 +912,5 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
         ],
       ),
     );
-  }
-
-  Widget _buildChatCard(
-    BuildContext context,
-    String name,
-    String message,
-    String time,
-    String unreadCount,
-  ) {
-    return GestureDetector(
-      onTap: () {
-        // Navigator.push(
-        //   context,
-        //   MaterialPageRoute(
-        //     builder: (context) => ChatDetailScreen(peerName: name),
-        //   ),
-        // );
-      },
-      child: Container(
-        margin: EdgeInsets.only(
-          bottom: ResponsiveSpacing.getSmallSpacing(context),
-        ),
-        padding: ResponsiveUtils.getResponsivePadding(context),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(
-            ResponsiveUtils.getResponsiveBorderRadius(
-              context,
-              mobile: 12,
-              tablet: 14,
-              desktop: 16,
-            ),
-          ),
-          border: Border.all(color: Colors.grey.shade300),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.1),
-              blurRadius: ResponsiveUtils.getResponsiveElevation(
-                context,
-                mobile: 5,
-                tablet: 6,
-                desktop: 8,
-              ),
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            CircleAvatar(
-              radius: ResponsiveUtils.getResponsiveSpacing(
-                context,
-                mobile: 20,
-                tablet: 22,
-                desktop: 24,
-              ),
-              backgroundColor: Mycolors.basecolor.withOpacity(0.1),
-              child: Text(
-                name[0],
-                style: GoogleFonts.poppins(
-                  fontSize: ResponsiveUtils.getResponsiveFontSize(
-                    context,
-                    mobile: 16,
-                    tablet: 18,
-                    desktop: 20,
-                  ),
-                  fontWeight: FontWeight.bold,
-                  color: Mycolors.basecolor,
-                ),
-              ),
-            ),
-            SizedBox(width: ResponsiveSpacing.getMediumSpacing(context)),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    name,
-                    style: GoogleFonts.poppins(
-                      fontSize: ResponsiveUtils.getResponsiveFontSize(
-                        context,
-                        mobile: 16,
-                        tablet: 18,
-                        desktop: 20,
-                      ),
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black,
-                    ),
-                  ),
-                  Text(
-                    message,
-                    style: GoogleFonts.poppins(
-                      fontSize: ResponsiveUtils.getResponsiveFontSize(
-                        context,
-                        mobile: 14,
-                        tablet: 15,
-                        desktop: 16,
-                      ),
-                      color: Mycolors.gray,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  time,
-                  style: GoogleFonts.poppins(
-                    fontSize: ResponsiveUtils.getResponsiveFontSize(
-                      context,
-                      mobile: 12,
-                      tablet: 13,
-                      desktop: 14,
-                    ),
-                    color: Mycolors.gray,
-                  ),
-                ),
-                if (unreadCount.isNotEmpty)
-                  Container(
-                    margin: EdgeInsets.only(
-                      top: ResponsiveSpacing.getSmallSpacing(context) / 2,
-                    ),
-                    padding: EdgeInsets.all(
-                      ResponsiveUtils.getResponsiveSpacing(
-                        context,
-                        mobile: 6,
-                        tablet: 7,
-                        desktop: 8,
-                      ),
-                    ),
-                    decoration: BoxDecoration(
-                      color: Mycolors.basecolor,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Text(
-                      unreadCount,
-                      style: GoogleFonts.poppins(
-                        fontSize: ResponsiveUtils.getResponsiveFontSize(
-                          context,
-                          mobile: 10,
-                          tablet: 11,
-                          desktop: 12,
-                        ),
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  String _formatDate(Timestamp timestamp) {
-    final date = timestamp.toDate();
-    final now = DateTime.now();
-    final difference = now.difference(date);
-
-    if (difference.inDays > 0) {
-      return '${difference.inDays}d ago';
-    } else if (difference.inHours > 0) {
-      return '${difference.inHours}h ago';
-    } else if (difference.inMinutes > 0) {
-      return '${difference.inMinutes}m ago';
-    } else {
-      return 'Just now';
-    }
   }
 }
