@@ -85,7 +85,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
         currentIndex: _selectedIndex,
         onTap: (index) {
           setState(() {
-            _selectedIndex = index;
+            _selectedIndex = index; 
           });
         },
         items: const [
