@@ -4,7 +4,6 @@ import 'package:relygo/constants.dart';
 import 'package:relygo/services/auth_service.dart';
 import 'package:relygo/screens/signin_screen.dart';
 import 'package:relygo/screens/complaint_submission_screen.dart';
-import 'package:relygo/screens/ride_history_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 // AppSettings are defined in constants.dart
 
@@ -161,19 +160,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                             currentName: name,
                             currentEmail: email,
                             currentPhone: (data['phone'] ?? '').toString(),
-                          );
-                        },
-                      ),
-                      _buildProfileOption(
-                        "Ride History",
-                        "View your ride history",
-                        Icons.history,
-                        () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const RideHistoryScreen(),
-                            ),
                           );
                         },
                       ),

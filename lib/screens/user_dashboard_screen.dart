@@ -9,6 +9,7 @@ import 'package:relygo/utils/responsive.dart';
 import 'package:relygo/widgets/animated_bottom_nav_bar.dart';
 import 'package:relygo/services/user_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:relygo/services/admin_service.dart';
 import 'package:relygo/services/auth_service.dart';
 import 'package:relygo/services/chat_service.dart';
@@ -24,6 +25,8 @@ class UserDashboardScreen extends StatefulWidget {
 class _UserDashboardScreenState extends State<UserDashboardScreen> {
   int _selectedIndex = 0;
   String _driverSearchQuery = "";
+  final TextEditingController _searchController = TextEditingController();
+  String? _selectedServiceType; // e.g., Auto, Sedan, SUV, Delivery
 
   @override
   void initState() {
@@ -156,21 +159,7 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
           NavBarItem(icon: Icons.person, label: 'Profile'),
         ],
       ),
-      floatingActionButton: _selectedIndex == 0
-          ? FloatingQuickActionButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const ServiceBookingScreen(),
-                  ),
-                );
-              },
-              icon: Icons.add,
-              tooltip: 'Book a Ride',
-            )
-          : null,
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      floatingActionButton: null,
     );
   }
 
@@ -331,6 +320,7 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
           SizedBox(height: ResponsiveSpacing.getMediumSpacing(context)),
           // Search Bar
           TextField(
+            controller: _searchController,
             onChanged: (value) {
               setState(() {
                 _driverSearchQuery = value.trim();
@@ -365,6 +355,32 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
           ),
           SizedBox(height: ResponsiveSpacing.getMediumSpacing(context)),
 
+          // Active filters (service type)
+          if (_selectedServiceType != null)
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 4,
+                children: [
+                  Chip(
+                    label: Text(
+                      'Vehicle: ${_selectedServiceType!}',
+                      style: GoogleFonts.poppins(fontSize: 12),
+                    ),
+                    deleteIcon: const Icon(Icons.close, size: 16),
+                    onDeleted: () {
+                      setState(() {
+                        _selectedServiceType = null;
+                      });
+                    },
+                  ),
+                ],
+              ),
+            ),
+          if (_selectedServiceType != null)
+            SizedBox(height: ResponsiveSpacing.getSmallSpacing(context)),
+
           // Search Results - Firestore drivers
           Expanded(
             child: StreamBuilder<List<Map<String, dynamic>>>(
@@ -383,6 +399,17 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                 }
                 List<Map<String, dynamic>> drivers = snapshot.data ?? [];
 
+                // Filter by selected service type (vehicle type) strictly
+                if (_selectedServiceType != null && _selectedServiceType!.isNotEmpty) {
+                  final vt = _selectedServiceType!.toLowerCase();
+                  drivers = drivers.where((d) {
+                    final vehicleType = (d['vehicleType'] ?? d['documents']?['vehicleType'] ?? '')
+                        .toString()
+                        .toLowerCase();
+                    return vehicleType == vt;
+                  }).toList();
+                }
+
                 // Filter by search query (name, email, vehicleType)
                 if (_driverSearchQuery.isNotEmpty) {
                   final q = _driverSearchQuery.toLowerCase();
@@ -391,12 +418,10 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                         .toString()
                         .toLowerCase();
                     final email = (d['email'] ?? '').toString().toLowerCase();
-                    final vehicleType = (d['vehicleType'] ?? '')
+                    final vehicleType = (d['vehicleType'] ?? d['documents']?['vehicleType'] ?? '')
                         .toString()
                         .toLowerCase();
-                    return name.contains(q) ||
-                        email.contains(q) ||
-                        vehicleType.contains(q);
+                    return name.contains(q) || email.contains(q) || vehicleType.contains(q);
                   }).toList();
                 }
 
@@ -859,6 +884,197 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
     );
   }
 
+  void _promptHomeBooking() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'How would you like to book?',
+                  style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                ListTile(
+                  leading: Icon(Icons.person_search, color: Mycolors.basecolor),
+                  title: Text('Choose Driver', style: GoogleFonts.poppins()),
+                  subtitle: Text(
+                    'Browse and select a driver',
+                    style: GoogleFonts.poppins(fontSize: 12, color: Mycolors.gray),
+                  ),
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    setState(() {
+                      _selectedIndex = 1; // switch to Search tab
+                    });
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Use the Search tab to pick a driver'),
+                        backgroundColor: Mycolors.basecolor,
+                        duration: const Duration(seconds: 2),
+                      ),
+                    );
+                  },
+                ),
+                ListTile(
+                  leading: Icon(Icons.local_taxi, color: Mycolors.orange),
+                  title: Text('Choose Service Type', style: GoogleFonts.poppins()),
+                  subtitle: Text(
+                    'Auto, Sedan, SUV, Delivery, etc.',
+                    style: GoogleFonts.poppins(fontSize: 12, color: Mycolors.gray),
+                  ),
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    _showServiceTypePicker();
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showServiceTypePicker() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) {
+        final types = <Map<String, dynamic>>[
+          {'label': 'Auto', 'icon': Icons.two_wheeler},
+          {'label': 'Sedan', 'icon': Icons.directions_car},
+          {'label': 'SUV', 'icon': Icons.airport_shuttle},
+          {'label': 'Delivery', 'icon': Icons.local_shipping},
+        ];
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Select Service Type',
+                  style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                ...types.map((t) => ListTile(
+                      leading: Icon(t['icon'] as IconData, color: Mycolors.basecolor),
+                      title: Text(t['label'] as String, style: GoogleFonts.poppins()),
+                      onTap: () {
+                        final vehicle = (t['label'] as String);
+                        Navigator.of(context).pop();
+                        setState(() {
+                          _selectedIndex = 1; // go to Search tab
+                          _driverSearchQuery = vehicle.toLowerCase();
+                          _searchController.text = vehicle;
+                          _selectedServiceType = vehicle; // apply strict vehicle filter
+                        });
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Filtering drivers by $vehicle'),
+                            backgroundColor: Mycolors.basecolor,
+                            duration: const Duration(seconds: 2),
+                          ),
+                        );
+                      },
+                    )),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showEmergencySheet() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.emergency, color: Mycolors.red),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Emergency Contacts',
+                      style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                ListTile(
+                  leading: Icon(Icons.local_police, color: Mycolors.basecolor),
+                  title: Text('Police Station', style: GoogleFonts.poppins()),
+                  subtitle: Text('100', style: GoogleFonts.poppins(fontSize: 12, color: Mycolors.gray)),
+                  trailing: Icon(Icons.call, color: Mycolors.basecolor),
+                  onTap: () => _callNumber('100'),
+                ),
+                ListTile(
+                  leading: Icon(Icons.local_hospital, color: Mycolors.green),
+                  title: Text('Ambulance', style: GoogleFonts.poppins()),
+                  subtitle: Text('102', style: GoogleFonts.poppins(fontSize: 12, color: Mycolors.gray)),
+                  trailing: Icon(Icons.call, color: Mycolors.basecolor),
+                  onTap: () => _callNumber('102'),
+                ),
+                ListTile(
+                  leading: Icon(Icons.local_fire_department, color: Mycolors.orange),
+                  title: Text('Fire Force', style: GoogleFonts.poppins()),
+                  subtitle: Text('101', style: GoogleFonts.poppins(fontSize: 12, color: Mycolors.gray)),
+                  trailing: Icon(Icons.call, color: Mycolors.basecolor),
+                  onTap: () => _callNumber('101'),
+                ),
+                const SizedBox(height: 6),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _callNumber(String number) async {
+    final uri = Uri(scheme: 'tel', path: number);
+    if (!await launchUrl(uri)) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Unable to start call to $number'),
+            backgroundColor: Mycolors.red,
+          ),
+        );
+      }
+    }
+  }
+
   Widget _buildHistoryTab() {
     final userId = AuthService.currentUserId;
     if (userId == null) {
@@ -1296,12 +1512,7 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                 Icons.directions_car,
                 Mycolors.basecolor,
                 () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const ServiceBookingScreen(),
-                    ),
-                  );
+                  _promptHomeBooking();
                 },
               ),
             ),
@@ -1329,7 +1540,7 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                 Icons.emergency,
                 Mycolors.red,
                 () {
-                  // Navigate to emergency
+                  _showEmergencySheet();
                 },
               ),
             ),
@@ -1337,11 +1548,16 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
             Expanded(
               child: _buildServiceCard(
                 context,
-                "Package Delivery",
-                Icons.local_shipping,
+                "Track Driver",
+                Icons.my_location,
                 Mycolors.green,
                 () {
-                  // Navigate to package delivery
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Live driver tracking coming soon'),
+                      backgroundColor: Mycolors.basecolor,
+                    ),
+                  );
                 },
               ),
             ),
@@ -1364,12 +1580,7 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                 Icons.directions_car,
                 Mycolors.basecolor,
                 () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const ServiceBookingScreen(),
-                    ),
-                  );
+                  _promptHomeBooking();
                 },
               ),
             ),
@@ -1397,7 +1608,7 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                 Icons.emergency,
                 Mycolors.red,
                 () {
-                  // Navigate to emergency
+                  _showEmergencySheet();
                 },
               ),
             ),
@@ -1405,11 +1616,16 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
             Expanded(
               child: _buildServiceCard(
                 context,
-                "Package Delivery",
-                Icons.local_shipping,
+                "Track Driver",
+                Icons.my_location,
                 Mycolors.green,
                 () {
-                  // Navigate to package delivery
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Live driver tracking coming soon'),
+                      backgroundColor: Mycolors.basecolor,
+                    ),
+                  );
                 },
               ),
             ),
@@ -1430,12 +1646,7 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
             Icons.directions_car,
             Mycolors.basecolor,
             () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const ServiceBookingScreen(),
-                ),
-              );
+              _promptHomeBooking();
             },
           ),
         ),
@@ -1459,7 +1670,7 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
             Icons.emergency,
             Mycolors.red,
             () {
-              // Navigate to emergency
+              _showEmergencySheet();
             },
           ),
         ),
@@ -1467,11 +1678,16 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
         Expanded(
           child: _buildServiceCard(
             context,
-            "Package Delivery",
-            Icons.local_shipping,
+            "Track Driver",
+            Icons.my_location,
             Mycolors.green,
             () {
-              // Navigate to package delivery
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Live driver tracking coming soon'),
+                  backgroundColor: Mycolors.basecolor,
+                ),
+              );
             },
           ),
         ),

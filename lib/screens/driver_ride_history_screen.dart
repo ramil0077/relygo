@@ -63,7 +63,59 @@ class _DriverRideHistoryScreenState extends State<DriverRideHistoryScreen> {
                     ),
                   );
                 }
-                final docs = snapshot.data?.docs ?? [];
+                // Client-side filter and sort because some documents may not have createdAt
+                final rawDocs = snapshot.data?.docs ?? [];
+                if (rawDocs.isEmpty) {
+                  return Center(
+                    child: Text(
+                      'No rides found',
+                      style: GoogleFonts.poppins(color: Mycolors.gray),
+                    ),
+                  );
+                }
+                // Build a list with best-effort timestamp and apply filter
+                DateTime? startDate;
+                final now = DateTime.now();
+                switch (_selectedFilter) {
+                  case 'Today':
+                    startDate = DateTime(now.year, now.month, now.day);
+                    break;
+                  case 'Week':
+                    startDate = now.subtract(const Duration(days: 7));
+                    break;
+                  case 'Month':
+                    startDate = DateTime(now.year, now.month, 1);
+                    break;
+                  case 'All':
+                  default:
+                    startDate = null; // no filtering
+                }
+
+                final docs = rawDocs
+                    .map((d) {
+                      final data = d.data();
+                      final createdAt = data['createdAt'] as Timestamp?;
+                      final updatedAt = data['updatedAt'] as Timestamp?;
+                      final paidAt = data['paidAt'] as Timestamp?;
+                      final DateTime? ts = (createdAt ?? updatedAt ?? paidAt)?.toDate();
+                      return {'doc': d, 'ts': ts};
+                    })
+                    .where((e) {
+                      if (startDate == null) return true;
+                      final ts = e['ts'] as DateTime?;
+                      if (ts == null) return true; // include items without timestamp
+                      return ts.isAfter(startDate!) || ts.isAtSameMomentAs(startDate!);
+                    })
+                    .toList()
+                  ..sort((a, b) {
+                    final ta = a['ts'] as DateTime?;
+                    final tb = b['ts'] as DateTime?;
+                    if (ta == null && tb == null) return 0;
+                    if (ta == null) return 1; // nulls last
+                    if (tb == null) return -1;
+                    return tb.compareTo(ta); // desc
+                  });
+
                 if (docs.isEmpty) {
                   return Center(
                     child: Text(
@@ -73,11 +125,29 @@ class _DriverRideHistoryScreenState extends State<DriverRideHistoryScreen> {
                   );
                 }
 
-                return ListView.builder(
+                return Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          'Rides: ${docs.length}',
+                          style: GoogleFonts.poppins(
+                            fontSize: 12,
+                            color: Mycolors.gray,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Expanded(
+                      child: ListView.builder(
                   padding: const EdgeInsets.all(20),
-                  itemCount: docs.length,
-                  itemBuilder: (context, index) {
-                    final data = docs[index].data();
+                        itemCount: docs.length,
+                        itemBuilder: (context, index) {
+                    final doc = docs[index]['doc'] as QueryDocumentSnapshot<Map<String, dynamic>>;
+                    final data = doc.data();
                     final pickup =
                         (data['pickup'] ?? data['pickupLocation'] ?? 'Pickup')
                             .toString();
@@ -94,22 +164,26 @@ class _DriverRideHistoryScreenState extends State<DriverRideHistoryScreen> {
                     final statusText = _statusString(status);
                     final statusColor = _statusColor(statusText);
                     final createdAt = data['createdAt'] as Timestamp?;
-                    final time = createdAt != null
-                        ? _formatDate(createdAt)
-                        : '';
+                    final updatedAt = data['updatedAt'] as Timestamp?;
+                    final paidAt = data['paidAt'] as Timestamp?;
+                    final timeTs = (createdAt ?? updatedAt ?? paidAt);
+                    final time = timeTs != null ? _formatDate(timeTs) : '';
                     final method = (data['paymentMethod'] ?? '').toString();
                     final trailing = status == 'paid'
                         ? (method.isNotEmpty ? 'Paid • $method' : 'Paid')
                         : statusText;
 
-                    return _buildRideTile(
+                          return _buildRideTile(
                       '$pickup → $destination',
                       time,
                       trailing,
                       price,
                       statusColor,
                     );
-                  },
+                        },
+                      ),
+                    ),
+                  ],
                 );
               },
             ),
@@ -227,30 +301,10 @@ class _DriverRideHistoryScreenState extends State<DriverRideHistoryScreen> {
     final driverId = AuthService.currentUserId;
     if (driverId == null) return const Stream.empty();
 
-    DateTime startDate;
-    final now = DateTime.now();
-    switch (_selectedFilter) {
-      case 'Today':
-        startDate = DateTime(now.year, now.month, now.day);
-        break;
-      case 'Week':
-        startDate = now.subtract(const Duration(days: 7));
-        break;
-      case 'Month':
-        startDate = DateTime(now.year, now.month, 1);
-        break;
-      case 'All':
-      default:
-        startDate = DateTime(2020);
-    }
-
+    // Do not filter by createdAt at query level to include documents missing this field
     return FirebaseFirestore.instance
         .collection('ride_requests')
         .where('driverId', isEqualTo: driverId)
-        .where(
-          'createdAt',
-          isGreaterThanOrEqualTo: Timestamp.fromDate(startDate),
-        )
         .snapshots();
   }
 

@@ -113,19 +113,24 @@ class UserService {
         });
   }
 
-  /// Stream current user's rides (recent first)
+  /// Stream current user's rides from ride_requests
   static Stream<List<Map<String, dynamic>>> getCurrentUserRidesStream() {
     final userId = AuthService.currentUserId;
     if (userId == null) {
       return const Stream.empty();
     }
     return _firestore
-        .collection('rides')
+        .collection('ride_requests')
         .where('userId', isEqualTo: userId)
         .snapshots()
         .map(
           (snapshot) => snapshot.docs.map((doc) {
             final data = doc.data();
+            // Derive status: treat 'paid' as 'completed' for user display
+            final rawStatus = (data['status'] ?? '').toString().toLowerCase();
+            if (rawStatus == 'paid') data['status'] = 'completed';
+            // Provide a best-effort createdAt for UI if missing
+            data['createdAt'] = data['createdAt'] ?? data['updatedAt'] ?? data['paidAt'];
             data['id'] = doc.id;
             return data;
           }).toList(),
@@ -427,41 +432,57 @@ class UserService {
     }
   }
 
-  /// Get user's booking history
+  /// Get user's ride history from ride_requests, enrich with driver details
   static Stream<List<Map<String, dynamic>>> getUserBookingHistoryStream(
     String userId,
   ) {
     return _firestore
-        .collection('bookings')
+        .collection('ride_requests')
         .where('userId', isEqualTo: userId)
-        .where('status', whereIn: ['completed', 'ongoing'])
         .snapshots()
         .asyncMap((snapshot) async {
-          List<Map<String, dynamic>> bookingsWithDetails = [];
+          List<Map<String, dynamic>> ridesWithDetails = [];
 
           for (var doc in snapshot.docs) {
-            final bookingData = doc.data();
-            bookingData['id'] = doc.id;
+            final rideData = doc.data();
+            rideData['id'] = doc.id;
+
+            // Normalize status: 'paid' -> 'completed'
+            final rawStatus = (rideData['status'] ?? '').toString().toLowerCase();
+            if (rawStatus == 'paid') rideData['status'] = 'completed';
+
+            // Fill a best-effort createdAt
+            rideData['createdAt'] =
+                rideData['createdAt'] ?? rideData['updatedAt'] ?? rideData['paidAt'];
 
             try {
-              // Get driver details
-              if (bookingData['driverId'] != null) {
+              if (rideData['driverId'] != null) {
                 final driverDoc = await _firestore
                     .collection('users')
-                    .doc(bookingData['driverId'])
+                    .doc(rideData['driverId'])
                     .get();
                 if (driverDoc.exists) {
-                  bookingData['driverDetails'] = driverDoc.data();
+                  rideData['driverDetails'] = driverDoc.data();
                 }
               }
-              bookingsWithDetails.add(bookingData);
+              ridesWithDetails.add(rideData);
             } catch (e) {
-              print('Error getting booking details: $e');
-              bookingsWithDetails.add(bookingData);
+              print('Error getting ride details: $e');
+              ridesWithDetails.add(rideData);
             }
           }
 
-          return bookingsWithDetails;
+          // Sort by createdAt/paidAt/updatedAt descending for history
+          ridesWithDetails.sort((a, b) {
+            Timestamp? ta = a['createdAt'] as Timestamp?;
+            Timestamp? tb = b['createdAt'] as Timestamp?;
+            if (ta == null && tb == null) return 0;
+            if (ta == null) return 1;
+            if (tb == null) return -1;
+            return tb.compareTo(ta);
+          });
+
+          return ridesWithDetails;
         });
   }
 
