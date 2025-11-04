@@ -457,7 +457,6 @@ class _EarningsScreenState extends State<EarningsScreen> {
           'createdAt',
           isGreaterThanOrEqualTo: Timestamp.fromDate(startDate),
         )
-        .orderBy('createdAt', descending: true)
         .snapshots();
   }
 

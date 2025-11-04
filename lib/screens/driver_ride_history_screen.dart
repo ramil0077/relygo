@@ -251,7 +251,6 @@ class _DriverRideHistoryScreenState extends State<DriverRideHistoryScreen> {
           'createdAt',
           isGreaterThanOrEqualTo: Timestamp.fromDate(startDate),
         )
-        .orderBy('createdAt', descending: true)
         .snapshots();
   }
 

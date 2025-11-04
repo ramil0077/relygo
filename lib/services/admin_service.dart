@@ -207,7 +207,7 @@ class AdminService {
     if (driverId != null && driverId.isNotEmpty) {
       query = query.where('driverId', isEqualTo: driverId);
     }
-    return query.orderBy('createdAt', descending: true).snapshots().map((
+    return query.snapshots().map((
       snapshot,
     ) {
       return snapshot.docs.map((doc) {
@@ -356,7 +356,6 @@ class AdminService {
         // Get recent bookings
         final bookingsSnapshot = await _firestore
             .collection('bookings')
-            .orderBy('createdAt', descending: true)
             .limit(3)
             .get();
 
@@ -385,7 +384,6 @@ class AdminService {
         // Get recent complaints
         final complaintsSnapshot = await _firestore
             .collection('complaints')
-            .orderBy('createdAt', descending: true)
             .limit(2)
             .get();
 
@@ -399,7 +397,6 @@ class AdminService {
         // Get recent feedback
         final feedbackSnapshot = await _firestore
             .collection('feedback')
-            .orderBy('createdAt', descending: true)
             .limit(2)
             .get();
 
@@ -564,7 +561,6 @@ class AdminService {
   static Stream<List<Map<String, dynamic>>> getAllBookingsStream() {
     return _firestore
         .collection('bookings')
-        .orderBy('createdAt', descending: true)
         .snapshots()
         .asyncMap((snapshot) async {
           List<Map<String, dynamic>> bookingsWithDetails = [];
@@ -673,7 +669,6 @@ class AdminService {
     return _firestore
         .collection('bookings')
         .where('status', isEqualTo: status)
-        .orderBy('createdAt', descending: true)
         .snapshots()
         .asyncMap((snapshot) async {
           List<Map<String, dynamic>> bookingsWithDetails = [];
@@ -799,7 +794,6 @@ class AdminService {
           isGreaterThanOrEqualTo: Timestamp.fromDate(startDate),
         )
         .where('createdAt', isLessThanOrEqualTo: Timestamp.fromDate(endDate))
-        .orderBy('createdAt', descending: true)
         .snapshots()
         .asyncMap((snapshot) async {
           List<Map<String, dynamic>> bookingsWithDetails = [];

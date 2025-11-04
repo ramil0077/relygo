@@ -27,10 +27,13 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
 
   Stream<QuerySnapshot<Map<String, dynamic>>> _recentRequestsStream() {
     final driverId = AuthService.currentUserId;
+    if (driverId == null) {
+      // No authenticated driver; return an empty stream to avoid invalid Firestore queries
+      return const Stream<QuerySnapshot<Map<String, dynamic>>>.empty();
+    }
     return FirebaseFirestore.instance
         .collection('ride_requests')
         .where('driverId', isEqualTo: driverId)
-        .orderBy('createdAt', descending: true)
         .limit(5)
         .snapshots();
   }
@@ -85,7 +88,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
         currentIndex: _selectedIndex,
         onTap: (index) {
           setState(() {
-            _selectedIndex = index; 
+            _selectedIndex = index;
           });
         },
         items: const [
@@ -118,6 +121,8 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                         Text(
                           "Good Morning, John!",
                           style: ResponsiveTextStyles.getTitleStyle(context),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                         Text(
                           _isOnline
@@ -344,25 +349,70 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
     return const DriverProfileScreen();
   }
 
-  // Mobile Stats Grid - 3 columns
+  // Mobile Stats Grid - adaptive for very narrow screens
   Widget _buildMobileStatsGrid(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: _buildStatCard(context, "8", "Rides", Icons.directions_car),
-        ),
-        SizedBox(width: ResponsiveSpacing.getSmallSpacing(context)),
-        Expanded(
-          child: _buildStatCard(
-            context,
-            "₹1,250",
-            "Earnings",
-            Icons.attach_money,
-          ),
-        ),
-        SizedBox(width: ResponsiveSpacing.getSmallSpacing(context)),
-        Expanded(child: _buildStatCard(context, "4.8", "Rating", Icons.star)),
-      ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isVeryNarrow = constraints.maxWidth < 360;
+        if (!isVeryNarrow) {
+          return Row(
+            children: [
+              Expanded(
+                child: _buildStatCard(
+                  context,
+                  "8",
+                  "Rides",
+                  Icons.directions_car,
+                ),
+              ),
+              SizedBox(width: ResponsiveSpacing.getSmallSpacing(context)),
+              Expanded(
+                child: _buildStatCard(
+                  context,
+                  "₹1,250",
+                  "Earnings",
+                  Icons.attach_money,
+                ),
+              ),
+              SizedBox(width: ResponsiveSpacing.getSmallSpacing(context)),
+              Expanded(
+                child: _buildStatCard(context, "4.8", "Rating", Icons.star),
+              ),
+            ],
+          );
+        }
+        // On very narrow screens, arrange as 2 columns using Wrap
+        final spacing = ResponsiveSpacing.getSmallSpacing(context);
+        final itemWidth = (constraints.maxWidth - spacing) / 2;
+        return Wrap(
+          spacing: spacing,
+          runSpacing: spacing,
+          children: [
+            SizedBox(
+              width: itemWidth,
+              child: _buildStatCard(
+                context,
+                "8",
+                "Rides",
+                Icons.directions_car,
+              ),
+            ),
+            SizedBox(
+              width: itemWidth,
+              child: _buildStatCard(
+                context,
+                "₹1,250",
+                "Earnings",
+                Icons.attach_money,
+              ),
+            ),
+            SizedBox(
+              width: itemWidth,
+              child: _buildStatCard(context, "4.8", "Rating", Icons.star),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -765,125 +815,170 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
           ),
         ],
       ),
-      child: Row(
-        children: [
-          Container(
-            padding: EdgeInsets.all(
-              ResponsiveUtils.getResponsiveSpacing(
-                context,
-                mobile: 12,
-                tablet: 14,
-                desktop: 16,
-              ),
-            ),
-            decoration: BoxDecoration(
-              color: Mycolors.basecolor.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(
-                ResponsiveUtils.getResponsiveBorderRadius(
-                  context,
-                  mobile: 12,
-                  tablet: 14,
-                  desktop: 16,
-                ),
-              ),
-            ),
-            child: Image.asset(
-              'assets/logooo.png',
-              width: ResponsiveUtils.getResponsiveIconSize(
-                context,
-                mobile: 24,
-                tablet: 26,
-                desktop: 28,
-              ),
-              height: ResponsiveUtils.getResponsiveIconSize(
-                context,
-                mobile: 24,
-                tablet: 26,
-                desktop: 28,
-              ),
-            ),
-          ),
-          SizedBox(width: ResponsiveSpacing.getMediumSpacing(context)),
-          Expanded(
-            child: Column(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isVeryNarrow = constraints.maxWidth < 360;
+          if (isVeryNarrow) {
+            // Stack information vertically to avoid overflows on very narrow screens
+            return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  title,
-                  style: GoogleFonts.poppins(
-                    fontSize: ResponsiveUtils.getResponsiveFontSize(
-                      context,
-                      mobile: 16,
-                      tablet: 18,
-                      desktop: 20,
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: EdgeInsets.all(
+                        ResponsiveUtils.getResponsiveSpacing(
+                          context,
+                          mobile: 12,
+                          tablet: 14,
+                          desktop: 16,
+                        ),
+                      ),
+                      decoration: BoxDecoration(
+                        color: Mycolors.basecolor.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(
+                          ResponsiveUtils.getResponsiveBorderRadius(
+                            context,
+                            mobile: 12,
+                            tablet: 14,
+                            desktop: 16,
+                          ),
+                        ),
+                      ),
+                      child: Image.asset(
+                        'assets/logooo.png',
+                        width: ResponsiveUtils.getResponsiveIconSize(
+                          context,
+                          mobile: 24,
+                          tablet: 26,
+                          desktop: 28,
+                        ),
+                        height: ResponsiveUtils.getResponsiveIconSize(
+                          context,
+                          mobile: 24,
+                          tablet: 26,
+                          desktop: 28,
+                        ),
+                      ),
                     ),
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black,
-                  ),
+                    SizedBox(width: ResponsiveSpacing.getSmallSpacing(context)),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.poppins(
+                              fontSize: ResponsiveUtils.getResponsiveFontSize(
+                                context,
+                                mobile: 16,
+                                tablet: 18,
+                                desktop: 20,
+                              ),
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(width: ResponsiveSpacing.getSmallSpacing(context)),
+                    Text(
+                      price,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.poppins(
+                        fontSize: ResponsiveUtils.getResponsiveFontSize(
+                          context,
+                          mobile: 16,
+                          tablet: 18,
+                          desktop: 20,
+                        ),
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
+                    ),
+                  ],
                 ),
-                Text(
-                  distance,
-                  style: GoogleFonts.poppins(
-                    fontSize: ResponsiveUtils.getResponsiveFontSize(
-                      context,
-                      mobile: 14,
-                      tablet: 15,
-                      desktop: 16,
+                SizedBox(height: ResponsiveSpacing.getSmallSpacing(context)),
+                Row(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: ResponsiveUtils.getResponsiveSpacing(
+                          context,
+                          mobile: 8,
+                          tablet: 10,
+                          desktop: 12,
+                        ),
+                        vertical: ResponsiveUtils.getResponsiveSpacing(
+                          context,
+                          mobile: 4,
+                          tablet: 5,
+                          desktop: 6,
+                        ),
+                      ),
+                      decoration: BoxDecoration(
+                        color: statusColor.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(
+                          ResponsiveUtils.getResponsiveBorderRadius(
+                            context,
+                            mobile: 12,
+                            tablet: 14,
+                            desktop: 16,
+                          ),
+                        ),
+                      ),
+                      child: Text(
+                        status,
+                        style: GoogleFonts.poppins(
+                          fontSize: ResponsiveUtils.getResponsiveFontSize(
+                            context,
+                            mobile: 12,
+                            tablet: 13,
+                            desktop: 14,
+                          ),
+                          color: statusColor,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     ),
-                    color: Mycolors.gray,
-                  ),
-                ),
-                Text(
-                  time,
-                  style: GoogleFonts.poppins(
-                    fontSize: ResponsiveUtils.getResponsiveFontSize(
-                      context,
-                      mobile: 12,
-                      tablet: 13,
-                      desktop: 14,
+                    SizedBox(width: ResponsiveSpacing.getSmallSpacing(context)),
+                    Text(
+                      time,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.poppins(
+                        fontSize: ResponsiveUtils.getResponsiveFontSize(
+                          context,
+                          mobile: 12,
+                          tablet: 13,
+                          desktop: 14,
+                        ),
+                        color: Mycolors.gray,
+                      ),
                     ),
-                    color: Mycolors.gray,
-                  ),
+                  ],
                 ),
               ],
-            ),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
+            );
+          }
+          return Row(
             children: [
-              Text(
-                price,
-                style: GoogleFonts.poppins(
-                  fontSize: ResponsiveUtils.getResponsiveFontSize(
-                    context,
-                    mobile: 16,
-                    tablet: 18,
-                    desktop: 20,
-                  ),
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                ),
-              ),
               Container(
-                margin: EdgeInsets.only(
-                  top: ResponsiveSpacing.getSmallSpacing(context) / 2,
-                ),
-                padding: EdgeInsets.symmetric(
-                  horizontal: ResponsiveUtils.getResponsiveSpacing(
+                padding: EdgeInsets.all(
+                  ResponsiveUtils.getResponsiveSpacing(
                     context,
-                    mobile: 8,
-                    tablet: 10,
-                    desktop: 12,
-                  ),
-                  vertical: ResponsiveUtils.getResponsiveSpacing(
-                    context,
-                    mobile: 4,
-                    tablet: 5,
-                    desktop: 6,
+                    mobile: 12,
+                    tablet: 14,
+                    desktop: 16,
                   ),
                 ),
                 decoration: BoxDecoration(
-                  color: statusColor.withOpacity(0.1),
+                  color: Mycolors.basecolor.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(
                     ResponsiveUtils.getResponsiveBorderRadius(
                       context,
@@ -893,23 +988,140 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                     ),
                   ),
                 ),
-                child: Text(
-                  status,
-                  style: GoogleFonts.poppins(
-                    fontSize: ResponsiveUtils.getResponsiveFontSize(
-                      context,
-                      mobile: 12,
-                      tablet: 13,
-                      desktop: 14,
-                    ),
-                    color: statusColor,
-                    fontWeight: FontWeight.w600,
+                child: Image.asset(
+                  'assets/logooo.png',
+                  width: ResponsiveUtils.getResponsiveIconSize(
+                    context,
+                    mobile: 24,
+                    tablet: 26,
+                    desktop: 28,
+                  ),
+                  height: ResponsiveUtils.getResponsiveIconSize(
+                    context,
+                    mobile: 24,
+                    tablet: 26,
+                    desktop: 28,
                   ),
                 ),
               ),
+              SizedBox(width: ResponsiveSpacing.getMediumSpacing(context)),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.poppins(
+                        fontSize: ResponsiveUtils.getResponsiveFontSize(
+                          context,
+                          mobile: 16,
+                          tablet: 18,
+                          desktop: 20,
+                        ),
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black,
+                      ),
+                    ),
+                    Text(
+                      distance,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.poppins(
+                        fontSize: ResponsiveUtils.getResponsiveFontSize(
+                          context,
+                          mobile: 14,
+                          tablet: 15,
+                          desktop: 16,
+                        ),
+                        color: Mycolors.gray,
+                      ),
+                    ),
+                    Text(
+                      time,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.poppins(
+                        fontSize: ResponsiveUtils.getResponsiveFontSize(
+                          context,
+                          mobile: 12,
+                          tablet: 13,
+                          desktop: 14,
+                        ),
+                        color: Mycolors.gray,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    price,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.poppins(
+                      fontSize: ResponsiveUtils.getResponsiveFontSize(
+                        context,
+                        mobile: 16,
+                        tablet: 18,
+                        desktop: 20,
+                      ),
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                  ),
+                  Container(
+                    margin: EdgeInsets.only(
+                      top: ResponsiveSpacing.getSmallSpacing(context) / 2,
+                    ),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: ResponsiveUtils.getResponsiveSpacing(
+                        context,
+                        mobile: 8,
+                        tablet: 10,
+                        desktop: 12,
+                      ),
+                      vertical: ResponsiveUtils.getResponsiveSpacing(
+                        context,
+                        mobile: 4,
+                        tablet: 5,
+                        desktop: 6,
+                      ),
+                    ),
+                    decoration: BoxDecoration(
+                      color: statusColor.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(
+                        ResponsiveUtils.getResponsiveBorderRadius(
+                          context,
+                          mobile: 12,
+                          tablet: 14,
+                          desktop: 16,
+                        ),
+                      ),
+                    ),
+                    child: Text(
+                      status,
+                      style: GoogleFonts.poppins(
+                        fontSize: ResponsiveUtils.getResponsiveFontSize(
+                          context,
+                          mobile: 12,
+                          tablet: 13,
+                          desktop: 14,
+                        ),
+                        color: statusColor,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ],
-          ),
-        ],
+          );
+        },
       ),
     );
   }
