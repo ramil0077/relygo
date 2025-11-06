@@ -11,6 +11,7 @@ import 'package:relygo/utils/responsive.dart';
 import 'package:relygo/widgets/animated_bottom_nav_bar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:relygo/services/auth_service.dart';
+import 'package:relygo/services/driver_service.dart';
 import 'package:relygo/screens/driver_notifications_screen.dart';
 import 'package:relygo/screens/chat_detail_screen.dart';
 
@@ -25,17 +26,16 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
   int _selectedIndex = 0;
   bool _isOnline = false;
 
-  Stream<QuerySnapshot<Map<String, dynamic>>> _recentRequestsStream() {
+  Stream<List<Map<String, dynamic>>> _recentRequestsStream() {
     final driverId = AuthService.currentUserId;
     if (driverId == null) {
-      // No authenticated driver; return an empty stream to avoid invalid Firestore queries
-      return const Stream<QuerySnapshot<Map<String, dynamic>>>.empty();
+      // No authenticated driver; return an empty stream
+      return const Stream<List<Map<String, dynamic>>>.empty();
     }
-    return FirebaseFirestore.instance
-        .collection('ride_requests')
-        .where('driverId', isEqualTo: driverId)
-        .limit(5)
-        .snapshots();
+    // Use unified stream and limit to 5 most recent
+    return DriverService.getUnifiedDriverBookingsStream(
+      driverId,
+    ).map((bookings) => bookings.take(5).toList());
   }
 
   @override
@@ -218,7 +218,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
               ),
               SizedBox(height: ResponsiveSpacing.getMediumSpacing(context)),
 
-              StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+              StreamBuilder<List<Map<String, dynamic>>>(
                 stream: _recentRequestsStream(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
@@ -232,8 +232,8 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                       ),
                     );
                   }
-                  final docs = snapshot.data?.docs ?? [];
-                  if (docs.isEmpty) {
+                  final bookings = snapshot.data ?? [];
+                  if (bookings.isEmpty) {
                     return Center(
                       child: Text(
                         'No recent requests',
@@ -242,15 +242,19 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                     );
                   }
                   return Column(
-                    children: docs.take(3).map((doc) {
-                      final d = doc.data();
-                      final title = (d['destination'] ?? 'Ride Request')
-                          .toString();
-                      final price = d['price'] != null ? '₹${d['price']}' : '';
+                    children: bookings.take(3).map((d) {
+                      final title =
+                          (d['destination'] ??
+                                  d['dropoffLocation'] ??
+                                  'Ride Request')
+                              .toString();
+                      final price = (d['price'] ?? d['fare']) != null
+                          ? '₹${(d['price'] ?? d['fare']).toString()}'
+                          : '';
                       final status = (d['status'] ?? 'pending').toString();
                       final statusColor = status == 'pending'
                           ? Mycolors.orange
-                          : (status == 'accepted'
+                          : (status == 'accepted' || status == 'completed'
                                 ? Mycolors.green
                                 : Mycolors.red);
                       final createdAt = d['createdAt'] is Timestamp

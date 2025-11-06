@@ -298,7 +298,11 @@ class _AdminComplaintsScreenState extends State<AdminComplaintsScreen> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildDetailRow('User', complaint['userName'] ?? 'Unknown'),
+                _buildDetailRow(
+                  'User',
+                  (complaint['userName'] ?? complaint['userId'] ?? 'Unknown')
+                      .toString(),
+                ),
                 const SizedBox(height: 12),
                 _buildDetailRow('Subject', complaint['subject'] ?? 'N/A'),
                 const SizedBox(height: 12),
@@ -358,7 +362,7 @@ class _AdminComplaintsScreenState extends State<AdminComplaintsScreen> {
 
                   final result = await AdminService.updateComplaintStatus(
                     complaint['id'],
-                    'Resolved',
+                    'resolved',
                     responseController.text.trim(),
                   );
 

@@ -294,9 +294,6 @@ class _DriverReviewsScreenState extends State<DriverReviewsScreen> {
   Widget _buildReviewCard(Map<String, dynamic> review) {
     final rating = review['rating'] ?? 0;
     final reviewText = review['review'] ?? review['comment'] ?? '';
-    final userName = review['userName'] ?? 'Anonymous';
-    final userDetails = review['userDetails'] as Map<String, dynamic>?;
-    final actualUserName = userDetails?['name'] ?? userName;
     final createdAt = review['createdAt'];
 
     String formattedDate = 'Recently';
@@ -334,7 +331,7 @@ class _DriverReviewsScreenState extends State<DriverReviewsScreen> {
                 radius: 20,
                 backgroundColor: Mycolors.basecolor.withOpacity(0.1),
                 child: Text(
-                  actualUserName.isNotEmpty ? actualUserName[0] : 'A',
+                  'A',
                   style: GoogleFonts.poppins(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -348,7 +345,7 @@ class _DriverReviewsScreenState extends State<DriverReviewsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      actualUserName,
+                      'Anonymous',
                       style: GoogleFonts.poppins(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,

@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:relygo/constants.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:relygo/services/auth_service.dart';
+import 'package:relygo/services/driver_service.dart';
 
 class DriverRideHistoryScreen extends StatefulWidget {
   const DriverRideHistoryScreen({super.key});
@@ -49,7 +50,7 @@ class _DriverRideHistoryScreenState extends State<DriverRideHistoryScreen> {
           ),
 
           Expanded(
-            child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+            child: StreamBuilder<List<Map<String, dynamic>>>(
               stream: _getDriverRidesStream(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
@@ -63,9 +64,8 @@ class _DriverRideHistoryScreenState extends State<DriverRideHistoryScreen> {
                     ),
                   );
                 }
-                // Client-side filter and sort because some documents may not have createdAt
-                final rawDocs = snapshot.data?.docs ?? [];
-                if (rawDocs.isEmpty) {
+                final bookings = snapshot.data ?? [];
+                if (bookings.isEmpty) {
                   return Center(
                     child: Text(
                       'No rides found',
@@ -73,6 +73,7 @@ class _DriverRideHistoryScreenState extends State<DriverRideHistoryScreen> {
                     ),
                   );
                 }
+
                 // Build a list with best-effort timestamp and apply filter
                 DateTime? startDate;
                 final now = DateTime.now();
@@ -91,32 +92,17 @@ class _DriverRideHistoryScreenState extends State<DriverRideHistoryScreen> {
                     startDate = null; // no filtering
                 }
 
-                final docs = rawDocs
-                    .map((d) {
-                      final data = d.data();
-                      final createdAt = data['createdAt'] as Timestamp?;
-                      final updatedAt = data['updatedAt'] as Timestamp?;
-                      final paidAt = data['paidAt'] as Timestamp?;
-                      final DateTime? ts = (createdAt ?? updatedAt ?? paidAt)?.toDate();
-                      return {'doc': d, 'ts': ts};
-                    })
-                    .where((e) {
+                final filteredBookings = bookings
+                    .where((booking) {
                       if (startDate == null) return true;
-                      final ts = e['ts'] as DateTime?;
-                      if (ts == null) return true; // include items without timestamp
-                      return ts.isAfter(startDate!) || ts.isAtSameMomentAs(startDate!);
+                      final createdAt = booking['createdAt'] as Timestamp?;
+                      if (createdAt == null) return true;
+                      final ts = createdAt.toDate();
+                      return ts.isAfter(startDate) || ts.isAtSameMomentAs(startDate);
                     })
-                    .toList()
-                  ..sort((a, b) {
-                    final ta = a['ts'] as DateTime?;
-                    final tb = b['ts'] as DateTime?;
-                    if (ta == null && tb == null) return 0;
-                    if (ta == null) return 1; // nulls last
-                    if (tb == null) return -1;
-                    return tb.compareTo(ta); // desc
-                  });
+                    .toList();
 
-                if (docs.isEmpty) {
+                if (filteredBookings.isEmpty) {
                   return Center(
                     child: Text(
                       'No rides found',
@@ -132,7 +118,7 @@ class _DriverRideHistoryScreenState extends State<DriverRideHistoryScreen> {
                       child: Align(
                         alignment: Alignment.centerLeft,
                         child: Text(
-                          'Rides: ${docs.length}',
+                          'Rides: ${filteredBookings.length}',
                           style: GoogleFonts.poppins(
                             fontSize: 12,
                             color: Mycolors.gray,
@@ -144,10 +130,9 @@ class _DriverRideHistoryScreenState extends State<DriverRideHistoryScreen> {
                     Expanded(
                       child: ListView.builder(
                   padding: const EdgeInsets.all(20),
-                        itemCount: docs.length,
+                        itemCount: filteredBookings.length,
                         itemBuilder: (context, index) {
-                    final doc = docs[index]['doc'] as QueryDocumentSnapshot<Map<String, dynamic>>;
-                    final data = doc.data();
+                    final data = filteredBookings[index];
                     final pickup =
                         (data['pickup'] ?? data['pickupLocation'] ?? 'Pickup')
                             .toString();
@@ -297,15 +282,12 @@ class _DriverRideHistoryScreenState extends State<DriverRideHistoryScreen> {
     );
   }
 
-  Stream<QuerySnapshot<Map<String, dynamic>>> _getDriverRidesStream() {
+  Stream<List<Map<String, dynamic>>> _getDriverRidesStream() {
     final driverId = AuthService.currentUserId;
     if (driverId == null) return const Stream.empty();
 
-    // Do not filter by createdAt at query level to include documents missing this field
-    return FirebaseFirestore.instance
-        .collection('ride_requests')
-        .where('driverId', isEqualTo: driverId)
-        .snapshots();
+    // Use unified stream that merges both 'bookings' and 'ride_requests' collections
+    return DriverService.getUnifiedDriverBookingsStream(driverId);
   }
 
   String _statusString(String raw) {

@@ -29,22 +29,84 @@ class DriverService {
         .map((doc) => doc.data()?['isAvailable'] ?? false);
   }
 
-  /// Get pending booking requests for driver
+  /// Get pending booking requests for driver (unified from both collections)
   static Stream<List<Map<String, dynamic>>> getPendingBookingsStream(
     String driverId,
   ) {
-    return _firestore
+    // Stream from 'bookings' collection
+    final bookingsStream = _firestore
         .collection('bookings')
         .where('driverId', isEqualTo: driverId)
         .where('status', isEqualTo: 'pending')
-        
-        .snapshots()
-        .map((snapshot) {
-      return snapshot.docs.map((doc) {
+        .snapshots();
+
+    // Combine with 'ride_requests' collection
+    return bookingsStream.asyncMap((bookingsSnapshot) async {
+      // Get pending ride_requests
+      final rideRequestsSnapshot = await _firestore
+          .collection('ride_requests')
+          .where('driverId', isEqualTo: driverId)
+          .where('status', isEqualTo: 'pending')
+          .get();
+
+      List<Map<String, dynamic>> allPending = [];
+
+      // Process bookings collection
+      for (var doc in bookingsSnapshot.docs) {
         final data = doc.data();
         data['id'] = doc.id;
-        return data;
-      }).toList();
+        // Normalize field names
+        if (data['pickupLocation'] == null && data['pickup'] != null) {
+          data['pickupLocation'] = data['pickup'];
+        }
+        if (data['dropoffLocation'] == null && data['destination'] != null) {
+          data['dropoffLocation'] = data['destination'];
+        }
+        allPending.add(data);
+      }
+
+      // Process ride_requests collection
+      for (var doc in rideRequestsSnapshot.docs) {
+        final data = doc.data();
+        data['id'] = data['id'] ?? doc.id;
+        // Normalize field names
+        if (data['pickupLocation'] == null && data['pickup'] != null) {
+          data['pickupLocation'] = data['pickup'];
+        }
+        if (data['dropoffLocation'] == null && data['destination'] != null) {
+          data['dropoffLocation'] = data['destination'];
+        }
+        // Map user fields if needed
+        if (data['userName'] == null && data['name'] != null) {
+          data['userName'] = data['name'];
+        }
+        if (data['userPhone'] == null && data['phone'] != null) {
+          data['userPhone'] = data['phone'];
+        }
+        allPending.add(data);
+      }
+
+      // Remove duplicates based on document ID
+      final uniquePending = <String, Map<String, dynamic>>{};
+      for (var booking in allPending) {
+        final id = booking['id']?.toString() ?? '';
+        if (id.isNotEmpty && !uniquePending.containsKey(id)) {
+          uniquePending[id] = booking;
+        }
+      }
+
+      // Sort by createdAt (newest first)
+      final sortedPending = uniquePending.values.toList();
+      sortedPending.sort((a, b) {
+        final aTime = a['createdAt'] as Timestamp?;
+        final bTime = b['createdAt'] as Timestamp?;
+        if (aTime == null && bTime == null) return 0;
+        if (aTime == null) return 1;
+        if (bTime == null) return -1;
+        return bTime.compareTo(aTime);
+      });
+
+      return sortedPending;
     });
   }
 
@@ -66,31 +128,142 @@ class DriverService {
     });
   }
 
-  /// Accept booking request and set fare
+  /// Unified driver bookings stream: merges 'bookings' and 'ride_requests' collections
+  static Stream<List<Map<String, dynamic>>> getUnifiedDriverBookingsStream(
+    String driverId,
+  ) {
+    // Stream from 'bookings' collection
+    final bookingsStream = _firestore
+        .collection('bookings')
+        .where('driverId', isEqualTo: driverId)
+        .snapshots();
+
+    // Combine both streams using asyncMap - listen to bookings and fetch ride_requests
+    return bookingsStream.asyncMap((bookingsSnapshot) async {
+      // Get ride_requests snapshot (fetch on each update)
+      final rideRequestsSnapshot = await _firestore
+          .collection('ride_requests')
+          .where('driverId', isEqualTo: driverId)
+          .get();
+
+      List<Map<String, dynamic>> allBookings = [];
+
+      // Process bookings collection
+      for (var doc in bookingsSnapshot.docs) {
+        final data = doc.data();
+        data['id'] = doc.id;
+        // Normalize field names
+        if (data['pickupLocation'] == null && data['pickup'] != null) {
+          data['pickupLocation'] = data['pickup'];
+        }
+        if (data['dropoffLocation'] == null && data['destination'] != null) {
+          data['dropoffLocation'] = data['destination'];
+        }
+        // Normalize status: 'paid' -> 'completed'
+        if (data['status']?.toString().toLowerCase() == 'paid') {
+          data['status'] = 'completed';
+        }
+        // Ensure createdAt exists
+        if (data['createdAt'] == null) {
+          data['createdAt'] = data['updatedAt'] ?? data['paidAt'];
+        }
+        allBookings.add(data);
+      }
+
+      // Process ride_requests collection
+      for (var doc in rideRequestsSnapshot.docs) {
+        final data = doc.data();
+        data['id'] = data['id'] ?? doc.id;
+        // Normalize field names
+        if (data['pickupLocation'] == null && data['pickup'] != null) {
+          data['pickupLocation'] = data['pickup'];
+        }
+        if (data['dropoffLocation'] == null && data['destination'] != null) {
+          data['dropoffLocation'] = data['destination'];
+        }
+        // Normalize status: 'paid' -> 'completed'
+        if (data['status']?.toString().toLowerCase() == 'paid') {
+          data['status'] = 'completed';
+        }
+        // Ensure createdAt exists
+        if (data['createdAt'] == null) {
+          data['createdAt'] = data['updatedAt'] ?? data['paidAt'];
+        }
+        // Use 'price' as 'fare' if fare doesn't exist
+        if (data['fare'] == null && data['price'] != null) {
+          data['fare'] = data['price'];
+        }
+        allBookings.add(data);
+      }
+
+      // Remove duplicates based on document ID
+      final uniqueBookings = <String, Map<String, dynamic>>{};
+      for (var booking in allBookings) {
+        final id = booking['id']?.toString() ?? '';
+        if (id.isNotEmpty && !uniqueBookings.containsKey(id)) {
+          uniqueBookings[id] = booking;
+        }
+      }
+
+      // Sort by createdAt (newest first)
+      final sortedBookings = uniqueBookings.values.toList();
+      sortedBookings.sort((a, b) {
+        final aTime = a['createdAt'] as Timestamp?;
+        final bTime = b['createdAt'] as Timestamp?;
+        if (aTime == null && bTime == null) return 0;
+        if (aTime == null) return 1;
+        if (bTime == null) return -1;
+        return bTime.compareTo(aTime);
+      });
+
+      return sortedBookings;
+    });
+  }
+
+  /// Accept booking request and set fare (handles both collections)
   static Future<Map<String, dynamic>> acceptBooking(
     String bookingId,
     double fare,
     String driverName,
   ) async {
     try {
-      final bookingRef = _firestore.collection('bookings').doc(bookingId);
-      final bookingDoc = await bookingRef.get();
+      // Try to find booking in 'bookings' collection first
+      DocumentReference? bookingRef;
+      DocumentSnapshot? bookingDoc;
+      String collectionName = 'bookings';
+      
+      bookingRef = _firestore.collection('bookings').doc(bookingId);
+      bookingDoc = await bookingRef.get();
+      
+      // If not found in 'bookings', try 'ride_requests'
+      if (!bookingDoc.exists) {
+        bookingRef = _firestore.collection('ride_requests').doc(bookingId);
+        bookingDoc = await bookingRef.get();
+        collectionName = 'ride_requests';
+      }
       
       if (!bookingDoc.exists) {
         return {'success': false, 'error': 'Booking not found'};
       }
 
-      final bookingData = bookingDoc.data()!;
+      final bookingData = bookingDoc.data() as Map<String, dynamic>;
       final userId = bookingData['userId'];
 
-      // Update booking
-      await bookingRef.update({
+      // Update booking - normalize field names for ride_requests
+      final updateData = <String, dynamic>{
         'status': 'accepted',
         'fare': fare,
         'driverName': driverName,
         'acceptedAt': FieldValue.serverTimestamp(),
         'updatedAt': FieldValue.serverTimestamp(),
-      });
+      };
+      
+      // For ride_requests, also set 'price' field
+      if (collectionName == 'ride_requests') {
+        updateData['price'] = fare;
+      }
+
+      await bookingRef.update(updateData);
 
       // Send notification to user
       await _firestore.collection('notifications').add({
@@ -110,20 +283,30 @@ class DriverService {
     }
   }
 
-  /// Reject booking request
+  /// Reject booking request (handles both collections)
   static Future<Map<String, dynamic>> rejectBooking(
     String bookingId,
     String? reason,
   ) async {
     try {
-      final bookingRef = _firestore.collection('bookings').doc(bookingId);
-      final bookingDoc = await bookingRef.get();
+      // Try to find booking in 'bookings' collection first
+      DocumentReference? bookingRef;
+      DocumentSnapshot? bookingDoc;
+      
+      bookingRef = _firestore.collection('bookings').doc(bookingId);
+      bookingDoc = await bookingRef.get();
+      
+      // If not found in 'bookings', try 'ride_requests'
+      if (!bookingDoc.exists) {
+        bookingRef = _firestore.collection('ride_requests').doc(bookingId);
+        bookingDoc = await bookingRef.get();
+      }
       
       if (!bookingDoc.exists) {
         return {'success': false, 'error': 'Booking not found'};
       }
 
-      final bookingData = bookingDoc.data()!;
+      final bookingData = bookingDoc.data() as Map<String, dynamic>;
       final userId = bookingData['userId'];
 
       // Update booking
@@ -152,10 +335,28 @@ class DriverService {
     }
   }
 
-  /// Mark booking as completed
+  /// Mark booking as completed (handles both collections)
   static Future<Map<String, dynamic>> completeBooking(String bookingId) async {
     try {
-      await _firestore.collection('bookings').doc(bookingId).update({
+      // Try to find booking in 'bookings' collection first
+      DocumentReference? bookingRef;
+      DocumentSnapshot? bookingDoc;
+      
+      bookingRef = _firestore.collection('bookings').doc(bookingId);
+      bookingDoc = await bookingRef.get();
+      
+      // If not found in 'bookings', try 'ride_requests'
+      if (!bookingDoc.exists) {
+        bookingRef = _firestore.collection('ride_requests').doc(bookingId);
+        bookingDoc = await bookingRef.get();
+      }
+      
+      if (!bookingDoc.exists) {
+        return {'success': false, 'error': 'Booking not found'};
+      }
+
+      // Update booking
+      await bookingRef.update({
         'status': 'completed',
         'completedAt': FieldValue.serverTimestamp(),
         'updatedAt': FieldValue.serverTimestamp(),

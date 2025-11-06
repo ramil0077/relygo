@@ -237,13 +237,42 @@ class AdminService {
 
   /// Get all complaints
   static Stream<List<Map<String, dynamic>>> getComplaintsStream() {
-    return _firestore.collection('complaints').snapshots().map((snapshot) {
-      return snapshot.docs.map((doc) {
-        final data = doc.data();
-        data['id'] = doc.id;
-        return data;
-      }).toList();
-    });
+    return _firestore
+        .collection('complaints')
+        .snapshots()
+        .asyncMap((snapshot) async {
+          final List<Map<String, dynamic>> enriched = [];
+
+          for (final doc in snapshot.docs) {
+            final data = doc.data();
+            data['id'] = doc.id;
+
+            // Normalize status for consistent filtering
+            final rawStatus = (data['status'] ?? 'open').toString();
+            data['status'] = rawStatus.toLowerCase();
+
+            // Enrich with user name if missing
+            if ((data['userName'] == null || (data['userName'] as String).isEmpty) &&
+                data['userId'] != null) {
+              try {
+                final userDoc = await _firestore
+                    .collection('users')
+                    .doc(data['userId'])
+                    .get();
+                if (userDoc.exists) {
+                  final u = userDoc.data() as Map<String, dynamic>;
+                  data['userName'] = u['name'] ?? data['userId'];
+                }
+              } catch (_) {
+                // ignore enrichment failure; leave userId as fallback
+              }
+            }
+
+            enriched.add(data);
+          }
+
+          return enriched;
+        });
   }
 
   /// Get complaints by user
@@ -709,6 +738,109 @@ class AdminService {
 
           return bookingsWithDetails;
         });
+  }
+
+  /// Unified bookings stream: merges 'bookings' and legacy 'ride_requests'
+  static Stream<List<Map<String, dynamic>>> getUnifiedBookingsStream({
+    String? status,
+  }) {
+    final Stream<QuerySnapshot<Map<String, dynamic>>> baseStream = _firestore
+        .collection('bookings')
+        .snapshots();
+
+    return baseStream.asyncMap((snapshot) async {
+      List<Map<String, dynamic>> results = [];
+
+      Future<Map<String, dynamic>> enrich(Map<String, dynamic> bookingData) async {
+        // Attach id if missing
+        bookingData['id'] = bookingData['id'] ?? '';
+
+        // Normalize status for legacy rides
+        final rawStatus = (bookingData['status'] ?? '').toString().toLowerCase();
+        if (rawStatus == 'paid') bookingData['status'] = 'completed';
+
+        // Ensure createdAt exists
+        bookingData['createdAt'] = bookingData['createdAt'] ?? bookingData['updatedAt'] ?? bookingData['paidAt'];
+
+        try {
+          if (bookingData['userId'] != null) {
+            final userDoc = await _firestore
+                .collection('users')
+                .doc(bookingData['userId'])
+                .get();
+            if (userDoc.exists) {
+              bookingData['userDetails'] = userDoc.data();
+            }
+          }
+          if (bookingData['driverId'] != null) {
+            final driverDoc = await _firestore
+                .collection('users')
+                .doc(bookingData['driverId'])
+                .get();
+            if (driverDoc.exists) {
+              bookingData['driverDetails'] = driverDoc.data();
+            }
+          }
+        } catch (e) {
+          // swallow but keep data
+        }
+        return bookingData;
+      }
+
+      // Current 'bookings' collection
+      for (var doc in snapshot.docs) {
+        final data = doc.data();
+        data['id'] = doc.id;
+        if (status == null || (data['status']?.toString().toLowerCase() == status.toLowerCase())) {
+          results.add(await enrich(data));
+        }
+      }
+
+      // Legacy 'ride_requests' collection
+      try {
+        Query rrQuery = _firestore.collection('ride_requests');
+        if (status != null) {
+          // Map completed<->paid for legacy store
+          final wanted = status.toLowerCase() == 'completed' ? ['completed', 'paid'] : [status.toLowerCase()];
+          // Due to Firestore constraints, use simple equality if not 'completed'
+          if (wanted.length == 1) {
+            rrQuery = rrQuery.where('status', isEqualTo: wanted.first);
+          } else {
+            // best-effort: fetch recent and filter client-side
+            rrQuery = rrQuery.orderBy('createdAt', descending: true).limit(200);
+          }
+        } else {
+          rrQuery = rrQuery.orderBy('createdAt', descending: true).limit(200);
+        }
+
+        final rrSnap = await rrQuery.get();
+        for (var doc in rrSnap.docs) {
+          final data = doc.data() as Map<String, dynamic>;
+          data['id'] = data['id'] ?? doc.id;
+          // Filter client-side when needed
+          if (status != null) {
+            final s = (data['status'] ?? '').toString().toLowerCase();
+            final normalized = s == 'paid' ? 'completed' : s;
+            if (normalized != status.toLowerCase()) continue;
+          }
+          results.add(await enrich(data));
+        }
+      } catch (e) {
+        // ignore missing collection or indexing issues
+      }
+
+      // Sort newest first by createdAt if available
+      results.sort((a, b) {
+        final ta = a['createdAt'] as Timestamp?;
+        final tb = b['createdAt'] as Timestamp?;
+        if (ta == null && tb == null) return 0;
+        if (ta == null) return 1;
+        if (tb == null) return -1;
+        return tb.compareTo(ta);
+      });
+
+      return results;
+    });
   }
 
   /// Get booking details by ID

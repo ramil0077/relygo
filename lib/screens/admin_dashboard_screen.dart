@@ -4,15 +4,11 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:relygo/constants.dart';
 import 'package:relygo/utils/responsive.dart';
 
-import 'package:relygo/screens/driver_management_screen.dart';
 import 'package:relygo/screens/admin_complaints_screen.dart';
-import 'package:relygo/screens/feedback_screen.dart';
-import 'package:relygo/screens/admin_driver_approval_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:relygo/screens/admin_user_details_screen.dart';
 import 'package:relygo/screens/admin_driver_chat_screen.dart';
 import 'package:relygo/screens/admin_driver_details_screen.dart';
-import 'package:relygo/screens/admin_analytics_screen.dart';
 import 'package:relygo/services/admin_service.dart';
 import 'package:relygo/services/auth_service.dart';
 import 'package:relygo/screens/signin_screen.dart';
@@ -576,266 +572,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 30),
           ),
 
-          // Quick Actions
-          Text(
-            "Quick Actions",
-            style: GoogleFonts.poppins(
-              fontSize: ResponsiveUtils.getResponsiveFontSize(
-                context,
-                mobile: 20,
-                tablet: 24,
-                desktop: 28,
-              ),
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
-            ),
-          ),
-          SizedBox(
-            height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 20),
-          ),
-
-          ResponsiveWidget(
-            mobile: Column(
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildActionCard(
-                        "Manage Users",
-                        Icons.people,
-                        Mycolors.basecolor,
-                        () {
-                          setState(() {
-                            _selectedIndex = 1; // Switch to users tab
-                          });
-                        },
-                      ),
-                    ),
-                    SizedBox(
-                      width: ResponsiveUtils.getResponsiveSpacing(
-                        context,
-                        mobile: 15,
-                      ),
-                    ),
-                    Expanded(
-                      child: _buildActionCard(
-                        "Manage Drivers",
-                        Icons.drive_eta,
-                        Mycolors.orange,
-                        () {
-                          setState(() {
-                            _selectedIndex = 2; // Switch to drivers tab
-                          });
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(
-                  height: ResponsiveUtils.getResponsiveSpacing(
-                    context,
-                    mobile: 15,
-                  ),
-                ),
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildActionCard(
-                        "View Analytics",
-                        Icons.analytics,
-                        Mycolors.green,
-                        () {
-                          setState(() {
-                            _selectedIndex = 4; // Switch to analytics tab
-                          });
-                        },
-                      ),
-                    ),
-                    SizedBox(
-                      width: ResponsiveUtils.getResponsiveSpacing(
-                        context,
-                        mobile: 15,
-                      ),
-                    ),
-                    Expanded(
-                      child: _buildActionCard(
-                        "Complaints",
-                        Icons.report,
-                        Mycolors.red,
-                        () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  const AdminComplaintsScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            tablet: Column(
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildActionCard(
-                        "Manage Users",
-                        Icons.people,
-                        Mycolors.basecolor,
-                        () {
-                          setState(() {
-                            _selectedIndex = 1; // Switch to users tab
-                          });
-                        },
-                      ),
-                    ),
-                    SizedBox(
-                      width: ResponsiveUtils.getResponsiveSpacing(
-                        context,
-                        mobile: 15,
-                      ),
-                    ),
-                    Expanded(
-                      child: _buildActionCard(
-                        "Manage Drivers",
-                        Icons.drive_eta,
-                        Mycolors.orange,
-                        () {
-                          setState(() {
-                            _selectedIndex = 2; // Switch to drivers tab
-                          });
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(
-                  height: ResponsiveUtils.getResponsiveSpacing(
-                    context,
-                    mobile: 15,
-                  ),
-                ),
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildActionCard(
-                        "View Analytics",
-                        Icons.analytics,
-                        Mycolors.green,
-                        () {
-                          setState(() {
-                            _selectedIndex = 4; // Switch to analytics tab
-                          });
-                        },
-                      ),
-                    ),
-                    SizedBox(
-                      width: ResponsiveUtils.getResponsiveSpacing(
-                        context,
-                        mobile: 15,
-                      ),
-                    ),
-                    Expanded(
-                      child: _buildActionCard(
-                        "Complaints",
-                        Icons.report,
-                        Mycolors.red,
-                        () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  const AdminComplaintsScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            desktop: Row(
-              children: [
-                Expanded(
-                  child: _buildActionCard(
-                    "Manage Users",
-                    Icons.people,
-                    Mycolors.basecolor,
-                    () {
-                      setState(() {
-                        _selectedIndex = 1; // Switch to users tab
-                      });
-                    },
-                  ),
-                ),
-                SizedBox(
-                  width: ResponsiveUtils.getResponsiveSpacing(
-                    context,
-                    mobile: 15,
-                  ),
-                ),
-                Expanded(
-                  child: _buildActionCard(
-                    "Manage Drivers",
-                    Icons.drive_eta,
-                    Mycolors.orange,
-                    () {
-                      setState(() {
-                        _selectedIndex = 2; // Switch to drivers tab
-                      });
-                    },
-                  ),
-                ),
-                SizedBox(
-                  width: ResponsiveUtils.getResponsiveSpacing(
-                    context,
-                    mobile: 15,
-                  ),
-                ),
-                Expanded(
-                  child: _buildActionCard(
-                    "View Analytics",
-                    Icons.analytics,
-                    Mycolors.green,
-                    () {
-                      setState(() {
-                        _selectedIndex = 4; // Switch to analytics tab
-                      });
-                    },
-                  ),
-                ),
-                SizedBox(
-                  width: ResponsiveUtils.getResponsiveSpacing(
-                    context,
-                    mobile: 15,
-                  ),
-                ),
-                Expanded(
-                  child: _buildActionCard(
-                    "Complaints",
-                    Icons.report,
-                    Mycolors.red,
-                    () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const AdminComplaintsScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),
-          SizedBox(
-            height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 30),
-          ),
+          // Quick Actions removed
 
           // Recent Activity
           Row(
@@ -1109,44 +846,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   Widget _buildDriversContent() {
     return Column(
       children: [
-        // Quick Actions
-        Row(
-          children: [
-            Expanded(
-              child: _buildActionCard(
-                "Driver Approvals",
-                Icons.approval,
-                Mycolors.orange,
-                () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const AdminDriverApprovalScreen(),
-                    ),
-                  );
-                },
-              ),
-            ),
-            const SizedBox(width: 15),
-            Expanded(
-              child: _buildActionCard(
-                "Manage Drivers",
-                Icons.people,
-                Mycolors.blue,
-                () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const DriverManagementScreen(),
-                    ),
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 20),
-
         // Stats
         Row(
           children: [
@@ -1604,44 +1303,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 20),
           ),
 
-          // Quick Actions
-          Row(
-            children: [
-              Expanded(
-                child: _buildActionCard(
-                  "View Feedback",
-                  Icons.star,
-                  Mycolors.orange,
-                  () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const FeedbackScreen(),
-                      ),
-                    );
-                  },
-                ),
-              ),
-              const SizedBox(width: 15),
-              Expanded(
-                child: _buildActionCard(
-                  "Service Report",
-                  Icons.analytics,
-                  Mycolors.green,
-                  () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const AdminAnalyticsScreen(),
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-
           // Feedback Stream
           Expanded(
             child: StreamBuilder<List<Map<String, dynamic>>>(
@@ -1767,62 +1428,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     );
   }
 
-  Widget _buildActionCard(
-    String title,
-    IconData icon,
-    Color color,
-    VoidCallback onTap,
-  ) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: ResponsiveUtils.getResponsivePadding(context),
-        decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(
-            ResponsiveUtils.getResponsiveBorderRadius(
-              context,
-              mobile: 16,
-              tablet: 18,
-              desktop: 20,
-            ),
-          ),
-          border: Border.all(color: color.withOpacity(0.3)),
-        ),
-        child: Column(
-          children: [
-            Icon(
-              icon,
-              color: color,
-              size: ResponsiveUtils.getResponsiveIconSize(
-                context,
-                mobile: 30,
-                tablet: 35,
-                desktop: 40,
-              ),
-            ),
-            SizedBox(
-              height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 10),
-            ),
-            Text(
-              title,
-              style: GoogleFonts.poppins(
-                fontSize: ResponsiveUtils.getResponsiveFontSize(
-                  context,
-                  mobile: 14,
-                  tablet: 16,
-                  desktop: 18,
-                ),
-                fontWeight: FontWeight.w600,
-                color: color,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  
 
   Widget _buildActivityCardFromData(Map<String, dynamic> data) {
     String title = 'Activity';
@@ -1880,7 +1486,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
       case 'feedback':
         title = 'New Feedback';
         final rating = data['rating'] ?? 0;
-        description = '${data['userName'] ?? "User"} rated $rating stars';
+        description = 'Anonymous rated $rating stars';
         color = Mycolors.orange;
         icon = Icons.star;
         break;
@@ -2168,7 +1774,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 radius: 16,
                 backgroundColor: Mycolors.orange.withOpacity(0.1),
                 child: Text(
-                  (feedback['userName'] ?? 'U')[0].toUpperCase(),
+                  'A',
                   style: GoogleFonts.poppins(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
@@ -2182,7 +1788,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      feedback['userName'] ?? 'Anonymous',
+                      'Anonymous',
                       style: GoogleFonts.poppins(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
@@ -2605,10 +2211,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     Stream<List<Map<String, dynamic>>> baseStream;
 
     if (_selectedBookingFilter == 'all') {
-      baseStream = AdminService.getAllBookingsStream();
+      baseStream = AdminService.getUnifiedBookingsStream();
     } else {
-      baseStream = AdminService.getBookingsByStatusStream(
-        _selectedBookingFilter,
+      baseStream = AdminService.getUnifiedBookingsStream(
+        status: _selectedBookingFilter,
       );
     }
 
