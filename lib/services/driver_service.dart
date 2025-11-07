@@ -491,5 +491,83 @@ class DriverService {
         'totalReviews': 0,
       };
     }
+  } Future<double> getTotalEarnings(String driverId) async {
+    final rides = await _firestore
+        .collection('ride_requests')
+        .where('driverId', isEqualTo: driverId)
+        .where('status', isEqualTo: 'paid')
+        .get();
+
+    double total = 0;
+    for (var doc in rides.docs) {
+      total += (doc['fare'] ?? 0).toDouble();
+    }
+    return total;
+  }
+
+  // Get rides from a specific pickup or destination location
+  Future<List<Map<String, dynamic>>> getRidesByLocation(
+      String driverId, String location) async {
+    final rides = await _firestore
+        .collection('ride_requests')
+        .where('driverId', isEqualTo: driverId)
+        .get();
+
+    return rides.docs
+        .where((r) =>
+            (r['pickup'] ?? '').toString().toLowerCase().contains(location.toLowerCase()) ||
+            (r['destination'] ?? '').toString().toLowerCase().contains(location.toLowerCase()))
+        .map((r) => r.data())
+        .toList();
+  }
+
+  // Get top pickup locations for the driver
+  Future<Map<String, int>> getTopRideLocations(String driverId) async {
+    final rides = await _firestore
+        .collection('ride_requests')
+        .where('driverId', isEqualTo: driverId)
+        .get();
+
+    final Map<String, int> counts = {};
+    for (var doc in rides.docs) {
+      final pickup = doc['pickup'] ?? 'Unknown';
+      counts[pickup] = (counts[pickup] ?? 0) + 1;
+    }
+
+    // sort by frequency (descending)
+    final sortedEntries = counts.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+
+    return Map.fromEntries(sortedEntries.take(5));
+  }Future<Map<String, dynamic>> getDriverContext(String driverId) async {
+    double totalEarnings = 0;
+    Map<String, int> locationCount = {};
+
+    final rides = await _firestore
+        .collection('ride_requests')
+        .where('driverId', isEqualTo: driverId)
+        .where('status', isEqualTo: 'paid')
+        .get();
+
+    for (var doc in rides.docs) {
+      totalEarnings += (doc['fare'] ?? 0).toDouble();
+      final pickup = doc['pickup'] ?? 'Unknown';
+      locationCount[pickup] = (locationCount[pickup] ?? 0) + 1;
+    }
+
+    final totalRides = rides.docs.length;
+    final topLocations = locationCount.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+
+    final formattedLocations = topLocations
+        .map((e) => "${e.key} (${e.value} rides)")
+        .take(5)
+        .join(", ");
+
+    return {
+      'totalEarnings': totalEarnings,
+      'totalRides': totalRides,
+      'topLocations': formattedLocations,
+    };
   }
 }

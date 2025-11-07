@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:relygo/constants.dart';
@@ -14,6 +15,7 @@ import 'package:relygo/services/auth_service.dart';
 import 'package:relygo/services/driver_service.dart';
 import 'package:relygo/screens/driver_notifications_screen.dart';
 import 'package:relygo/screens/chat_detail_screen.dart';
+import 'package:relygo/widgets/driver_ai_assistant.dart';
 
 class DriverDashboardScreen extends StatefulWidget {
   const DriverDashboardScreen({super.key});
@@ -40,7 +42,33 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return Scaffold(floatingActionButton: FloatingActionButton(
+  backgroundColor: Theme.of(context).primaryColor,
+  foregroundColor: Colors.white,
+  child: const Icon(Icons.smart_toy),
+  onPressed: () {
+    final driverId = FirebaseAuth.instance.currentUser?.uid ?? 'demo_driver';
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => DraggableScrollableSheet(
+        initialChildSize: 0.85,
+        maxChildSize: 0.95,
+        minChildSize: 0.6,
+        expand: false,
+        builder: (_, __) => Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).scaffoldBackgroundColor,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(25)),
+          ),
+          child: DriverAIAssistantScreen(driverId: driverId),
+        ),
+      ),
+    );
+  },
+),
+
       backgroundColor: Colors.white,
       body: SafeArea(
         child: IndexedStack(
@@ -490,7 +518,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                 Mycolors.orange,
                 () {
                   setState(() {
-                    _selectedIndex = 1; // Switch to earnings tab
+                    _selectedIndex = 1;
                   });
                 },
               ),
