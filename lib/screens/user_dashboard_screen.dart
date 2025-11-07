@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:relygo/constants.dart';
 import 'package:relygo/screens/service_booking_screen.dart';
+import 'package:relygo/screens/track_driver.dart';
 import 'package:relygo/screens/user_profile_screen.dart';
 import 'package:relygo/screens/driver_tracking_screen.dart';
 import 'package:relygo/screens/payment_screen.dart';
@@ -159,7 +160,44 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
           NavBarItem(icon: Icons.person, label: 'Profile'),
         ],
       ),
-      floatingActionButton: null,
+     floatingActionButton: FloatingActionButton(
+  onPressed: () async {
+    final userId = AuthService.currentUserId;
+    if (userId == null) return;
+
+    // Fetch current accepted ride
+    final snapshot = await FirebaseFirestore.instance
+        .collection('ride_requests')
+        .where('userId', isEqualTo: userId)
+        .where('status', isEqualTo: 'accepted')
+        .limit(1)
+        .get();
+
+    if (snapshot.docs.isNotEmpty) {
+      final ride = snapshot.docs.first.data();
+      final driverId = ride['driverId'];
+      if (driverId != null) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => TrackDriverMap(driverId: driverId),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No driver assigned yet')),
+        );
+      }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No active rides found')),
+      );
+    }
+  },
+  backgroundColor: Mycolors.basecolor,
+  child: const Icon(Icons.location_on, color: Colors.white),
+),
+floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
 

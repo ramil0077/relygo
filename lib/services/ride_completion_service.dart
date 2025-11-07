@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import 'package:location/location.dart';
+
 class RideCompletionService {
   static final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
@@ -45,5 +47,30 @@ class RideCompletionService {
         .collection('ride_requests')
         .where('status', isEqualTo: 'accepted')
         .snapshots();
+  }
+}
+
+class DriverLiveLocation {
+  final _firestore = FirebaseFirestore.instance;
+  final _location = Location();
+
+  Future<void> startLiveLocationUpdates(String driverId) async {
+    bool serviceEnabled = await _location.serviceEnabled();
+    if (!serviceEnabled) serviceEnabled = await _location.requestService();
+
+    PermissionStatus permissionGranted = await _location.hasPermission();
+    if (permissionGranted == PermissionStatus.denied)
+      permissionGranted = await _location.requestPermission();
+
+    // Listen to location changes
+    _location.onLocationChanged.listen((locationData) {
+      if (locationData.latitude != null && locationData.longitude != null) {
+        _firestore.collection('drivers').doc(driverId).set({
+          'latitude': locationData.latitude,
+          'longitude': locationData.longitude,
+          'timestamp': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
+      }
+    });
   }
 }
