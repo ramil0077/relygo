@@ -176,7 +176,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                         _isOnline = value;
                       });
                     },
-                    activeThumbColor: Mycolors.green,
+                    activeColor: Mycolors.green,
                   ),
                 ],
               ),
