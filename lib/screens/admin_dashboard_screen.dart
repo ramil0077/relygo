@@ -9,6 +9,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:relygo/screens/admin_user_details_screen.dart';
 import 'package:relygo/screens/admin_driver_chat_screen.dart';
 import 'package:relygo/screens/admin_driver_details_screen.dart';
+import 'package:relygo/screens/admin_driver_approval_screen.dart';
 import 'package:relygo/services/admin_service.dart';
 import 'package:relygo/services/auth_service.dart';
 import 'package:relygo/screens/signin_screen.dart';
@@ -150,6 +151,132 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           ],
         );
       },
+    );
+  }
+
+  void _showNoPendingApprovalsDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: ResponsiveUtils.isDesktop(context)
+                ? 500
+                : ResponsiveUtils.isTablet(context)
+                    ? 400
+                    : MediaQuery.of(context).size.width * 0.9,
+            maxHeight: MediaQuery.of(context).size.height * 0.5,
+          ),
+          child: Padding(
+            padding: ResponsiveUtils.getResponsivePadding(context),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Title
+                Row(
+                  children: [
+                    Icon(
+                      Icons.check_circle,
+                      color: Mycolors.green,
+                      size: ResponsiveUtils.getResponsiveIconSize(
+                        context,
+                        mobile: 24,
+                        tablet: 28,
+                        desktop: 32,
+                      ),
+                    ),
+                    SizedBox(
+                      width: ResponsiveUtils.getResponsiveSpacing(
+                        context,
+                        mobile: 12,
+                      ),
+                    ),
+                    Expanded(
+                      child: Text(
+                        'No Pending Approvals',
+                        style: GoogleFonts.poppins(
+                          fontWeight: FontWeight.w600,
+                          fontSize: ResponsiveUtils.getResponsiveFontSize(
+                            context,
+                            mobile: 16,
+                            tablet: 18,
+                            desktop: 20,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: ResponsiveUtils.getResponsiveSpacing(
+                    context,
+                    mobile: 16,
+                  ),
+                ),
+                // Content
+                Flexible(
+                  child: SingleChildScrollView(
+                    child: Text(
+                      'All driver applications have been reviewed. There are no pending approvals at this time.',
+                      style: GoogleFonts.poppins(
+                        fontSize: ResponsiveUtils.getResponsiveFontSize(
+                          context,
+                          mobile: 14,
+                          tablet: 15,
+                          desktop: 16,
+                        ),
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  height: ResponsiveUtils.getResponsiveSpacing(
+                    context,
+                    mobile: 20,
+                  ),
+                ),
+                // Actions
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    style: TextButton.styleFrom(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: ResponsiveUtils.getResponsiveSpacing(
+                          context,
+                          mobile: 20,
+                        ),
+                        vertical: ResponsiveUtils.getResponsiveSpacing(
+                          context,
+                          mobile: 12,
+                        ),
+                      ),
+                    ),
+                    child: Text(
+                      'OK',
+                      style: GoogleFonts.poppins(
+                        fontSize: ResponsiveUtils.getResponsiveFontSize(
+                          context,
+                          mobile: 14,
+                          tablet: 15,
+                          desktop: 16,
+                        ),
+                        color: Mycolors.basecolor,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 
@@ -399,6 +526,12 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                         "Total Users",
                         Icons.people,
                         Mycolors.basecolor,
+                        onTap: () {
+                          setState(() {
+                            _selectedIndex = 1;
+                            _userDriverTabIndex = 0;
+                          });
+                        },
                       ),
                     ),
                     SizedBox(
@@ -413,6 +546,12 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                         "Active Drivers",
                         Icons.drive_eta,
                         Mycolors.green,
+                        onTap: () {
+                          setState(() {
+                            _selectedIndex = 1;
+                            _userDriverTabIndex = 1;
+                          });
+                        },
                       ),
                     ),
                   ],
@@ -431,6 +570,19 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                         "Pending Approvals",
                         Icons.pending,
                         Mycolors.orange,
+                        onTap: () {
+                          if (_pendingApprovals > 0) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    const AdminDriverApprovalScreen(),
+                              ),
+                            );
+                          } else {
+                            _showNoPendingApprovalsDialog();
+                          }
+                        },
                       ),
                     ),
                     SizedBox(
@@ -445,6 +597,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                         "Open Complaints",
                         Icons.report,
                         Mycolors.red,
+                        onTap: () {
+                          setState(() {
+                            _selectedIndex = 3;
+                          });
+                        },
                       ),
                     ),
                   ],
@@ -461,6 +618,12 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                         "Total Users",
                         Icons.people,
                         Mycolors.basecolor,
+                        onTap: () {
+                          setState(() {
+                            _selectedIndex = 1;
+                            _userDriverTabIndex = 0;
+                          });
+                        },
                       ),
                     ),
                     SizedBox(
@@ -475,6 +638,12 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                         "Active Drivers",
                         Icons.drive_eta,
                         Mycolors.green,
+                        onTap: () {
+                          setState(() {
+                            _selectedIndex = 1;
+                            _userDriverTabIndex = 1;
+                          });
+                        },
                       ),
                     ),
                   ],
@@ -493,6 +662,19 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                         "Pending Approvals",
                         Icons.pending,
                         Mycolors.orange,
+                        onTap: () {
+                          if (_pendingApprovals > 0) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    const AdminDriverApprovalScreen(),
+                              ),
+                            );
+                          } else {
+                            _showNoPendingApprovalsDialog();
+                          }
+                        },
                       ),
                     ),
                     SizedBox(
@@ -507,6 +689,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                         "Open Complaints",
                         Icons.report,
                         Mycolors.red,
+                        onTap: () {
+                          setState(() {
+                            _selectedIndex = 3;
+                          });
+                        },
                       ),
                     ),
                   ],
@@ -521,6 +708,12 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     "Total Users",
                     Icons.people,
                     Mycolors.basecolor,
+                    onTap: () {
+                      setState(() {
+                        _selectedIndex = 1;
+                        _userDriverTabIndex = 0;
+                      });
+                    },
                   ),
                 ),
                 SizedBox(
@@ -535,6 +728,12 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     "Active Drivers",
                     Icons.drive_eta,
                     Mycolors.green,
+                    onTap: () {
+                      setState(() {
+                        _selectedIndex = 1;
+                        _userDriverTabIndex = 1;
+                      });
+                    },
                   ),
                 ),
                 SizedBox(
@@ -549,6 +748,19 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     "Pending Approvals",
                     Icons.pending,
                     Mycolors.orange,
+                    onTap: () {
+                      if (_pendingApprovals > 0) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                const AdminDriverApprovalScreen(),
+                          ),
+                        );
+                      } else {
+                        _showNoPendingApprovalsDialog();
+                      }
+                    },
                   ),
                 ),
                 SizedBox(
@@ -563,6 +775,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     "Open Complaints",
                     Icons.report,
                     Mycolors.red,
+                    onTap: () {
+                      setState(() {
+                        _selectedIndex = 3;
+                      });
+                    },
                   ),
                 ),
               ],
@@ -1365,9 +1582,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     String value,
     String label,
     IconData icon,
-    Color color,
-  ) {
-    return Container(
+    Color color, {
+    VoidCallback? onTap,
+  }) {
+    Widget cardContent = Container(
       padding: ResponsiveUtils.getResponsivePadding(context),
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
@@ -1426,6 +1644,15 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         ],
       ),
     );
+
+    if (onTap != null) {
+      return GestureDetector(
+        onTap: onTap,
+        child: cardContent,
+      );
+    }
+
+    return cardContent;
   }
 
   
@@ -1486,7 +1713,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
       case 'feedback':
         title = 'New Feedback';
         final rating = data['rating'] ?? 0;
-        description = 'Anonymous rated $rating stars';
+        // Check for both user_id (snake_case) and userId (camelCase)
+        final userId = data['user_id'] ?? data['userId'];
+        final userName = data['userName'] ?? userId?.toString() ?? 'User';
+        description = '$userName rated $rating stars';
         color = Mycolors.orange;
         icon = Icons.star;
         break;
@@ -1756,6 +1986,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
 
   Widget _buildFeedbackCard(Map<String, dynamic> feedback) {
     final rating = (feedback['rating'] ?? 0).toDouble();
+    // Check for both user_id (snake_case) and userId (camelCase)
+    final userId = feedback['user_id'] ?? feedback['userId'];
+    final userName = feedback['userName'] ?? userId?.toString() ?? 'User';
+    final userInitial = userName.isNotEmpty ? userName[0].toUpperCase() : 'U';
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -1774,7 +2008,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 radius: 16,
                 backgroundColor: Mycolors.orange.withOpacity(0.1),
                 child: Text(
-                  'A',
+                  userInitial,
                   style: GoogleFonts.poppins(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
@@ -1788,7 +2022,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Anonymous',
+                      userName,
                       style: GoogleFonts.poppins(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,

@@ -207,14 +207,37 @@ class AdminService {
     if (driverId != null && driverId.isNotEmpty) {
       query = query.where('driverId', isEqualTo: driverId);
     }
-    return query.snapshots().map((
-      snapshot,
-    ) {
-      return snapshot.docs.map((doc) {
+    return query.snapshots().asyncMap((snapshot) async {
+      final List<Map<String, dynamic>> enriched = [];
+
+      for (final doc in snapshot.docs) {
         final data = doc.data() as Map<String, dynamic>;
         data['id'] = doc.id;
-        return data;
-      }).toList();
+
+        // Enrich with user name if missing
+        // Check for both user_id (snake_case) and userId (camelCase)
+        final userId = data['user_id'] ?? data['userId'];
+        if ((data['userName'] == null ||
+                (data['userName'] as String).isEmpty) &&
+            userId != null) {
+          try {
+            final userDoc = await _firestore
+                .collection('users')
+                .doc(userId.toString())
+                .get();
+            if (userDoc.exists) {
+              final u = userDoc.data() as Map<String, dynamic>;
+              data['userName'] = u['name'] ?? userId.toString();
+            }
+          } catch (_) {
+            // ignore enrichment failure; leave userId as fallback
+          }
+        }
+
+        enriched.add(data);
+      }
+
+      return enriched;
     });
   }
 
@@ -237,42 +260,42 @@ class AdminService {
 
   /// Get all complaints
   static Stream<List<Map<String, dynamic>>> getComplaintsStream() {
-    return _firestore
-        .collection('complaints')
-        .snapshots()
-        .asyncMap((snapshot) async {
-          final List<Map<String, dynamic>> enriched = [];
+    return _firestore.collection('complaints').snapshots().asyncMap((
+      snapshot,
+    ) async {
+      final List<Map<String, dynamic>> enriched = [];
 
-          for (final doc in snapshot.docs) {
-            final data = doc.data();
-            data['id'] = doc.id;
+      for (final doc in snapshot.docs) {
+        final data = doc.data();
+        data['id'] = doc.id;
 
-            // Normalize status for consistent filtering
-            final rawStatus = (data['status'] ?? 'open').toString();
-            data['status'] = rawStatus.toLowerCase();
+        // Normalize status for consistent filtering
+        final rawStatus = (data['status'] ?? 'open').toString();
+        data['status'] = rawStatus.toLowerCase();
 
-            // Enrich with user name if missing
-            if ((data['userName'] == null || (data['userName'] as String).isEmpty) &&
-                data['userId'] != null) {
-              try {
-                final userDoc = await _firestore
-                    .collection('users')
-                    .doc(data['userId'])
-                    .get();
-                if (userDoc.exists) {
-                  final u = userDoc.data() as Map<String, dynamic>;
-                  data['userName'] = u['name'] ?? data['userId'];
-                }
-              } catch (_) {
-                // ignore enrichment failure; leave userId as fallback
-              }
+        // Enrich with user name if missing
+        if ((data['userName'] == null ||
+                (data['userName'] as String).isEmpty) &&
+            data['userId'] != null) {
+          try {
+            final userDoc = await _firestore
+                .collection('users')
+                .doc(data['userId'])
+                .get();
+            if (userDoc.exists) {
+              final u = userDoc.data() as Map<String, dynamic>;
+              data['userName'] = u['name'] ?? data['userId'];
             }
-
-            enriched.add(data);
+          } catch (_) {
+            // ignore enrichment failure; leave userId as fallback
           }
+        }
 
-          return enriched;
-        });
+        enriched.add(data);
+      }
+
+      return enriched;
+    });
   }
 
   /// Get complaints by user
@@ -433,6 +456,27 @@ class AdminService {
           final data = doc.data();
           data['id'] = doc.id;
           data['activityType'] = 'feedback';
+
+          // Enrich with user name if missing
+          // Check for both user_id (snake_case) and userId (camelCase)
+          final userId = data['user_id'] ?? data['userId'];
+          if ((data['userName'] == null ||
+                  (data['userName'] as String).isEmpty) &&
+              userId != null) {
+            try {
+              final userDoc = await _firestore
+                  .collection('users')
+                  .doc(userId.toString())
+                  .get();
+              if (userDoc.exists) {
+                final u = userDoc.data() as Map<String, dynamic>;
+                data['userName'] = u['name'] ?? userId.toString();
+              }
+            } catch (_) {
+              // ignore enrichment failure; leave userId as fallback
+            }
+          }
+
           activities.add(data);
         }
 
@@ -588,48 +632,47 @@ class AdminService {
 
   /// Get all bookings with user and driver details
   static Stream<List<Map<String, dynamic>>> getAllBookingsStream() {
-    return _firestore
-        .collection('bookings')
-        .snapshots()
-        .asyncMap((snapshot) async {
-          List<Map<String, dynamic>> bookingsWithDetails = [];
+    return _firestore.collection('bookings').snapshots().asyncMap((
+      snapshot,
+    ) async {
+      List<Map<String, dynamic>> bookingsWithDetails = [];
 
-          for (var doc in snapshot.docs) {
-            final bookingData = doc.data();
-            bookingData['id'] = doc.id;
+      for (var doc in snapshot.docs) {
+        final bookingData = doc.data();
+        bookingData['id'] = doc.id;
 
-            try {
-              // Get user details
-              if (bookingData['userId'] != null) {
-                final userDoc = await _firestore
-                    .collection('users')
-                    .doc(bookingData['userId'])
-                    .get();
-                if (userDoc.exists) {
-                  bookingData['userDetails'] = userDoc.data();
-                }
-              }
-
-              // Get driver details
-              if (bookingData['driverId'] != null) {
-                final driverDoc = await _firestore
-                    .collection('users')
-                    .doc(bookingData['driverId'])
-                    .get();
-                if (driverDoc.exists) {
-                  bookingData['driverDetails'] = driverDoc.data();
-                }
-              }
-
-              bookingsWithDetails.add(bookingData);
-            } catch (e) {
-              print('Error getting booking details: $e');
-              bookingsWithDetails.add(bookingData);
+        try {
+          // Get user details
+          if (bookingData['userId'] != null) {
+            final userDoc = await _firestore
+                .collection('users')
+                .doc(bookingData['userId'])
+                .get();
+            if (userDoc.exists) {
+              bookingData['userDetails'] = userDoc.data();
             }
           }
 
-          return bookingsWithDetails;
-        });
+          // Get driver details
+          if (bookingData['driverId'] != null) {
+            final driverDoc = await _firestore
+                .collection('users')
+                .doc(bookingData['driverId'])
+                .get();
+            if (driverDoc.exists) {
+              bookingData['driverDetails'] = driverDoc.data();
+            }
+          }
+
+          bookingsWithDetails.add(bookingData);
+        } catch (e) {
+          print('Error getting booking details: $e');
+          bookingsWithDetails.add(bookingData);
+        }
+      }
+
+      return bookingsWithDetails;
+    });
   }
 
   /// Get booking statistics
@@ -751,16 +794,23 @@ class AdminService {
     return baseStream.asyncMap((snapshot) async {
       List<Map<String, dynamic>> results = [];
 
-      Future<Map<String, dynamic>> enrich(Map<String, dynamic> bookingData) async {
+      Future<Map<String, dynamic>> enrich(
+        Map<String, dynamic> bookingData,
+      ) async {
         // Attach id if missing
         bookingData['id'] = bookingData['id'] ?? '';
 
         // Normalize status for legacy rides
-        final rawStatus = (bookingData['status'] ?? '').toString().toLowerCase();
+        final rawStatus = (bookingData['status'] ?? '')
+            .toString()
+            .toLowerCase();
         if (rawStatus == 'paid') bookingData['status'] = 'completed';
 
         // Ensure createdAt exists
-        bookingData['createdAt'] = bookingData['createdAt'] ?? bookingData['updatedAt'] ?? bookingData['paidAt'];
+        bookingData['createdAt'] =
+            bookingData['createdAt'] ??
+            bookingData['updatedAt'] ??
+            bookingData['paidAt'];
 
         try {
           if (bookingData['userId'] != null) {
@@ -791,7 +841,9 @@ class AdminService {
       for (var doc in snapshot.docs) {
         final data = doc.data();
         data['id'] = doc.id;
-        if (status == null || (data['status']?.toString().toLowerCase() == status.toLowerCase())) {
+        if (status == null ||
+            (data['status']?.toString().toLowerCase() ==
+                status.toLowerCase())) {
           results.add(await enrich(data));
         }
       }
@@ -801,7 +853,9 @@ class AdminService {
         Query rrQuery = _firestore.collection('ride_requests');
         if (status != null) {
           // Map completed<->paid for legacy store
-          final wanted = status.toLowerCase() == 'completed' ? ['completed', 'paid'] : [status.toLowerCase()];
+          final wanted = status.toLowerCase() == 'completed'
+              ? ['completed', 'paid']
+              : [status.toLowerCase()];
           // Due to Firestore constraints, use simple equality if not 'completed'
           if (wanted.length == 1) {
             rrQuery = rrQuery.where('status', isEqualTo: wanted.first);
