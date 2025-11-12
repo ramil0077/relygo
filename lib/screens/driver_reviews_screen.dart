@@ -36,10 +36,6 @@ class _DriverReviewsScreenState extends State<DriverReviewsScreen> {
             color: Colors.black,
           ),
         ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
-        ),
       ),
       body: SingleChildScrollView(
         padding: ResponsiveUtils.getResponsivePadding(context),

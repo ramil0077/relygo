@@ -3,17 +3,21 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:relygo/constants.dart';
 import 'package:relygo/services/auth_service.dart';
 import 'package:relygo/services/user_service.dart';
+import 'package:relygo/widgets/image_upload_widget.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:relygo/screens/signin_screen.dart';
 import 'package:relygo/services/driver_service.dart';
 
 class DriverProfileScreen extends StatefulWidget {
-  const DriverProfileScreen({super.key});
+  final String? initialSection;
+  const DriverProfileScreen({super.key, this.initialSection});
 
   @override
   State<DriverProfileScreen> createState() => _DriverProfileScreenState();
 }
 
 class _DriverProfileScreenState extends State<DriverProfileScreen> {
+  bool _didOpenInitialSection = false;
   @override
   Widget build(BuildContext context) {
     final String? userId = AuthService.currentUserId;
@@ -36,15 +40,48 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
           : StreamBuilder<Map<String, dynamic>?>(
               stream: UserService.streamUserById(userId),
               builder: (context, snapshot) {
-                final data = snapshot.data;
+                final raw = snapshot.data;
+                Map<String, dynamic>? data;
+                if (raw != null) {
+                  try {
+                    data = Map<String, dynamic>.from(raw);
+                  } catch (e) {
+                    data = null;
+                  }
+                }
                 final name = (data?['name'] ?? 'Driver').toString();
                 final email = (data?['email'] ?? '').toString();
                 final phone = (data?['phone'] ?? '').toString();
-                final photoUrl = (data?['photoUrl'] ?? '').toString();
+                // Support both possible keys used across the app: 'photoUrl' and 'profileImage'
+                final photoUrl =
+                    (data?['photoUrl'] ?? data?['profileImage'] ?? '')
+                        .toString();
                 final rating = (data?['rating'] ?? 4.8).toString();
-                final vehicle =
-                    (data?['vehicle'] ?? {}) as Map<String, dynamic>;
+                // Safely extract vehicle data, handling LinkedHashMap and null cases
+                final vehicleData = data?['vehicle'];
+                Map<String, dynamic> vehicle = {};
+                if (vehicleData != null) {
+                  try {
+                    vehicle = vehicleData is Map<String, dynamic>
+                        ? vehicleData
+                        : Map<String, dynamic>.from(vehicleData as Map);
+                  } catch (e) {
+                    vehicle = {};
+                  }
+                }
                 final vehicleType = (vehicle['type'] ?? 'Vehicle').toString();
+
+                // If caller requested an initial section (like 'settings'), open it once after build
+                if (!_didOpenInitialSection && widget.initialSection != null) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (widget.initialSection == 'settings') {
+                      _showSettingsDialog();
+                    } else if (widget.initialSection == 'earnings') {
+                      _showEarningsDialog();
+                    }
+                  });
+                  _didOpenInitialSection = true;
+                }
 
                 return SingleChildScrollView(
                   padding: const EdgeInsets.all(20),
@@ -73,19 +110,56 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
                         ),
                         child: Column(
                           children: [
-                            CircleAvatar(
-                              radius: 50,
-                              backgroundColor: Colors.white.withOpacity(0.2),
-                              backgroundImage: photoUrl.isNotEmpty
-                                  ? NetworkImage(photoUrl)
-                                  : null,
-                              child: photoUrl.isEmpty
-                                  ? Image.asset(
-                                      'assets/logooo.png',
-                                      width: 50,
-                                      height: 50,
-                                    )
-                                  : null,
+                            Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                CircleAvatar(
+                                  radius: 50,
+                                  backgroundColor: Colors.white.withOpacity(
+                                    0.2,
+                                  ),
+                                  backgroundImage: photoUrl.isNotEmpty
+                                      ? NetworkImage(photoUrl)
+                                      : null,
+                                  child: photoUrl.isEmpty
+                                      ? Image.asset(
+                                          'assets/logooo.png',
+                                          width: 50,
+                                          height: 50,
+                                        )
+                                      : null,
+                                ),
+                                Positioned(
+                                  right: 0,
+                                  bottom: 0,
+                                  child: GestureDetector(
+                                    onTap: () => _openImageUploadDialog(
+                                      userId,
+                                      photoUrl,
+                                    ),
+                                    child: Container(
+                                      padding: const EdgeInsets.all(6),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        shape: BoxShape.circle,
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black.withOpacity(
+                                              0.12,
+                                            ),
+                                            blurRadius: 6,
+                                          ),
+                                        ],
+                                      ),
+                                      child: Icon(
+                                        Icons.camera_alt,
+                                        size: 18,
+                                        color: Mycolors.basecolor,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                             const SizedBox(height: 15),
                             Text(
@@ -148,7 +222,8 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
                         future: DriverService.getDriverEarnings(userId),
                         builder: (context, snapshot) {
                           final data = snapshot.data ?? {};
-                          final totalRides = data['totalRides']?.toString() ?? '0';
+                          final totalRides =
+                              data['totalRides']?.toString() ?? '0';
                           final totalEarnings = data['totalEarnings'] != null
                               ? '₹${data['totalEarnings'].toStringAsFixed(0)}'
                               : '₹0';
@@ -270,6 +345,14 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
                         Icons.settings,
                         () {
                           _showSettingsDialog();
+                        },
+                      ),
+                      _buildProfileOption(
+                        "Change Password",
+                        "Update your account password",
+                        Icons.lock_outline,
+                        () {
+                          _showChangePasswordDialog();
                         },
                       ),
                       const SizedBox(height: 20),
@@ -1079,6 +1162,180 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
                 foregroundColor: Colors.white,
               ),
               child: Text("Logout", style: GoogleFonts.poppins()),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _openImageUploadDialog(String userId, String currentUrl) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Text(
+            'Change Profile Image',
+            style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+          ),
+          content: ImageUploadWidget(
+            title: 'Profile Image',
+            subtitle: 'Upload a clear photo for your profile',
+            folder: 'profiles/$userId',
+            initialImageUrl: currentUrl.isNotEmpty ? currentUrl : null,
+            onImageUploaded: (url) async {
+              if (url.isNotEmpty) {
+                await UserService.updatePersonalInfo(
+                  userId: userId,
+                  photoUrl: url,
+                );
+                if (mounted) Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Profile image updated!'),
+                    backgroundColor: Mycolors.green,
+                  ),
+                );
+              }
+            },
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text('Close', style: GoogleFonts.poppins()),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showChangePasswordDialog() {
+    final currentCtrl = TextEditingController();
+    final newCtrl = TextEditingController();
+    final confirmCtrl = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Text(
+            'Change Password',
+            style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: currentCtrl,
+                obscureText: true,
+                decoration: InputDecoration(
+                  labelText: 'Current Password',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: newCtrl,
+                obscureText: true,
+                decoration: InputDecoration(
+                  labelText: 'New Password',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: confirmCtrl,
+                obscureText: true,
+                decoration: InputDecoration(
+                  labelText: 'Confirm Password',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text('Cancel', style: GoogleFonts.poppins()),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final current = currentCtrl.text.trim();
+                final nw = newCtrl.text.trim();
+                final cf = confirmCtrl.text.trim();
+                if (nw.length < 6) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        'New password must be at least 6 characters',
+                      ),
+                      backgroundColor: Mycolors.red,
+                    ),
+                  );
+                  return;
+                }
+                if (nw != cf) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Passwords do not match'),
+                      backgroundColor: Mycolors.red,
+                    ),
+                  );
+                  return;
+                }
+                final user = FirebaseAuth.instance.currentUser;
+                final email = user?.email;
+                if (user == null || email == null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Unable to change password: not signed in'),
+                      backgroundColor: Mycolors.red,
+                    ),
+                  );
+                  return;
+                }
+
+                try {
+                  // Reauthenticate
+                  final cred = EmailAuthProvider.credential(
+                    email: email,
+                    password: current,
+                  );
+                  await user.reauthenticateWithCredential(cred);
+                  await user.updatePassword(nw);
+                  if (mounted) Navigator.of(context).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Password changed successfully'),
+                      backgroundColor: Mycolors.green,
+                    ),
+                  );
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Failed to change password: $e'),
+                      backgroundColor: Mycolors.red,
+                    ),
+                  );
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Mycolors.basecolor,
+              ),
+              child: Text('Change', style: GoogleFonts.poppins()),
             ),
           ],
         );

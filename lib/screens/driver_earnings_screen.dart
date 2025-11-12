@@ -36,10 +36,6 @@ class _DriverEarningsScreenState extends State<DriverEarningsScreen> {
             color: Colors.black,
           ),
         ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
-        ),
       ),
       body: SingleChildScrollView(
         padding: ResponsiveUtils.getResponsivePadding(context),
@@ -193,7 +189,7 @@ class _DriverEarningsScreenState extends State<DriverEarningsScreen> {
 
   Widget _buildRideHistory(String driverId) {
     return StreamBuilder<List<Map<String, dynamic>>>(
-      stream: DriverService.getDriverBookingsStream(driverId),
+      stream: DriverService.getUnifiedDriverBookingsStream(driverId),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());

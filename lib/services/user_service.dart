@@ -130,7 +130,8 @@ class UserService {
             final rawStatus = (data['status'] ?? '').toString().toLowerCase();
             if (rawStatus == 'paid') data['status'] = 'completed';
             // Provide a best-effort createdAt for UI if missing
-            data['createdAt'] = data['createdAt'] ?? data['updatedAt'] ?? data['paidAt'];
+            data['createdAt'] =
+                data['createdAt'] ?? data['updatedAt'] ?? data['paidAt'];
             data['id'] = doc.id;
             return data;
           }).toList(),
@@ -448,21 +449,27 @@ class UserService {
             rideData['id'] = doc.id;
 
             // Normalize status: 'paid' -> 'completed'
-            final rawStatus = (rideData['status'] ?? '').toString().toLowerCase();
+            final rawStatus = (rideData['status'] ?? '')
+                .toString()
+                .toLowerCase();
             if (rawStatus == 'paid') rideData['status'] = 'completed';
 
             // Normalize location field names
             // ride_requests uses 'pickup' and 'destination', but UI expects 'pickupLocation' and 'dropoffLocation'
-            if (rideData['pickupLocation'] == null && rideData['pickup'] != null) {
+            if (rideData['pickupLocation'] == null &&
+                rideData['pickup'] != null) {
               rideData['pickupLocation'] = rideData['pickup'];
             }
-            if (rideData['dropoffLocation'] == null && rideData['destination'] != null) {
+            if (rideData['dropoffLocation'] == null &&
+                rideData['destination'] != null) {
               rideData['dropoffLocation'] = rideData['destination'];
             }
 
             // Fill a best-effort createdAt
             rideData['createdAt'] =
-                rideData['createdAt'] ?? rideData['updatedAt'] ?? rideData['paidAt'];
+                rideData['createdAt'] ??
+                rideData['updatedAt'] ??
+                rideData['paidAt'];
 
             try {
               if (rideData['driverId'] != null) {
@@ -502,7 +509,6 @@ class UserService {
     return _firestore
         .collection('feedback')
         .where('driverId', isEqualTo: driverId)
-        .where('status', isEqualTo: 'active')
         .snapshots()
         .asyncMap((snapshot) async {
           List<Map<String, dynamic>> reviewsWithDetails = [];
@@ -542,7 +548,6 @@ class UserService {
       final QuerySnapshot feedbackQuery = await _firestore
           .collection('feedback')
           .where('driverId', isEqualTo: driverId)
-          .where('status', isEqualTo: 'active')
           .get();
 
       if (feedbackQuery.docs.isEmpty) {
