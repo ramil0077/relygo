@@ -54,7 +54,7 @@ class _SignInScreenState extends State<SignInScreen> {
               Center(
                 child: Column(
                   children: [
-                    Image.asset('assets/logooo.png', width: 80, height: 80),
+                    Image.asset('assets/logooo.png', width: 120, height: 120),
                     const SizedBox(height: 20),
                     Text(
                       "Welcome to RelyGO",

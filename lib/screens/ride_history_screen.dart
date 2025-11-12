@@ -14,7 +14,459 @@ class RideHistoryScreen extends StatefulWidget {
 }
 
 class _RideHistoryScreenState extends State<RideHistoryScreen> {
-  String _selectedFilter = 'All';
+  String _selectedFilter = "All";
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        title: Text(
+          "Ride History",
+          style: GoogleFonts.poppins(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
+          ),
+        ),
+      ),
+      body: Column(
+        children: [
+          // Filter Tabs
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            child: Row(
+              children: [
+                _buildFilterChip("All", "All"),
+                const SizedBox(width: 10),
+                _buildFilterChip("Today", "Today"),
+                const SizedBox(width: 10),
+                _buildFilterChip("This Week", "Week"),
+                const SizedBox(width: 10),
+                _buildFilterChip("This Month", "Month"),
+              ],
+            ),
+          ),
+
+          // Rides List - Firestore
+          Expanded(
+            child: StreamBuilder<List<Map<String, dynamic>>>(
+              stream: UserService.getUserBookingsStream(
+                AuthService.currentUserId ?? '',
+              ),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (snapshot.hasError) {
+                  return Center(
+                    child: Text(
+                      'Failed to load rides',
+                      style: GoogleFonts.poppins(color: Mycolors.red),
+                    ),
+                  );
+                }
+                final rides = snapshot.data ?? [];
+                if (rides.isEmpty) {
+                  return Center(
+                    child: Text(
+                      'No rides found',
+                      style: GoogleFonts.poppins(color: Mycolors.gray),
+                    ),
+                  );
+                }
+                return ListView.builder(
+                  padding: const EdgeInsets.all(20),
+                  itemCount: rides.length,
+                  itemBuilder: (context, index) {
+                    final booking = rides[index];
+                    final destination =
+                        booking['dropoffLocation'] ?? 'Destination';
+                    final driverName = booking['driverName'] ?? 'Driver';
+                    final distance = booking['distance'] ?? 'N/A';
+                    final price = booking['fare'] != null
+                        ? '₹${booking['fare']}'
+                        : '₹0';
+                    final status = _statusString(booking['status']);
+                    final statusColor = _statusColor(status);
+                    final time = _formatDate(booking['createdAt']);
+                    final rating = (booking['rating'] is num)
+                        ? (booking['rating'] as num).toString()
+                        : '0.0';
+                    final icon = status == 'Cancelled'
+                        ? Icons.cancel
+                        : Icons.directions_car;
+                    final bookingId = booking['id'] ?? '';
+                    final driverId = booking['driverId'] ?? '';
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 15),
+                      child: _buildRideCard(
+                        destination,
+                        driverName,
+                        distance,
+                        price,
+                        status,
+                        statusColor,
+                        time,
+                        rating,
+                        icon,
+                        bookingId,
+                        driverId,
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilterChip(String label, String value) {
+    bool isSelected = _selectedFilter == value;
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _selectedFilter = value;
+        });
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? Mycolors.basecolor : Colors.grey.shade100,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected ? Mycolors.basecolor : Colors.grey.shade300,
+          ),
+        ),
+        child: Text(
+          label,
+          style: GoogleFonts.poppins(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: isSelected ? Colors.white : Colors.black,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRideCard(
+    String destination,
+    String driverName,
+    String distance,
+    String price,
+    String status,
+    Color statusColor,
+    String time,
+    String rating,
+    IconData icon,
+    String rideId,
+    String driverId,
+  ) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 15),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade300),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            blurRadius: 5,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header with status and time
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Icon(icon, color: statusColor, size: 20),
+                  const SizedBox(width: 8),
+                  Text(
+                    status,
+                    style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: statusColor,
+                    ),
+                  ),
+                ],
+              ),
+              Text(
+                time,
+                style: GoogleFonts.poppins(fontSize: 12, color: Mycolors.gray),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+
+          // Destination
+          Text(
+            destination,
+            style: GoogleFonts.poppins(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
+          ),
+          const SizedBox(height: 8),
+
+          // Driver info
+          Row(
+            children: [
+              CircleAvatar(
+                radius: 16,
+                backgroundColor: Mycolors.basecolor.withOpacity(0.1),
+                child: Text(
+                  driverName[0],
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: Mycolors.basecolor,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                driverName,
+                style: GoogleFonts.poppins(fontSize: 14, color: Colors.black),
+              ),
+              const SizedBox(width: 8),
+              if (rating != "0.0") ...[
+                Icon(Icons.star, color: Mycolors.orange, size: 16),
+                const SizedBox(width: 4),
+                Text(
+                  rating,
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    color: Mycolors.orange,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ],
+          ),
+          const SizedBox(height: 12),
+
+          // Distance and Price
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.straighten, color: Mycolors.gray, size: 16),
+                  const SizedBox(width: 4),
+                  Text(
+                    distance,
+                    style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      color: Mycolors.gray,
+                    ),
+                  ),
+                ],
+              ),
+              Text(
+                price,
+                style: GoogleFonts.poppins(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Mycolors.basecolor,
+                ),
+              ),
+            ],
+          ),
+
+          // Action buttons based on status
+          if (status == "Completed" || status == "Paid") ...[
+            const SizedBox(height: 15),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      _showRideDetailsDialog(
+                        destination,
+                        driverName,
+                        distance,
+                        price,
+                        time,
+                        rating,
+                      );
+                    },
+                    icon: const Icon(Icons.info, size: 18),
+                    label: Text(
+                      "View Details",
+                      style: GoogleFonts.poppins(fontSize: 14),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Mycolors.basecolor,
+                      side: BorderSide(color: Mycolors.basecolor),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ReviewSubmissionScreen(
+                            driverId: driverId,
+                            driverName: driverName,
+                            rideId: rideId,
+                            destination: destination,
+                          ),
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.star, size: 18),
+                    label: Text(
+                      "Rate Driver",
+                      style: GoogleFonts.poppins(fontSize: 14),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Mycolors.orange,
+                      side: BorderSide(color: Mycolors.orange),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ] else if (status == "Cancelled") ...[
+            const SizedBox(height: 15),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      _showRideDetailsDialog(
+                        destination,
+                        driverName,
+                        distance,
+                        price,
+                        time,
+                        rating,
+                      );
+                    },
+                    icon: const Icon(Icons.info, size: 18),
+                    label: Text(
+                      "View Details",
+                      style: GoogleFonts.poppins(fontSize: 14),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Mycolors.basecolor,
+                      side: BorderSide(color: Mycolors.basecolor),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      _showBookAgainDialog(destination);
+                    },
+                    icon: const Icon(Icons.repeat, size: 18),
+                    label: Text(
+                      "Book Again",
+                      style: GoogleFonts.poppins(fontSize: 14),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Mycolors.green,
+                      side: BorderSide(color: Mycolors.green),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ] else if (status == "Pending" ||
+              status == "Accepted" ||
+              status == "Ongoing") ...[
+            const SizedBox(height: 15),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      _showRideDetailsDialog(
+                        destination,
+                        driverName,
+                        distance,
+                        price,
+                        time,
+                        rating,
+                      );
+                    },
+                    icon: const Icon(Icons.info, size: 18),
+                    label: Text(
+                      "View Details",
+                      style: GoogleFonts.poppins(fontSize: 14),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Mycolors.basecolor,
+                      side: BorderSide(color: Mycolors.basecolor),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Ride is $status'),
+                          backgroundColor: Mycolors.basecolor,
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.timeline, size: 18),
+                    label: Text(
+                      "Track Ride",
+                      style: GoogleFonts.poppins(fontSize: 14),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Mycolors.green,
+                      side: BorderSide(color: Mycolors.green),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
 
   String _statusString(dynamic raw) {
     final v = (raw ?? '').toString().toLowerCase();
