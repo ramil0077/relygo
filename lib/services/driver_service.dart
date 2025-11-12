@@ -117,18 +117,17 @@ class DriverService {
     return _firestore
         .collection('bookings')
         .where('driverId', isEqualTo: driverId)
-       
         .snapshots()
         .map((snapshot) {
-      return snapshot.docs.map((doc) {
-        final data = doc.data();
-        data['id'] = doc.id;
-        return data;
-      }).toList();
-    });
+          return snapshot.docs.map((doc) {
+            final data = doc.data();
+            data['id'] = doc.id;
+            return data;
+          }).toList();
+        });
   }
 
-  /// Unified driver bookings stream: merges 'bookings' and 'ride_requests' collections
+  /// Unified driver bookings stream: merges 'bookings' and 'ride_requests' collections with user details
   static Stream<List<Map<String, dynamic>>> getUnifiedDriverBookingsStream(
     String driverId,
   ) {
@@ -167,6 +166,27 @@ class DriverService {
         if (data['createdAt'] == null) {
           data['createdAt'] = data['updatedAt'] ?? data['paidAt'];
         }
+        // Fetch user name if userId exists (support both 'userId' and 'user_id')
+        final possibleUserId =
+            data['userId'] ?? data['user_id'] ?? data['passengerId'];
+        if (possibleUserId != null &&
+            (data['userName'] == null || data['userName'] == 'Unknown User')) {
+          try {
+            final userDoc = await _firestore
+                .collection('users')
+                .doc(possibleUserId.toString())
+                .get();
+            if (userDoc.exists) {
+              data['userName'] = userDoc.data()?['name'] ?? 'Unknown User';
+            }
+          } catch (e) {
+            data['userName'] = 'Unknown User';
+          }
+        }
+        // Normalize fare
+        if (data['fare'] == null) {
+          data['fare'] = data['price'] ?? data['amount'] ?? data['cost'];
+        }
         allBookings.add(data);
       }
 
@@ -192,6 +212,30 @@ class DriverService {
         // Use 'price' as 'fare' if fare doesn't exist
         if (data['fare'] == null && data['price'] != null) {
           data['fare'] = data['price'];
+        }
+        // Normalize fare further
+        if (data['fare'] == null) {
+          data['fare'] = data['amount'] ?? data['cost'];
+        }
+        // Fetch user name if userId exists (support multiple keys)
+        final possibleUserId =
+            data['userId'] ??
+            data['user_id'] ??
+            data['passengerId'] ??
+            data['userid'];
+        if (possibleUserId != null &&
+            (data['userName'] == null || data['userName'] == 'Unknown User')) {
+          try {
+            final userDoc = await _firestore
+                .collection('users')
+                .doc(possibleUserId.toString())
+                .get();
+            if (userDoc.exists) {
+              data['userName'] = userDoc.data()?['name'] ?? 'Unknown User';
+            }
+          } catch (e) {
+            data['userName'] = 'Unknown User';
+          }
         }
         allBookings.add(data);
       }
@@ -231,17 +275,17 @@ class DriverService {
       DocumentReference? bookingRef;
       DocumentSnapshot? bookingDoc;
       String collectionName = 'bookings';
-      
+
       bookingRef = _firestore.collection('bookings').doc(bookingId);
       bookingDoc = await bookingRef.get();
-      
+
       // If not found in 'bookings', try 'ride_requests'
       if (!bookingDoc.exists) {
         bookingRef = _firestore.collection('ride_requests').doc(bookingId);
         bookingDoc = await bookingRef.get();
         collectionName = 'ride_requests';
       }
-      
+
       if (!bookingDoc.exists) {
         return {'success': false, 'error': 'Booking not found'};
       }
@@ -257,7 +301,7 @@ class DriverService {
         'acceptedAt': FieldValue.serverTimestamp(),
         'updatedAt': FieldValue.serverTimestamp(),
       };
-      
+
       // For ride_requests, also set 'price' field
       if (collectionName == 'ride_requests') {
         updateData['price'] = fare;
@@ -292,16 +336,16 @@ class DriverService {
       // Try to find booking in 'bookings' collection first
       DocumentReference? bookingRef;
       DocumentSnapshot? bookingDoc;
-      
+
       bookingRef = _firestore.collection('bookings').doc(bookingId);
       bookingDoc = await bookingRef.get();
-      
+
       // If not found in 'bookings', try 'ride_requests'
       if (!bookingDoc.exists) {
         bookingRef = _firestore.collection('ride_requests').doc(bookingId);
         bookingDoc = await bookingRef.get();
       }
-      
+
       if (!bookingDoc.exists) {
         return {'success': false, 'error': 'Booking not found'};
       }
@@ -341,16 +385,16 @@ class DriverService {
       // Try to find booking in 'bookings' collection first
       DocumentReference? bookingRef;
       DocumentSnapshot? bookingDoc;
-      
+
       bookingRef = _firestore.collection('bookings').doc(bookingId);
       bookingDoc = await bookingRef.get();
-      
+
       // If not found in 'bookings', try 'ride_requests'
       if (!bookingDoc.exists) {
         bookingRef = _firestore.collection('ride_requests').doc(bookingId);
         bookingDoc = await bookingRef.get();
       }
-      
+
       if (!bookingDoc.exists) {
         return {'success': false, 'error': 'Booking not found'};
       }
@@ -368,44 +412,93 @@ class DriverService {
     }
   }
 
-  /// Get driver earnings
+  /// Get driver earnings from both bookings and ride_requests collections
   static Future<Map<String, dynamic>> getDriverEarnings(String driverId) async {
     try {
+      // Get bookings and ride_requests with status either 'completed' or 'paid'
+      final statusList = ['completed', 'paid'];
+
       final completedBookings = await _firestore
           .collection('bookings')
           .where('driverId', isEqualTo: driverId)
-          .where('status', isEqualTo: 'completed')
-          .where('isPaid', isEqualTo: true)
+          .where('status', whereIn: statusList)
+          .get();
+
+      // Get completed/paid ride_requests
+      final completedRideRequests = await _firestore
+          .collection('ride_requests')
+          .where('driverId', isEqualTo: driverId)
+          .where('status', whereIn: statusList)
           .get();
 
       double totalEarnings = 0;
-      int totalRides = completedBookings.docs.length;
+      int totalRides = 0;
 
+      // Process bookings earnings (normalize fare keys)
       for (var doc in completedBookings.docs) {
-        final fare = doc.data()['fare'];
+        final data = doc.data();
+        final fare =
+            data['fare'] ?? data['price'] ?? data['amount'] ?? data['cost'];
         if (fare != null) {
           totalEarnings += (fare as num).toDouble();
         }
+        totalRides++;
+      }
+
+      // Process ride_requests earnings (normalize price/fare keys)
+      for (var doc in completedRideRequests.docs) {
+        final data = doc.data();
+        final fare =
+            data['fare'] ?? data['price'] ?? data['amount'] ?? data['cost'];
+        if (fare != null) {
+          totalEarnings += (fare as num).toDouble();
+        }
+        totalRides++;
       }
 
       // Get today's earnings
       final today = DateTime.now();
       final startOfDay = DateTime(today.year, today.month, today.day);
-      
+      final todayTimestamp = Timestamp.fromDate(startOfDay);
+
+      // Get today's bookings and ride_requests (status completed or paid)
       final todayBookings = await _firestore
           .collection('bookings')
           .where('driverId', isEqualTo: driverId)
-          .where('status', isEqualTo: 'completed')
-          .where('isPaid', isEqualTo: true)
-          .where('completedAt', isGreaterThanOrEqualTo: Timestamp.fromDate(startOfDay))
+          .where('status', whereIn: statusList)
+          .where('completedAt', isGreaterThanOrEqualTo: todayTimestamp)
+          .get();
+
+      final todayRideRequests = await _firestore
+          .collection('ride_requests')
+          .where('driverId', isEqualTo: driverId)
+          .where('status', whereIn: statusList)
+          .where('completedAt', isGreaterThanOrEqualTo: todayTimestamp)
           .get();
 
       double todayEarnings = 0;
+      int todayRides = 0;
+
+      // Process today's bookings earnings
       for (var doc in todayBookings.docs) {
-        final fare = doc.data()['fare'];
+        final data = doc.data();
+        final fare =
+            data['fare'] ?? data['price'] ?? data['amount'] ?? data['cost'];
         if (fare != null) {
           todayEarnings += (fare as num).toDouble();
         }
+        todayRides++;
+      }
+
+      // Process today's ride_requests earnings
+      for (var doc in todayRideRequests.docs) {
+        final data = doc.data();
+        final fare =
+            data['fare'] ?? data['price'] ?? data['amount'] ?? data['cost'];
+        if (fare != null) {
+          todayEarnings += (fare as num).toDouble();
+        }
+        todayRides++;
       }
 
       return {
@@ -413,7 +506,7 @@ class DriverService {
         'totalEarnings': totalEarnings,
         'totalRides': totalRides,
         'todayEarnings': todayEarnings,
-        'todayRides': todayBookings.docs.length,
+        'todayRides': todayRides,
       };
     } catch (e) {
       return {
@@ -434,16 +527,15 @@ class DriverService {
     return _firestore
         .collection('notifications')
         .where('driverId', isEqualTo: driverId)
-      
         .limit(50)
         .snapshots()
         .map((snapshot) {
-      return snapshot.docs.map((doc) {
-        final data = doc.data();
-        data['id'] = doc.id;
-        return data;
-      }).toList();
-    });
+          return snapshot.docs.map((doc) {
+            final data = doc.data();
+            data['id'] = doc.id;
+            return data;
+          }).toList();
+        });
   }
 
   /// Mark notification as read
@@ -463,11 +555,7 @@ class DriverService {
           .get();
 
       if (reviews.docs.isEmpty) {
-        return {
-          'success': true,
-          'averageRating': 0.0,
-          'totalReviews': 0,
-        };
+        return {'success': true, 'averageRating': 0.0, 'totalReviews': 0};
       }
 
       double totalRating = 0;
@@ -491,7 +579,9 @@ class DriverService {
         'totalReviews': 0,
       };
     }
-  } Future<double> getTotalEarnings(String driverId) async {
+  }
+
+  Future<double> getTotalEarnings(String driverId) async {
     final rides = await _firestore
         .collection('ride_requests')
         .where('driverId', isEqualTo: driverId)
@@ -507,16 +597,24 @@ class DriverService {
 
   // Get rides from a specific pickup or destination location
   Future<List<Map<String, dynamic>>> getRidesByLocation(
-      String driverId, String location) async {
+    String driverId,
+    String location,
+  ) async {
     final rides = await _firestore
         .collection('ride_requests')
         .where('driverId', isEqualTo: driverId)
         .get();
 
     return rides.docs
-        .where((r) =>
-            (r['pickup'] ?? '').toString().toLowerCase().contains(location.toLowerCase()) ||
-            (r['destination'] ?? '').toString().toLowerCase().contains(location.toLowerCase()))
+        .where(
+          (r) =>
+              (r['pickup'] ?? '').toString().toLowerCase().contains(
+                location.toLowerCase(),
+              ) ||
+              (r['destination'] ?? '').toString().toLowerCase().contains(
+                location.toLowerCase(),
+              ),
+        )
         .map((r) => r.data())
         .toList();
   }
@@ -539,7 +637,9 @@ class DriverService {
       ..sort((a, b) => b.value.compareTo(a.value));
 
     return Map.fromEntries(sortedEntries.take(5));
-  }Future<Map<String, dynamic>> getDriverContext(String driverId) async {
+  }
+
+  Future<Map<String, dynamic>> getDriverContext(String driverId) async {
     double totalEarnings = 0;
     Map<String, int> locationCount = {};
 
