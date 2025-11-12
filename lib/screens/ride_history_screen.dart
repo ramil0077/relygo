@@ -52,36 +52,80 @@ class _RideHistoryScreenState extends State<RideHistoryScreen> {
 
           // Rides List - Firestore
           Expanded(
-            child: StreamBuilder<List<Map<String, dynamic>>>(
-              stream: UserService.getUserBookingsStream(
-                AuthService.currentUserId ?? '',
-              ),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
+            child: FutureBuilder<Map<String, dynamic>?>(
+              future: AuthService.getUserData(AuthService.currentUserId ?? ''),
+              builder: (context, userSnapshot) {
+                if (userSnapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
                 }
-                if (snapshot.hasError) {
+                if (userSnapshot.hasError) {
                   return Center(
                     child: Text(
-                      'Failed to load rides',
+                      'Failed to load user data',
                       style: GoogleFonts.poppins(color: Mycolors.red),
                     ),
                   );
                 }
-                final rides = snapshot.data ?? [];
-                if (rides.isEmpty) {
-                  return Center(
-                    child: Text(
-                      'No rides found',
-                      style: GoogleFonts.poppins(color: Mycolors.gray),
-                    ),
-                  );
-                }
-                return ListView.builder(
-                  padding: const EdgeInsets.all(20),
-                  itemCount: rides.length,
-                  itemBuilder: (context, index) {
-                    final booking = rides[index];
+
+                final userData = userSnapshot.data;
+                final isDriver = (userData != null &&
+                    (userData['userType'] ?? '').toString().toLowerCase() ==
+                        'driver');
+
+                // Choose stream: drivers see ride_requests assigned to them,
+                // users see their ride_requests history.
+                final Stream<List<Map<String, dynamic>>> ridesStream = isDriver
+                    ? FirebaseFirestore.instance
+                        .collection('ride_requests')
+                        .where('driverId',
+                            isEqualTo: AuthService.currentUserId ?? '')
+                        .snapshots()
+                        .map((snapshot) => snapshot.docs.map((doc) {
+                              final data = Map<String, dynamic>.from(doc.data());
+                              // Normalize field names used by UI
+                              if (data['pickupLocation'] == null &&
+                                  data['pickup'] != null) {
+                                data['pickupLocation'] = data['pickup'];
+                              }
+                              if (data['dropoffLocation'] == null &&
+                                  data['destination'] != null) {
+                                data['dropoffLocation'] = data['destination'];
+                              }
+                              data['id'] = doc.id;
+                              return data;
+                            }).toList())
+                    : UserService.getUserBookingHistoryStream(
+                        AuthService.currentUserId ?? '');
+
+                return StreamBuilder<List<Map<String, dynamic>>>(
+                  stream: ridesStream,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    if (snapshot.hasError) {
+                      return Center(
+                        child: Text(
+                          'Failed to load rides',
+                          style: GoogleFonts.poppins(color: Mycolors.red),
+                        ),
+                      );
+                    }
+                    final rides = snapshot.data ?? [];
+                    if (rides.isEmpty) {
+                      return Center(
+                        child: Text(
+                          'No rides found',
+                          style: GoogleFonts.poppins(color: Mycolors.gray),
+                        ),
+                      );
+                    }
+
+                    return ListView.builder(
+                      padding: const EdgeInsets.all(20),
+                      itemCount: rides.length,
+                      itemBuilder: (context, index) {
+                        final booking = rides[index];
                     final destination =
                         booking['dropoffLocation'] ?? 'Destination';
                     final driverName = booking['driverName'] ?? 'Driver';
@@ -119,9 +163,9 @@ class _RideHistoryScreenState extends State<RideHistoryScreen> {
                   },
                 );
               },
-            ),
-          ),
-        ],
+                );
+  }),
+      )],
       ),
     );
   }
@@ -471,7 +515,7 @@ class _RideHistoryScreenState extends State<RideHistoryScreen> {
   String _statusString(dynamic raw) {
     final v = (raw ?? '').toString().toLowerCase();
     if (v == 'completed') return 'Completed';
-    if (v == 'cancelled' || v == 'canceled') return 'Cancelled';
+    if (v == 'cancelled') return 'Cancelled';
     if (v == 'pending') return 'Pending';
     if (v == 'accepted') return 'Accepted';
     if (v == 'ongoing') return 'Ongoing';
@@ -504,283 +548,105 @@ class _RideHistoryScreenState extends State<RideHistoryScreen> {
         final dt = createdAt.toDate();
         return "${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')}";
       }
-      if (createdAt is String) return createdAt;
       return createdAt?.toString() ?? '';
     } catch (_) {
       return '';
     }
   }
 
-  DateTime? _parseTimestamp(dynamic value) {
-    try {
-      if (value == null) return null;
-      if (value is Timestamp) return value.toDate();
-      if (value is String) return DateTime.tryParse(value);
-      return null;
-    } catch (_) {
-      return null;
-    }
-  }
-
-  List<Map<String, dynamic>> _applyDateFilter(List<Map<String, dynamic>> rides, String filter) {
-    if (filter == 'All') return rides;
-    final now = DateTime.now();
-    return rides.where((r) {
-      final created = _parseTimestamp(r['createdAt']);
-      if (created == null) return false;
-      if (filter == 'Today') {
-        return created.year == now.year && created.month == now.month && created.day == now.day;
-      }
-      if (filter == 'Week') {
-        final startOfWeek = now.subtract(Duration(days: now.weekday - 1));
-        return created.isAfter(startOfWeek);
-      }
-      if (filter == 'Month') {
-        return created.year == now.year && created.month == now.month;
-      }
-      return true;
-    }).toList();
-  }
-
-  void _showRideDetailsDialog(String destination, String driverName, String distance, String price, String time, String rating) {
+  void _showRideDetailsDialog(
+    String destination,
+    String driverName,
+    String distance,
+    String price,
+    String time,
+    String rating,
+  ) {
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text('Ride Details', style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Destination: $destination', style: GoogleFonts.poppins()),
-            Text('Driver: $driverName', style: GoogleFonts.poppins()),
-            Text('Distance: $distance', style: GoogleFonts.poppins()),
-            Text('Fare: $price', style: GoogleFonts.poppins()),
-            Text('Time: $time', style: GoogleFonts.poppins()),
-            if (rating != '0.0') Text('Rating: $rating ⭐', style: GoogleFonts.poppins()),
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Text(
+            "Ride Details",
+            style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text("Destination: $destination", style: GoogleFonts.poppins()),
+              Text("Driver: $driverName", style: GoogleFonts.poppins()),
+              Text("Distance: $distance", style: GoogleFonts.poppins()),
+              Text("Duration: 15 minutes", style: GoogleFonts.poppins()),
+              Text("Fare: $price", style: GoogleFonts.poppins()),
+              Text("Time: $time", style: GoogleFonts.poppins()),
+              if (rating != "0.0")
+                Text("Rating: $rating ⭐", style: GoogleFonts.poppins()),
+              const SizedBox(height: 10),
+              Text("Payment Method: Credit Card", style: GoogleFonts.poppins()),
+              Text("Ride ID: #RIDE123456", style: GoogleFonts.poppins()),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                "Close",
+                style: GoogleFonts.poppins(color: Colors.grey),
+              ),
+            ),
           ],
-        ),
-        actions: [TextButton(onPressed: () => Navigator.of(ctx).pop(), child: Text('Close', style: GoogleFonts.poppins(color: Colors.grey)))],
-      ),
+        );
+      },
     );
   }
 
   void _showBookAgainDialog(String destination) {
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text('Book Again', style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
-        content: Text('Would you like to book a ride to $destination again?', style: GoogleFonts.poppins()),
-        actions: [
-          TextButton(onPressed: () => Navigator.of(ctx).pop(), child: Text('Cancel', style: GoogleFonts.poppins(color: Colors.grey))),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.of(ctx).pop();
-              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: const Text('Redirecting to booking...'), backgroundColor: Mycolors.green));
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: Mycolors.green, foregroundColor: Colors.white),
-            child: Text('Book Now', style: GoogleFonts.poppins()),
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFilterChip(String label, String value) {
-    final bool isSelected = _selectedFilter == value;
-    return GestureDetector(
-      onTap: () => setState(() => _selectedFilter = value),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          color: isSelected ? Mycolors.basecolor : Colors.grey.shade100,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: isSelected ? Mycolors.basecolor : Colors.grey.shade300),
-        ),
-        child: Text(label, style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w600, color: isSelected ? Colors.white : Colors.black)),
-      ),
-    );
-  }
-
-  Widget _buildActionButtons(String status, String destination, String driverName, String distance, String price, String time, String rating, String rideId, String driverId) {
-    Widget viewDetailsButton = Expanded(
-      child: OutlinedButton.icon(
-        onPressed: () => _showRideDetailsDialog(destination, driverName, distance, price, time, rating),
-        icon: const Icon(Icons.info, size: 18),
-        label: Text('View Details', style: GoogleFonts.poppins(fontSize: 14)),
-        style: OutlinedButton.styleFrom(foregroundColor: Mycolors.basecolor, side: BorderSide(color: Mycolors.basecolor)),
-      ),
-    );
-
-    Widget spacer = const SizedBox(width: 10);
-
-    if (status == 'Completed' || status == 'Paid') {
-      return Row(children: [
-        viewDetailsButton,
-        spacer,
-        Expanded(
-          child: OutlinedButton.icon(
-            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => ReviewSubmissionScreen(driverId: driverId, driverName: driverName, rideId: rideId, destination: destination))),
-            icon: const Icon(Icons.star, size: 18),
-            label: Text('Rate Driver', style: GoogleFonts.poppins(fontSize: 14)),
-            style: OutlinedButton.styleFrom(foregroundColor: Mycolors.orange, side: BorderSide(color: Mycolors.orange)),
+          title: Text(
+            "Book Again",
+            style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
           ),
-        ),
-      ]);
-    } else if (status == 'Cancelled') {
-      return Row(children: [
-        viewDetailsButton,
-        spacer,
-        Expanded(
-          child: OutlinedButton.icon(
-            onPressed: () => _showBookAgainDialog(destination),
-            icon: const Icon(Icons.repeat, size: 18),
-            label: Text('Book Again', style: GoogleFonts.poppins(fontSize: 14)),
-            style: OutlinedButton.styleFrom(foregroundColor: Mycolors.green, side: BorderSide(color: Mycolors.green)),
+          content: Text(
+            "Would you like to book a ride to $destination again?",
+            style: GoogleFonts.poppins(),
           ),
-        ),
-      ]);
-    } else {
-      return Row(children: [
-        viewDetailsButton,
-        spacer,
-        Expanded(
-          child: OutlinedButton.icon(
-            onPressed: () => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Ride is $status'), backgroundColor: Mycolors.basecolor)),
-            icon: const Icon(Icons.timeline, size: 18),
-            label: Text('Track Ride', style: GoogleFonts.poppins(fontSize: 14)),
-            style: OutlinedButton.styleFrom(foregroundColor: Mycolors.green, side: BorderSide(color: Mycolors.green)),
-          ),
-        ),
-      ]);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final userId = AuthService.currentUserId;
-
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        title: Text('Ride History', style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black)),
-      ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            child: Row(
-              children: [
-                _buildFilterChip('All', 'All'),
-                const SizedBox(width: 10),
-                _buildFilterChip('Today', 'Today'),
-                const SizedBox(width: 10),
-                _buildFilterChip('This Week', 'Week'),
-                const SizedBox(width: 10),
-                _buildFilterChip('This Month', 'Month'),
-              ],
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                "Cancel",
+                style: GoogleFonts.poppins(color: Colors.grey),
+              ),
             ),
-          ),
-          Expanded(
-            child: userId == null
-                ? Center(child: Text('Please sign in to view ride history', style: GoogleFonts.poppins(color: Mycolors.gray)))
-                : StreamBuilder<List<Map<String, dynamic>>>(
-                    stream: UserService.getUserBookingHistoryStream(userId),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(child: CircularProgressIndicator());
-                      }
-                      if (snapshot.hasError) {
-                        return Center(child: Text('Failed to load rides', style: GoogleFonts.poppins(color: Mycolors.red)));
-                      }
-
-                      final rides = snapshot.data ?? [];
-                      final filtered = _applyDateFilter(rides, _selectedFilter);
-
-                      if (filtered.isEmpty) {
-                        return Center(child: Text('No rides found', style: GoogleFonts.poppins(color: Mycolors.gray)));
-                      }
-
-                      return ListView.builder(
-                        padding: const EdgeInsets.all(20),
-                        itemCount: filtered.length,
-                        itemBuilder: (context, index) {
-                          final booking = filtered[index];
-                          final destination = booking['dropoffLocation'] ?? booking['destination'] ?? 'Destination';
-
-                          String driverName = 'Driver';
-                          if (booking['driverName'] != null && booking['driverName'].toString().trim().isNotEmpty) {
-                            driverName = booking['driverName'].toString();
-                          } else if (booking['driverDetails'] is Map) {
-                            final det = booking['driverDetails'] as Map;
-                            driverName = (det['name'] ?? det['fullName'] ?? det['driverName'])?.toString() ?? 'Driver';
-                          }
-
-                          final distance = booking['distance']?.toString() ?? 'N/A';
-                          final dynamic fareValue = booking['fare'] ?? booking['price'] ?? booking['amount'];
-                          final price = (fareValue != null) ? '₹${fareValue.toString()}' : '₹0';
-                          final status = _statusString(booking['status']);
-                          final statusColor = _statusColor(status);
-                          final time = _formatDate(booking['createdAt']);
-                          final rating = (booking['rating'] is num) ? (booking['rating'] as num).toString() : (booking['rating']?.toString() ?? '0.0');
-                          final icon = status == 'Cancelled' ? Icons.cancel : Icons.directions_car;
-                          final bookingId = booking['id'] ?? '';
-                          final driverId = booking['driverId'] ?? '';
-
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 15),
-                            child: Container(
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: Colors.grey.shade300),
-                                boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.1), blurRadius: 5, offset: const Offset(0, 2))],
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Row(children: [Icon(icon, color: statusColor, size: 20), const SizedBox(width: 8), Text(status, style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w600, color: statusColor))]),
-                                      Text(time, style: GoogleFonts.poppins(fontSize: 12, color: Mycolors.gray)),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 12),
-                                  Text(destination, style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black)),
-                                  const SizedBox(height: 8),
-                                  Row(
-                                    children: [
-                                      CircleAvatar(radius: 16, backgroundColor: Mycolors.basecolor.withOpacity(0.1), child: Text(driverName.isNotEmpty ? driverName[0] : '-', style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.bold, color: Mycolors.basecolor))),
-                                      const SizedBox(width: 12),
-                                      Expanded(child: Text(driverName, style: GoogleFonts.poppins(fontSize: 14, color: Colors.black))),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 12),
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Row(children: [Icon(Icons.straighten, color: Mycolors.gray, size: 16), const SizedBox(width: 4), Text(distance, style: GoogleFonts.poppins(fontSize: 14, color: Mycolors.gray))]),
-                                      Text(price, style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold, color: Mycolors.basecolor)),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 12),
-                                  _buildActionButtons(status, destination, driverName, distance, price, time, rating, bookingId, driverId),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
-                      );
-                    },
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: const Text('Redirecting to booking...'),
+                    backgroundColor: Mycolors.green,
                   ),
-          ),
-        ],
-      ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Mycolors.green,
+                foregroundColor: Colors.white,
+              ),
+              child: Text("Book Now", style: GoogleFonts.poppins()),
+            ),
+          ],
+        );
+      },
     );
   }
 }

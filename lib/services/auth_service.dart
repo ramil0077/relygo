@@ -243,7 +243,10 @@ class AuthService {
           .get();
 
       if (userDoc.exists) {
-        return userDoc.data() as Map<String, dynamic>;
+        final raw = userDoc.data();
+        if (raw is Map<String, dynamic>) return raw;
+        if (raw is Map) return Map<String, dynamic>.from(raw);
+        return <String, dynamic>{};
       }
       return null;
     } catch (e) {

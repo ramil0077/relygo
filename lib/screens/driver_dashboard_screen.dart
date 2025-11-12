@@ -156,7 +156,12 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                               .doc(AuthService.currentUserId)
                               .snapshots(),
                           builder: (context, snapshot) {
-                            final userName = snapshot.data?['name'] ?? 'Driver';
+                            final doc = snapshot.data;
+                            final Map<String, dynamic>? docData = doc != null
+                                ? (doc.data() as Map<String, dynamic>?)
+                                : null;
+                            final userName =
+                                docData?['name']?.toString() ?? 'Driver';
                             return Text(
                               "Good Morning, ${userName}",
                               style: ResponsiveTextStyles.getTitleStyle(
