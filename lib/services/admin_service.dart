@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:relygo/services/email_service.dart';
 
 class AdminService {
   static final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -50,6 +51,30 @@ class AdminService {
         'approvedAt': FieldValue.serverTimestamp(),
         'updatedAt': FieldValue.serverTimestamp(),
       });
+
+      // Try to send approval email to driver (non-fatal if it fails)
+      try {
+        final doc = await _firestore.collection('users').doc(driverId).get();
+        if (doc.exists) {
+          final dataRaw = doc.data();
+          String? email;
+          String? name;
+          if (dataRaw is Map<String, dynamic>) {
+            email = dataRaw['email']?.toString();
+            name = dataRaw['name']?.toString();
+          }
+
+          if (email != null && email.isNotEmpty) {
+            await EmailService.sendDriverApprovalEmail(
+              toEmail: email,
+              driverName: name ?? 'Driver',
+            );
+          }
+        }
+      } catch (e) {
+        // Log but continue - approval already applied in Firestore
+        print('Failed to send approval email: $e');
+      }
 
       return {
         'success': true,

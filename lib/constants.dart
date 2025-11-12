@@ -210,3 +210,13 @@ class ResponsiveSpacing {
     );
   }
 }
+
+// EmailJS configuration - replace these with values from your EmailJS account
+class EmailJsConfig {
+  // public (user) id from EmailJS - safe to use on client for EmailJS
+  static const String userId = '<YOUR_EMAILJS_USER_ID>'; // e.g. user_XXXXXXXXX
+  static const String serviceId =
+      '<YOUR_EMAILJS_SERVICE_ID>'; // e.g. service_xxx
+  static const String templateId =
+      '<YOUR_EMAILJS_TEMPLATE_ID>'; // e.g. template_xxx
+}
