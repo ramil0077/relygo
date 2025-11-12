@@ -451,6 +451,15 @@ class UserService {
             final rawStatus = (rideData['status'] ?? '').toString().toLowerCase();
             if (rawStatus == 'paid') rideData['status'] = 'completed';
 
+            // Normalize location field names
+            // ride_requests uses 'pickup' and 'destination', but UI expects 'pickupLocation' and 'dropoffLocation'
+            if (rideData['pickupLocation'] == null && rideData['pickup'] != null) {
+              rideData['pickupLocation'] = rideData['pickup'];
+            }
+            if (rideData['dropoffLocation'] == null && rideData['destination'] != null) {
+              rideData['dropoffLocation'] = rideData['destination'];
+            }
+
             // Fill a best-effort createdAt
             rideData['createdAt'] =
                 rideData['createdAt'] ?? rideData['updatedAt'] ?? rideData['paidAt'];
