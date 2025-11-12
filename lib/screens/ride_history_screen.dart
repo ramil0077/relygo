@@ -52,36 +52,80 @@ class _RideHistoryScreenState extends State<RideHistoryScreen> {
 
           // Rides List - Firestore
           Expanded(
-            child: StreamBuilder<List<Map<String, dynamic>>>(
-              stream: UserService.getUserBookingsStream(
-                AuthService.currentUserId ?? '',
-              ),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
+            child: FutureBuilder<Map<String, dynamic>?>(
+              future: AuthService.getUserData(AuthService.currentUserId ?? ''),
+              builder: (context, userSnapshot) {
+                if (userSnapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
                 }
-                if (snapshot.hasError) {
+                if (userSnapshot.hasError) {
                   return Center(
                     child: Text(
-                      'Failed to load rides',
+                      'Failed to load user data',
                       style: GoogleFonts.poppins(color: Mycolors.red),
                     ),
                   );
                 }
-                final rides = snapshot.data ?? [];
-                if (rides.isEmpty) {
-                  return Center(
-                    child: Text(
-                      'No rides found',
-                      style: GoogleFonts.poppins(color: Mycolors.gray),
-                    ),
-                  );
-                }
-                return ListView.builder(
-                  padding: const EdgeInsets.all(20),
-                  itemCount: rides.length,
-                  itemBuilder: (context, index) {
-                    final booking = rides[index];
+
+                final userData = userSnapshot.data;
+                final isDriver = (userData != null &&
+                    (userData['userType'] ?? '').toString().toLowerCase() ==
+                        'driver');
+
+                // Choose stream: drivers see ride_requests assigned to them,
+                // users see their ride_requests history.
+                final Stream<List<Map<String, dynamic>>> ridesStream = isDriver
+                    ? FirebaseFirestore.instance
+                        .collection('ride_requests')
+                        .where('driverId',
+                            isEqualTo: AuthService.currentUserId ?? '')
+                        .snapshots()
+                        .map((snapshot) => snapshot.docs.map((doc) {
+                              final data = Map<String, dynamic>.from(doc.data());
+                              // Normalize field names used by UI
+                              if (data['pickupLocation'] == null &&
+                                  data['pickup'] != null) {
+                                data['pickupLocation'] = data['pickup'];
+                              }
+                              if (data['dropoffLocation'] == null &&
+                                  data['destination'] != null) {
+                                data['dropoffLocation'] = data['destination'];
+                              }
+                              data['id'] = doc.id;
+                              return data;
+                            }).toList())
+                    : UserService.getUserBookingHistoryStream(
+                        AuthService.currentUserId ?? '');
+
+                return StreamBuilder<List<Map<String, dynamic>>>(
+                  stream: ridesStream,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    if (snapshot.hasError) {
+                      return Center(
+                        child: Text(
+                          'Failed to load rides',
+                          style: GoogleFonts.poppins(color: Mycolors.red),
+                        ),
+                      );
+                    }
+                    final rides = snapshot.data ?? [];
+                    if (rides.isEmpty) {
+                      return Center(
+                        child: Text(
+                          'No rides found',
+                          style: GoogleFonts.poppins(color: Mycolors.gray),
+                        ),
+                      );
+                    }
+
+                    return ListView.builder(
+                      padding: const EdgeInsets.all(20),
+                      itemCount: rides.length,
+                      itemBuilder: (context, index) {
+                        final booking = rides[index];
                     final destination =
                         booking['dropoffLocation'] ?? 'Destination';
                     final driverName = booking['driverName'] ?? 'Driver';
@@ -119,9 +163,9 @@ class _RideHistoryScreenState extends State<RideHistoryScreen> {
                   },
                 );
               },
-            ),
-          ),
-        ],
+                );
+  }),
+      )],
       ),
     );
   }
