@@ -4,6 +4,7 @@ import 'package:relygo/constants.dart';
 import 'package:relygo/screens/review_submission_screen.dart';
 import 'package:relygo/services/user_service.dart';
 import 'package:relygo/services/auth_service.dart';
+import 'package:relygo/utils/responsive.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class RideHistoryScreen extends StatefulWidget {
@@ -36,15 +37,30 @@ class _RideHistoryScreenState extends State<RideHistoryScreen> {
         children: [
           // Filter Tabs
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            padding: ResponsiveUtils.getResponsiveHorizontalPadding(context),
             child: Row(
               children: [
                 _buildFilterChip("All", "All"),
-                const SizedBox(width: 10),
+                SizedBox(
+                  width: ResponsiveUtils.getResponsiveSpacing(
+                    context,
+                    mobile: 8,
+                  ),
+                ),
                 _buildFilterChip("Today", "Today"),
-                const SizedBox(width: 10),
+                SizedBox(
+                  width: ResponsiveUtils.getResponsiveSpacing(
+                    context,
+                    mobile: 8,
+                  ),
+                ),
                 _buildFilterChip("This Week", "Week"),
-                const SizedBox(width: 10),
+                SizedBox(
+                  width: ResponsiveUtils.getResponsiveSpacing(
+                    context,
+                    mobile: 8,
+                  ),
+                ),
                 _buildFilterChip("This Month", "Month"),
               ],
             ),
@@ -68,7 +84,8 @@ class _RideHistoryScreenState extends State<RideHistoryScreen> {
                 }
 
                 final userData = userSnapshot.data;
-                final isDriver = (userData != null &&
+                final isDriver =
+                    (userData != null &&
                     (userData['userType'] ?? '').toString().toLowerCase() ==
                         'driver');
 
@@ -76,12 +93,23 @@ class _RideHistoryScreenState extends State<RideHistoryScreen> {
                 // users see their ride_requests history.
                 final Stream<List<Map<String, dynamic>>> ridesStream = isDriver
                     ? FirebaseFirestore.instance
-                        .collection('ride_requests')
-                        .where('driverId',
-                            isEqualTo: AuthService.currentUserId ?? '')
-                        .snapshots()
-                        .map((snapshot) => snapshot.docs.map((doc) {
-                              final data = Map<String, dynamic>.from(doc.data());
+                          .collection('ride_requests')
+                          .where(
+                            'driverId',
+                            isEqualTo: AuthService.currentUserId ?? '',
+                          )
+                          .snapshots()
+                          .map(
+                            (snapshot) => snapshot.docs.map((doc) {
+                              final raw = doc.data();
+                              Map<String, dynamic> data;
+                              if (raw is Map<String, dynamic>) {
+                                data = raw;
+                              } else if (raw is Map) {
+                                data = Map<String, dynamic>.from(raw);
+                              } else {
+                                data = {};
+                              }
                               // Normalize field names used by UI
                               if (data['pickupLocation'] == null &&
                                   data['pickup'] != null) {
@@ -93,9 +121,11 @@ class _RideHistoryScreenState extends State<RideHistoryScreen> {
                               }
                               data['id'] = doc.id;
                               return data;
-                            }).toList())
+                            }).toList(),
+                          )
                     : UserService.getUserBookingHistoryStream(
-                        AuthService.currentUserId ?? '');
+                        AuthService.currentUserId ?? '',
+                      );
 
                 return StreamBuilder<List<Map<String, dynamic>>>(
                   stream: ridesStream,
@@ -122,50 +152,57 @@ class _RideHistoryScreenState extends State<RideHistoryScreen> {
                     }
 
                     return ListView.builder(
-                      padding: const EdgeInsets.all(20),
+                      padding: ResponsiveUtils.getResponsivePadding(context),
                       itemCount: rides.length,
                       itemBuilder: (context, index) {
                         final booking = rides[index];
-                    final destination =
-                        booking['dropoffLocation'] ?? 'Destination';
-                    final driverName = booking['driverName'] ?? 'Driver';
-                    final distance = booking['distance'] ?? 'N/A';
-                    final price = booking['fare'] != null
-                        ? '₹${booking['fare']}'
-                        : '₹0';
-                    final status = _statusString(booking['status']);
-                    final statusColor = _statusColor(status);
-                    final time = _formatDate(booking['createdAt']);
-                    final rating = (booking['rating'] is num)
-                        ? (booking['rating'] as num).toString()
-                        : '0.0';
-                    final icon = status == 'Cancelled'
-                        ? Icons.cancel
-                        : Icons.directions_car;
-                    final bookingId = booking['id'] ?? '';
-                    final driverId = booking['driverId'] ?? '';
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 15),
-                      child: _buildRideCard(
-                        destination,
-                        driverName,
-                        distance,
-                        price,
-                        status,
-                        statusColor,
-                        time,
-                        rating,
-                        icon,
-                        bookingId,
-                        driverId,
-                      ),
+                        final destination =
+                            booking['dropoffLocation'] ?? 'Destination';
+                        final driverName = booking['driverName'] ?? 'Driver';
+                        final distance = booking['distance'] ?? 'N/A';
+                        final price = booking['fare'] != null
+                            ? '₹${booking['fare']}'
+                            : '₹0';
+                        final status = _statusString(booking['status']);
+                        final statusColor = _statusColor(status);
+                        final time = _formatDate(booking['createdAt']);
+                        final rating = (booking['rating'] is num)
+                            ? (booking['rating'] as num).toString()
+                            : '0.0';
+                        final icon = status == 'Cancelled'
+                            ? Icons.cancel
+                            : Icons.directions_car;
+                        final bookingId = booking['id'] ?? '';
+                        final driverId = booking['driverId'] ?? '';
+                        return Padding(
+                          padding: EdgeInsets.only(
+                            bottom: ResponsiveUtils.getResponsiveSpacing(
+                              context,
+                              mobile: 12,
+                            ),
+                          ),
+                          child: _buildRideCard(
+                            destination,
+                            driverName,
+                            distance,
+                            price,
+                            status,
+                            statusColor,
+                            time,
+                            rating,
+                            icon,
+                            bookingId,
+                            driverId,
+                          ),
+                        );
+                      },
                     );
                   },
                 );
               },
-                );
-  }),
-      )],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -179,7 +216,10 @@ class _RideHistoryScreenState extends State<RideHistoryScreen> {
         });
       },
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: EdgeInsets.symmetric(
+          horizontal: ResponsiveUtils.getResponsiveSpacing(context, mobile: 12),
+          vertical: ResponsiveUtils.getResponsiveSpacing(context, mobile: 8),
+        ),
         decoration: BoxDecoration(
           color: isSelected ? Mycolors.basecolor : Colors.grey.shade100,
           borderRadius: BorderRadius.circular(20),
@@ -190,7 +230,10 @@ class _RideHistoryScreenState extends State<RideHistoryScreen> {
         child: Text(
           label,
           style: GoogleFonts.poppins(
-            fontSize: 14,
+            fontSize: ResponsiveUtils.getResponsiveFontSize(
+              context,
+              mobile: 14,
+            ),
             fontWeight: FontWeight.w600,
             color: isSelected ? Colors.white : Colors.black,
           ),
