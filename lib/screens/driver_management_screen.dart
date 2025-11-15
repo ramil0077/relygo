@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:relygo/constants.dart';
 import 'package:relygo/services/admin_service.dart';
+import 'package:relygo/utils/phone_validation.dart';
 
 class DriverManagementScreen extends StatefulWidget {
   const DriverManagementScreen({super.key});
@@ -570,11 +571,16 @@ class _DriverManagementScreenState extends State<DriverManagementScreen> {
               TextField(
                 decoration: InputDecoration(
                   labelText: "Phone",
+                  helperText: "Numbers only",
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
                 controller: TextEditingController(text: "+91 98765 43210"),
+                keyboardType: TextInputType.phone,
+                inputFormatters: [
+                  PhoneNumberInputFormatter(), // Only allows digits
+                ],
               ),
             ],
           ),

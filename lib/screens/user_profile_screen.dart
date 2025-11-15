@@ -5,6 +5,7 @@ import 'package:relygo/services/auth_service.dart';
 import 'package:relygo/screens/signin_screen.dart';
 import 'package:relygo/screens/complaint_submission_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:relygo/utils/phone_validation.dart';
 // AppSettings are defined in constants.dart
 
 class UserProfileScreen extends StatefulWidget {
@@ -319,11 +320,16 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               TextField(
                 decoration: InputDecoration(
                   labelText: "Phone",
+                  helperText: "Numbers only (10-13 digits)",
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
                 controller: phoneController,
+                keyboardType: TextInputType.phone,
+                inputFormatters: [
+                  PhoneNumberInputFormatter(), // Only allows digits
+                ],
               ),
             ],
           ),

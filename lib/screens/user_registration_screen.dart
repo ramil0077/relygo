@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:relygo/constants.dart';
 import 'package:relygo/screens/user_dashboard_screen.dart';
 import 'package:relygo/services/auth_service.dart';
+import 'package:relygo/utils/phone_validation.dart';
 
 class UserRegistrationScreen extends StatefulWidget {
   const UserRegistrationScreen({super.key});
@@ -192,8 +193,12 @@ class _UserRegistrationScreenState extends State<UserRegistrationScreen> {
                 TextFormField(
                   controller: _phoneController,
                   keyboardType: TextInputType.phone,
+                  inputFormatters: [
+                    PhoneNumberInputFormatter(), // Only allows digits
+                  ],
                   decoration: InputDecoration(
                     hintText: "Enter your phone number",
+                    helperText: "Enter 10-13 digits (numbers only)",
                     prefixIcon: Icon(Icons.phone, color: Mycolors.basecolor),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -206,15 +211,7 @@ class _UserRegistrationScreenState extends State<UserRegistrationScreen> {
                       ),
                     ),
                   ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter phone number';
-                    }
-                    if (value.length < 10) {
-                      return 'Please enter a valid phone number';
-                    }
-                    return null;
-                  },
+                  validator: PhoneValidation.validatePhoneNumber,
                 ),
                 const SizedBox(height: 20),
 

@@ -7,6 +7,7 @@ import 'package:relygo/widgets/image_upload_widget.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:relygo/screens/signin_screen.dart';
 import 'package:relygo/services/driver_service.dart';
+import 'package:relygo/utils/phone_validation.dart';
 
 class DriverProfileScreen extends StatefulWidget {
   final String? initialSection;
@@ -510,11 +511,16 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
               TextField(
                 decoration: InputDecoration(
                   labelText: "Phone",
+                  helperText: "Numbers only (10-13 digits)",
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
                 controller: phoneCtrl,
+                keyboardType: TextInputType.phone,
+                inputFormatters: [
+                  PhoneNumberInputFormatter(), // Only allows digits
+                ],
               ),
               const SizedBox(height: 15),
               TextField(
