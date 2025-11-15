@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:relygo/constants.dart';
+import 'package:relygo/utils/platform_utils.dart';
 
 class TrackDriverMap extends StatefulWidget {
   final String driverId; // Same ID used by driver document in Firestore
@@ -56,6 +59,74 @@ class _TrackDriverMapState extends State<TrackDriverMap> {
 
   @override
   Widget build(BuildContext context) {
+    // Show message on web that location tracking is not available
+    if (PlatformUtils.isWeb) {
+      return Scaffold(
+        appBar: AppBar(
+          title: Text(
+            'Track Your Driver',
+            style: GoogleFonts.poppins(),
+          ),
+        ),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(40),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.location_off,
+                  size: 80,
+                  color: Mycolors.basecolor.withOpacity(0.5),
+                ),
+                const SizedBox(height: 24),
+                Text(
+                  'Location Tracking Not Available on Web',
+                  style: GoogleFonts.poppins(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Real-time location tracking is only available on mobile devices. Please use the mobile app to track your driver.',
+                  style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    color: Colors.grey[600],
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 32),
+                ElevatedButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Mycolors.basecolor,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 32,
+                      vertical: 16,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: Text(
+                    'Go Back',
+                    style: GoogleFonts.poppins(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(title: const Text('Track Your Driver')),
 

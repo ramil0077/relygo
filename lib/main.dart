@@ -4,13 +4,16 @@ import 'package:relygo/firebase_options.dart';
 import 'package:relygo/screens/splash.dart';
 import 'package:relygo/constants.dart';
 import 'package:relygo/services/background_service.dart';
+import 'package:relygo/utils/platform_utils.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  // Start background service for ride completion checking
-  BackgroundService.startRideCompletionChecker();
+  // Start background service for ride completion checking (only on mobile)
+  if (PlatformUtils.isBackgroundServiceEnabled) {
+    BackgroundService.startRideCompletionChecker();
+  }
 
   runApp(const MyApp());
 }
