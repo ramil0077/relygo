@@ -6,6 +6,7 @@ import 'package:relygo/screens/user_profile_screen.dart';
 import 'package:relygo/screens/ride_history_screen.dart';
 import 'package:relygo/screens/chat_detail_screen.dart';
 import 'package:relygo/screens/payment_screen.dart';
+import 'package:relygo/screens/driver_tracking_screen.dart';
 import 'package:relygo/widgets/animated_bottom_nav_bar.dart';
 import 'package:relygo/utils/responsive.dart';
 import 'package:relygo/utils/animation_utils.dart';
@@ -433,16 +434,53 @@ class _ResponsiveUserDashboardScreenState
         ),
       },
       {
-        'title': 'Chat',
-        'subtitle': 'Message drivers',
-        'icon': Icons.chat,
-        'color': Mycolors.orange,
-        'onTap': () => Navigator.push(
-          context,
-          AnimationUtils.createSlideRoute(
-            const ChatDetailScreen(peerName: 'Support'),
-          ),
-        ),
+        'title': 'Track Driver',
+        'subtitle': 'Live location tracking',
+        'icon': Icons.my_location,
+        'color': Mycolors.green,
+        'onTap': () async {
+          final userId = AuthService.currentUserId;
+          if (userId == null) return;
+
+          // Check for active ride
+          final snapshot = await FirebaseFirestore.instance
+              .collection('ride_requests')
+              .where('userId', isEqualTo: userId)
+              .where('status', whereIn: ['accepted', 'ongoing'])
+              .limit(1)
+              .get();
+
+          if (snapshot.docs.isNotEmpty) {
+            final ride = snapshot.docs.first.data();
+            ride['id'] = snapshot.docs.first.id;
+            final driverId = ride['driverId'];
+            if (driverId != null) {
+              Navigator.push(
+                context,
+                AnimationUtils.createSlideRoute(
+                  DriverTrackingScreen(
+                    bookingId: ride['id'] ?? '',
+                    bookingData: ride,
+                  ),
+                ),
+              );
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: const Text('No driver assigned yet'),
+                  backgroundColor: Mycolors.red,
+                ),
+              );
+            }
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: const Text('No active rides found'),
+                backgroundColor: Mycolors.orange,
+              ),
+            );
+          }
+        },
       },
     ];
 
