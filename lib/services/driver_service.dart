@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:relygo/services/ride_completion_service.dart';
 
 class DriverService {
   static final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -265,10 +266,12 @@ class DriverService {
   }
 
   /// Accept booking request and set fare (handles both collections)
+  /// Automatically starts location tracking for the driver
   static Future<Map<String, dynamic>> acceptBooking(
     String bookingId,
     double fare,
     String driverName,
+    String driverId, // Driver's user ID
   ) async {
     try {
       // Try to find booking in 'bookings' collection first
@@ -298,6 +301,7 @@ class DriverService {
         'status': 'accepted',
         'fare': fare,
         'driverName': driverName,
+        'driverId': driverId, // Ensure driverId is set
         'acceptedAt': FieldValue.serverTimestamp(),
         'updatedAt': FieldValue.serverTimestamp(),
       };
@@ -308,6 +312,15 @@ class DriverService {
       }
 
       await bookingRef.update(updateData);
+
+      // Automatically start location tracking for the driver
+      try {
+        final locationTracker = DriverLiveLocation();
+        await locationTracker.startLiveLocationUpdates(driverId);
+      } catch (e) {
+        // Log error but don't fail the booking acceptance
+        print('Failed to start location tracking: $e');
+      }
 
       // Send notification to user
       await _firestore.collection('notifications').add({

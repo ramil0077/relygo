@@ -1729,7 +1729,12 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
             Icons.directions_car,
             Mycolors.basecolor,
             () {
-              _promptHomeBooking();
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const ServiceBookingScreen(),
+                ),
+              );
             },
           ),
         ),

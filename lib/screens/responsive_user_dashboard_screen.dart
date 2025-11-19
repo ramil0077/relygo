@@ -262,19 +262,6 @@ class _ResponsiveUserDashboardScreenState
         },
         items: _navItems,
       ),
-      floatingActionButton: _selectedIndex == 0
-          ? FloatingQuickActionButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  AnimationUtils.createSlideRoute(const ServiceBookingScreen()),
-                );
-              },
-              icon: Icons.add,
-              tooltip: 'Book a Ride',
-            )
-          : null,
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
 
@@ -433,10 +420,7 @@ class _ResponsiveUserDashboardScreenState
         'subtitle': 'Find a driver',
         'icon': Icons.directions_car,
         'color': Mycolors.basecolor,
-        'onTap': () => Navigator.push(
-          context,
-          AnimationUtils.createSlideRoute(const ServiceBookingScreen()),
-        ),
+        'onTap': () => _promptHomeBooking(),
       },
       {
         'title': 'Ride History',
@@ -1352,5 +1336,132 @@ class _ResponsiveUserDashboardScreenState
     } catch (_) {
       return '';
     }
+  }
+
+  void _promptHomeBooking() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'How would you like to book?',
+                  style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                ListTile(
+                  leading: Icon(Icons.person_search, color: Mycolors.basecolor),
+                  title: Text('Choose Driver', style: GoogleFonts.poppins()),
+                  subtitle: Text(
+                    'Browse and select a driver',
+                    style: GoogleFonts.poppins(fontSize: 12, color: Mycolors.gray),
+                  ),
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    setState(() {
+                      _selectedIndex = 1; // switch to Search tab if available
+                    });
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Use the Search tab to pick a driver'),
+                        backgroundColor: Mycolors.basecolor,
+                        duration: const Duration(seconds: 2),
+                      ),
+                    );
+                  },
+                ),
+                ListTile(
+                  leading: Icon(Icons.local_taxi, color: Mycolors.orange),
+                  title: Text('Choose Service Type', style: GoogleFonts.poppins()),
+                  subtitle: Text(
+                    'Auto, Sedan, SUV, Delivery, etc.',
+                    style: GoogleFonts.poppins(fontSize: 12, color: Mycolors.gray),
+                  ),
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    _showServiceTypePicker();
+                  },
+                ),
+                ListTile(
+                  leading: Icon(Icons.directions_car, color: Mycolors.green),
+                  title: Text('Direct Booking', style: GoogleFonts.poppins()),
+                  subtitle: Text(
+                    'Go to booking screen directly',
+                    style: GoogleFonts.poppins(fontSize: 12, color: Mycolors.gray),
+                  ),
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    Navigator.push(
+                      context,
+                      AnimationUtils.createSlideRoute(const ServiceBookingScreen()),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showServiceTypePicker() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) {
+        final types = <Map<String, dynamic>>[
+          {'label': 'Auto', 'icon': Icons.two_wheeler},
+          {'label': 'Sedan', 'icon': Icons.directions_car},
+          {'label': 'SUV', 'icon': Icons.airport_shuttle},
+          {'label': 'Delivery', 'icon': Icons.local_shipping},
+        ];
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Select Service Type',
+                  style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                ...types.map((t) => ListTile(
+                      leading: Icon(t['icon'] as IconData, color: Mycolors.basecolor),
+                      title: Text(t['label'] as String, style: GoogleFonts.poppins()),
+                      onTap: () {
+                        Navigator.of(context).pop();
+                        Navigator.push(
+                          context,
+                          AnimationUtils.createSlideRoute(
+                            ServiceBookingScreen(),
+                          ),
+                        );
+                      },
+                    )),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 }

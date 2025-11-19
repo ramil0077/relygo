@@ -1,5 +1,5 @@
+import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
-
 import 'package:location/location.dart';
 
 class RideCompletionService {
@@ -53,24 +53,88 @@ class RideCompletionService {
 class DriverLiveLocation {
   final _firestore = FirebaseFirestore.instance;
   final _location = Location();
+  StreamSubscription<LocationData>? _locationSubscription;
+  String? _currentDriverId;
 
+  /// Start sharing driver's live location to Firestore
+  /// This automatically requests location permissions if needed
   Future<void> startLiveLocationUpdates(String driverId) async {
-    bool serviceEnabled = await _location.serviceEnabled();
-    if (!serviceEnabled) serviceEnabled = await _location.requestService();
+    try {
+      // Request location service and permissions
+      bool serviceEnabled = await _location.serviceEnabled();
+      if (!serviceEnabled) {
+        serviceEnabled = await _location.requestService();
+        if (!serviceEnabled) {
+          print('Location service is disabled');
+          return;
+        }
+      }
 
-    PermissionStatus permissionGranted = await _location.hasPermission();
-    if (permissionGranted == PermissionStatus.denied)
-      permissionGranted = await _location.requestPermission();
+      PermissionStatus permissionGranted = await _location.hasPermission();
+      if (permissionGranted == PermissionStatus.denied) {
+        permissionGranted = await _location.requestPermission();
+      }
 
-    // Listen to location changes
-    _location.onLocationChanged.listen((locationData) {
-      if (locationData.latitude != null && locationData.longitude != null) {
+      if (permissionGranted != PermissionStatus.granted) {
+        print('Location permission not granted');
+        return;
+      }
+
+      // Stop any existing location updates
+      await stopLiveLocationUpdates();
+
+      _currentDriverId = driverId;
+
+      // Listen to location changes and update Firestore
+      _locationSubscription = _location.onLocationChanged.listen(
+        (locationData) {
+          if (locationData.latitude != null &&
+              locationData.longitude != null &&
+              _currentDriverId != null) {
+            _firestore.collection('drivers').doc(_currentDriverId!).set({
+              'latitude': locationData.latitude,
+              'longitude': locationData.longitude,
+              'timestamp': FieldValue.serverTimestamp(),
+              'isActive': true,
+            }, SetOptions(merge: true));
+          }
+        },
+        onError: (error) {
+          print('Location update error: $error');
+        },
+      );
+
+      // Also get initial location immediately
+      final currentLocation = await _location.getLocation();
+      if (currentLocation.latitude != null &&
+          currentLocation.longitude != null) {
         _firestore.collection('drivers').doc(driverId).set({
-          'latitude': locationData.latitude,
-          'longitude': locationData.longitude,
+          'latitude': currentLocation.latitude,
+          'longitude': currentLocation.longitude,
           'timestamp': FieldValue.serverTimestamp(),
+          'isActive': true,
         }, SetOptions(merge: true));
       }
-    });
+    } catch (e) {
+      print('Error starting location updates: $e');
+    }
   }
+
+  /// Stop sharing driver's live location
+  Future<void> stopLiveLocationUpdates() async {
+    await _locationSubscription?.cancel();
+    _locationSubscription = null;
+
+    if (_currentDriverId != null) {
+      // Mark location as inactive
+      await _firestore.collection('drivers').doc(_currentDriverId!).set({
+        'isActive': false,
+        'timestamp': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+      _currentDriverId = null;
+    }
+  }
+
+  /// Check if location tracking is currently active
+  bool get isTrackingActive => _locationSubscription != null;
 }

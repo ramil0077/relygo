@@ -1,7 +1,14 @@
+import 'dart:async';
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:location/location.dart';
 import 'package:relygo/constants.dart';
 import 'package:relygo/screens/chat_detail_screen.dart';
+import 'package:relygo/services/location_service.dart';
+import 'package:relygo/utils/platform_utils.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class DriverTrackingScreen extends StatefulWidget {
@@ -19,6 +26,133 @@ class DriverTrackingScreen extends StatefulWidget {
 }
 
 class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
+  GoogleMapController? _mapController;
+  LatLng? _driverPosition;
+  LatLng? _userPosition;
+  double _distance = 0.0;
+  int _eta = 0;
+  StreamSubscription<DocumentSnapshot>? _driverLocationSubscription;
+  LocationData? _currentUserLocation;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeTracking();
+  }
+
+  @override
+  void dispose() {
+    _driverLocationSubscription?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _initializeTracking() async {
+    final driverId = widget.bookingData['driverId'];
+    if (driverId == null) return;
+
+    // Get user's current location
+    _currentUserLocation = await LocationService.getCurrentLocation();
+    if (_currentUserLocation?.latitude != null &&
+        _currentUserLocation?.longitude != null) {
+      setState(() {
+        _userPosition = LatLng(
+          _currentUserLocation!.latitude!,
+          _currentUserLocation!.longitude!,
+        );
+      });
+    }
+
+    // Listen to driver location updates
+    _driverLocationSubscription = FirebaseFirestore.instance
+        .collection('drivers')
+        .doc(driverId)
+        .snapshots()
+        .listen((snapshot) {
+      if (snapshot.exists && mounted) {
+        final data = snapshot.data()!;
+        final lat = data['latitude'];
+        final lng = data['longitude'];
+        if (lat != null && lng != null) {
+          setState(() {
+            _driverPosition = LatLng(lat, lng);
+          });
+
+          // Calculate distance and ETA if user location is available
+          if (_userPosition != null) {
+            _distance = LocationService.calculateDistance(
+              _userPosition!.latitude,
+              _userPosition!.longitude,
+              lat,
+              lng,
+            );
+            _eta = LocationService.calculateETA(_distance);
+          }
+
+          // Update map camera
+          _updateMapCamera();
+        }
+      }
+    });
+  }
+
+  void _updateMapCamera() {
+    if (_mapController != null && _driverPosition != null && _userPosition != null) {
+      // Fit both markers in view
+      final bounds = LatLngBounds(
+        southwest: LatLng(
+          math.min(_driverPosition!.latitude, _userPosition!.latitude),
+          math.min(_driverPosition!.longitude, _userPosition!.longitude),
+        ),
+        northeast: LatLng(
+          math.max(_driverPosition!.latitude, _userPosition!.latitude),
+          math.max(_driverPosition!.longitude, _userPosition!.longitude),
+        ),
+      );
+      _mapController!.animateCamera(CameraUpdate.newLatLngBounds(bounds, 100));
+    } else if (_mapController != null && _driverPosition != null) {
+      _mapController!.animateCamera(
+        CameraUpdate.newLatLngZoom(_driverPosition!, 15),
+      );
+    }
+  }
+
+  Future<void> _openInExternalMaps() async {
+    if (_driverPosition == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Driver location not available'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    // Open in Google Maps
+    final googleMapsUrl =
+        'https://www.google.com/maps/search/?api=1&query=${_driverPosition!.latitude},${_driverPosition!.longitude}';
+    final uri = Uri.parse(googleMapsUrl);
+
+    try {
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Cannot open maps'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -59,8 +193,8 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
             _buildRideDetailsCard(),
             const SizedBox(height: 20),
 
-            // Live Tracking (Simulated)
-            _buildLiveTrackingCard(),
+          // Live Tracking with Map
+          _buildLiveTrackingCard(),
           ],
         ),
       ),
@@ -415,8 +549,10 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
 
   Widget _buildLiveTrackingCard() {
     final status = widget.bookingData['status'] ?? 'unknown';
+    final isActive = status.toLowerCase() == 'accepted' ||
+        status.toLowerCase() == 'ongoing';
 
-    if (status.toLowerCase() != 'ongoing') {
+    if (!isActive) {
       return Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
@@ -429,13 +565,89 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
             const SizedBox(width: 16),
             Expanded(
               child: Text(
-                'Live tracking will be available when ride starts',
+                'Live tracking will be available when driver accepts the ride',
                 style: GoogleFonts.poppins(
                   fontSize: 16,
                   color: Colors.grey[600],
                 ),
               ),
             ),
+          ],
+        ),
+      );
+    }
+
+    // Show map view if on mobile, otherwise show message
+    if (PlatformUtils.isWeb) {
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.1),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.location_searching,
+                  color: Mycolors.basecolor,
+                  size: 24,
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  'Live Tracking',
+                  style: GoogleFonts.poppins(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.blue[50],
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.info_outline, color: Colors.blue[700]),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Map view is available on mobile devices. Use the button below to open driver location in Google Maps.',
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        color: Colors.blue[900],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (_driverPosition != null) ...[
+              const SizedBox(height: 16),
+              ElevatedButton.icon(
+                onPressed: _openInExternalMaps,
+                icon: const Icon(Icons.map, color: Colors.white),
+                label: const Text('Open in Google Maps'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Mycolors.basecolor,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+              ),
+            ],
           ],
         ),
       );
@@ -472,62 +684,202 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-            ],
-          ),
-          const SizedBox(height: 16),
-
-          // Simulated map view
-          Container(
-            height: 200,
-            decoration: BoxDecoration(
-              color: Colors.grey[200],
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.map, size: 48, color: Colors.grey[400]),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Map View',
-                    style: GoogleFonts.poppins(
-                      fontSize: 16,
-                      color: Colors.grey[600],
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Driver location will be shown here',
-                    style: GoogleFonts.poppins(
-                      fontSize: 12,
-                      color: Colors.grey[500],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 16),
-
-          // Estimated arrival
-          Row(
-            children: [
-              Icon(Icons.access_time, color: Mycolors.orange, size: 20),
-              const SizedBox(width: 12),
-              Text(
-                'Estimated arrival: 5-10 minutes',
-                style: GoogleFonts.poppins(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
+              const Spacer(),
+              if (_driverPosition != null)
+                IconButton(
+                  icon: const Icon(Icons.open_in_new),
+                  onPressed: _openInExternalMaps,
+                  tooltip: 'Open in Maps',
+                  color: Mycolors.basecolor,
                 ),
-              ),
             ],
           ),
+          const SizedBox(height: 16),
+
+          // Real map view
+          Container(
+            height: 300,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.grey[300]!),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: _driverPosition == null
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const CircularProgressIndicator(),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Waiting for driver location...',
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  : GoogleMap(
+                      initialCameraPosition: CameraPosition(
+                        target: _driverPosition!,
+                        zoom: 15,
+                      ),
+                      markers: _buildMarkers(),
+                      polylines: _buildPolylines(),
+                      onMapCreated: (controller) {
+                        _mapController = controller;
+                        _updateMapCamera();
+                      },
+                      myLocationEnabled: true,
+                      myLocationButtonEnabled: false,
+                      zoomControlsEnabled: false,
+                      mapToolbarEnabled: false,
+                    ),
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
+          // Distance and ETA info
+          if (_driverPosition != null) ...[
+            Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Mycolors.basecolor.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.straighten, color: Mycolors.basecolor, size: 20),
+                        const SizedBox(width: 8),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Distance',
+                              style: GoogleFonts.poppins(
+                                fontSize: 12,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                            Text(
+                              LocationService.formatDistance(_distance),
+                              style: GoogleFonts.poppins(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Mycolors.basecolor,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Mycolors.orange.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.access_time, color: Mycolors.orange, size: 20),
+                        const SizedBox(width: 8),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'ETA',
+                              style: GoogleFonts.poppins(
+                                fontSize: 12,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                            Text(
+                              _eta > 0 ? '$_eta min' : 'Calculating...',
+                              style: GoogleFonts.poppins(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Mycolors.orange,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ],
       ),
     );
+  }
+
+  Set<Marker> _buildMarkers() {
+    final markers = <Marker>{};
+
+    // Driver marker
+    if (_driverPosition != null) {
+      markers.add(
+        Marker(
+          markerId: const MarkerId('driver'),
+          position: _driverPosition!,
+          icon: BitmapDescriptor.defaultMarkerWithHue(
+            BitmapDescriptor.hueBlue,
+          ),
+          infoWindow: const InfoWindow(
+            title: 'Driver',
+            snippet: 'Your driver is here',
+          ),
+        ),
+      );
+    }
+
+    // User marker (pickup location)
+    if (_userPosition != null) {
+      markers.add(
+        Marker(
+          markerId: const MarkerId('user'),
+          position: _userPosition!,
+          icon: BitmapDescriptor.defaultMarkerWithHue(
+            BitmapDescriptor.hueGreen,
+          ),
+          infoWindow: const InfoWindow(
+            title: 'Your Location',
+            snippet: 'Pickup point',
+          ),
+        ),
+      );
+    }
+
+    return markers;
+  }
+
+  Set<Polyline> _buildPolylines() {
+    if (_driverPosition == null || _userPosition == null) {
+      return {};
+    }
+
+    return {
+      Polyline(
+        polylineId: const PolylineId('route'),
+        points: [_userPosition!, _driverPosition!],
+        color: Mycolors.basecolor,
+        width: 3,
+        patterns: [PatternItem.dash(20), PatternItem.gap(10)],
+      ),
+    };
   }
 
   void _makePhoneCall(String phoneNumber) async {

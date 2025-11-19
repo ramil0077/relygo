@@ -405,14 +405,17 @@ class _DriverBookingRequestsScreenState
           bookingId,
           fare,
           driverName,
+          _currentUserId, // Pass driver ID
         );
+
+        // Location tracking is automatically started by DriverService.acceptBooking
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
                 result['success'] == true
-                    ? 'Booking accepted successfully!'
+                    ? 'Booking accepted! Location sharing started.'
                     : result['error'],
               ),
               backgroundColor: result['success'] == true
