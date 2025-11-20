@@ -271,15 +271,42 @@ class AdminService {
     String userId,
   ) {
     return _firestore
-        .collection('bookings')
+        .collection('ride_requests')
         .where('userId', isEqualTo: userId)
         .snapshots()
         .map((snapshot) {
-          return snapshot.docs.map((doc) {
-            final data = doc.data();
+          final bookings = snapshot.docs.map((doc) {
+            final data = Map<String, dynamic>.from(doc.data() as Map);
             data['id'] = doc.id;
+            // Normalize field names
+            if (data['pickupLocation'] == null && data['pickup'] != null) {
+              data['pickupLocation'] = data['pickup'];
+            }
+            if (data['dropoffLocation'] == null &&
+                data['destination'] != null) {
+              data['dropoffLocation'] = data['destination'];
+            }
+            // Normalize status: 'paid' -> 'completed'
+            if (data['status']?.toString().toLowerCase() == 'paid') {
+              data['status'] = 'completed';
+            }
             return data;
           }).toList();
+
+          // Sort in memory by createdAt (newest first) to avoid index requirement
+          bookings.sort((a, b) {
+            final aTime = a['createdAt'] ?? a['updatedAt'] ?? a['paidAt'];
+            final bTime = b['createdAt'] ?? b['updatedAt'] ?? b['paidAt'];
+            if (aTime == null && bTime == null) return 0;
+            if (aTime == null) return 1;
+            if (bTime == null) return -1;
+            if (aTime is Timestamp && bTime is Timestamp) {
+              return bTime.compareTo(aTime); // descending
+            }
+            return 0;
+          });
+
+          return bookings;
         });
   }
 
@@ -700,50 +727,84 @@ class AdminService {
     });
   }
 
+  /// Get booking statistics stream (real-time updates)
+  static Stream<Map<String, dynamic>> getBookingStatsStream() {
+    return _firestore.collection('ride_requests').snapshots().map((snapshot) {
+      int completedCount = 0;
+      int cancelledCount = 0;
+      int ongoingCount = 0;
+      int pendingCount = 0;
+      double totalRevenue = 0;
+
+      for (var doc in snapshot.docs) {
+        final data = Map<String, dynamic>.from(doc.data() as Map);
+        final status = (data['status'] ?? '').toString().toLowerCase();
+
+        if (status == 'completed' || status == 'paid') {
+          completedCount++;
+          totalRevenue += (data['fare'] ?? data['price'] ?? data['amount'] ?? 0)
+              .toDouble();
+        } else if (status == 'cancelled') {
+          cancelledCount++;
+        } else if (status == 'ongoing' || status == 'accepted') {
+          ongoingCount++;
+        } else if (status == 'pending') {
+          pendingCount++;
+        }
+      }
+
+      return {
+        'totalBookings': snapshot.docs.length,
+        'completedBookings': completedCount,
+        'cancelledBookings': cancelledCount,
+        'ongoingBookings': ongoingCount,
+        'pendingBookings': pendingCount,
+        'totalRevenue': totalRevenue,
+        'averageFare': completedCount > 0 ? totalRevenue / completedCount : 0.0,
+      };
+    });
+  }
+
   /// Get booking statistics
   static Future<Map<String, dynamic>> getBookingStats() async {
     try {
+      // Get all bookings from ride_requests collection
       final QuerySnapshot allBookings = await _firestore
-          .collection('bookings')
+          .collection('ride_requests')
           .get();
 
-      final QuerySnapshot completedBookings = await _firestore
-          .collection('bookings')
-          .where('status', isEqualTo: 'completed')
-          .get();
-
-      final QuerySnapshot cancelledBookings = await _firestore
-          .collection('bookings')
-          .where('status', isEqualTo: 'cancelled')
-          .get();
-
-      final QuerySnapshot ongoingBookings = await _firestore
-          .collection('bookings')
-          .where('status', isEqualTo: 'ongoing')
-          .get();
-
-      final QuerySnapshot pendingBookings = await _firestore
-          .collection('bookings')
-          .where('status', isEqualTo: 'pending')
-          .get();
-
-      // Calculate total revenue
+      // Count by status (including 'paid' as completed)
+      int completedCount = 0;
+      int cancelledCount = 0;
+      int ongoingCount = 0;
+      int pendingCount = 0;
       double totalRevenue = 0;
-      for (var doc in completedBookings.docs) {
+
+      for (var doc in allBookings.docs) {
         final data = doc.data() as Map<String, dynamic>;
-        totalRevenue += (data['fare'] ?? 0).toDouble();
+        final status = (data['status'] ?? '').toString().toLowerCase();
+
+        if (status == 'completed' || status == 'paid') {
+          completedCount++;
+          totalRevenue += (data['fare'] ?? data['price'] ?? data['amount'] ?? 0)
+              .toDouble();
+        } else if (status == 'cancelled') {
+          cancelledCount++;
+        } else if (status == 'ongoing' || status == 'accepted') {
+          ongoingCount++;
+        } else if (status == 'pending') {
+          pendingCount++;
+        }
       }
 
       return {
         'totalBookings': allBookings.docs.length,
-        'completedBookings': completedBookings.docs.length,
-        'cancelledBookings': cancelledBookings.docs.length,
-        'ongoingBookings': ongoingBookings.docs.length,
-        'pendingBookings': pendingBookings.docs.length,
+        'completedBookings': completedCount,
+        'cancelledBookings': cancelledCount,
+        'ongoingBookings': ongoingCount,
+        'pendingBookings': pendingCount,
         'totalRevenue': totalRevenue,
-        'averageFare': completedBookings.docs.length > 0
-            ? totalRevenue / completedBookings.docs.length
-            : 0.0,
+        'averageFare': completedCount > 0 ? totalRevenue / completedCount : 0.0,
       };
     } catch (e) {
       print('Error getting booking stats: $e');

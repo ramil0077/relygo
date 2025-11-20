@@ -3,8 +3,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:relygo/screens/signin_screen.dart';
 import 'package:relygo/screens/responsive_user_dashboard_screen.dart';
 import 'package:relygo/screens/responsive_driver_dashboard_screen.dart';
-import 'package:relygo/screens/admin_dashboard_screen.dart';
+import 'package:relygo/screens/admin_web_dashboard_screen.dart';
 import 'package:relygo/services/auth_service.dart';
+import 'package:relygo/utils/platform_utils.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:relygo/constants.dart';
 
 class AuthWrapper extends StatelessWidget {
   const AuthWrapper({super.key});
@@ -55,7 +58,12 @@ class AuthWrapper extends StatelessWidget {
                   return _buildPendingApprovalScreen(context, 'Driver');
                 }
               case 'admin':
-                return const AdminDashboardScreen();
+                // Admin dashboard is web-only
+                if (PlatformUtils.isWeb) {
+                  return const AdminWebDashboardScreen();
+                } else {
+                  return _buildAdminMobileRestrictionScreen(context);
+                }
               default:
                 return const ResponsiveUserDashboardScreen();
             }
@@ -200,6 +208,72 @@ class AuthWrapper extends StatelessWidget {
                     ),
                   ),
                 ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAdminMobileRestrictionScreen(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 120,
+                height: 120,
+                decoration: BoxDecoration(
+                  color: Mycolors.basecolor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(60),
+                ),
+                child: Icon(
+                  Icons.computer,
+                  size: 60,
+                  color: Mycolors.basecolor,
+                ),
+              ),
+              const SizedBox(height: 32),
+              Text(
+                'Admin Dashboard Available on Web Only',
+                style: GoogleFonts.poppins(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'The admin dashboard is designed for web browsers only. Please access it from a desktop or laptop computer.',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.poppins(
+                  fontSize: 16,
+                  color: Colors.grey[600],
+                ),
+              ),
+              const SizedBox(height: 32),
+              ElevatedButton(
+                onPressed: () async {
+                  await AuthService.signOut();
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Mycolors.basecolor,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 32,
+                    vertical: 16,
+                  ),
+                ),
+                child: Text(
+                  'Sign Out',
+                  style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+                ),
               ),
             ],
           ),

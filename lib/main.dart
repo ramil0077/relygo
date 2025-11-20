@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:relygo/firebase_options.dart';
 import 'package:relygo/screens/splash.dart';
+import 'package:relygo/screens/landing_page.dart';
 import 'package:relygo/constants.dart';
 import 'package:relygo/services/background_service.dart';
 import 'package:relygo/utils/platform_utils.dart';
@@ -30,7 +31,8 @@ class MyApp extends StatelessWidget {
           theme: AppTheme.theme,
           darkTheme: AppTheme.darkTheme,
           themeMode: themeMode,
-          home: const Splashscreen(),
+          // Show landing page on web, splash screen on mobile
+          home: PlatformUtils.isWeb ? const LandingPage() : const Splashscreen(),
         );
       },
     );

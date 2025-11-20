@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:relygo/constants.dart';
-import 'package:relygo/screens/admin_dashboard_screen.dart';
+import 'package:relygo/screens/admin_web_dashboard_screen.dart';
+import 'package:relygo/utils/platform_utils.dart';
 
 class AdminLoginScreen extends StatefulWidget {
   const AdminLoginScreen({super.key});
@@ -212,47 +213,6 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                               ),
                       ),
                     ),
-                    const SizedBox(height: 20),
-
-                    // Demo Credentials
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Mycolors.lightGray,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: Mycolors.basecolor.withOpacity(0.3),
-                        ),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "Demo Credentials:",
-                            style: GoogleFonts.poppins(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: Mycolors.basecolor,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            "Email: admin@relygo.com",
-                            style: GoogleFonts.poppins(
-                              fontSize: 12,
-                              color: Colors.black87,
-                            ),
-                          ),
-                          Text(
-                            "Password: admin123",
-                            style: GoogleFonts.poppins(
-                              fontSize: 12,
-                              color: Colors.black87,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
                   ],
                 ),
               ),
@@ -276,12 +236,24 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
     // Check credentials
     if (_emailController.text.trim() == _adminEmail &&
         _passwordController.text == _adminPassword) {
-      // Success
+      // Success - redirect to web admin dashboard
       if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const AdminDashboardScreen()),
-        );
+        if (PlatformUtils.isWeb) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const AdminWebDashboardScreen(),
+            ),
+          );
+        } else {
+          // Should not happen as admin is web-only, but handle gracefully
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('Admin dashboard is only available on web'),
+              backgroundColor: Mycolors.red,
+            ),
+          );
+        }
       }
     } else {
       // Error

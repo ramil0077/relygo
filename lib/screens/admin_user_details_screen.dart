@@ -178,8 +178,19 @@ class _AdminUserDetailsScreenState extends State<AdminUserDetailsScreen> {
   }
 
   Widget _buildBookingsTab() {
+    final userId = widget.user['id']?.toString() ?? 
+                   widget.user['uid']?.toString() ?? 
+                   '';
+    if (userId.isEmpty) {
+      return Center(
+        child: Text(
+          'User ID not available',
+          style: GoogleFonts.poppins(color: Colors.grey[600]),
+        ),
+      );
+    }
     return StreamBuilder<List<Map<String, dynamic>>>(
-      stream: AdminService.getUserBookingsStream(widget.user['id']),
+      stream: AdminService.getUserBookingsStream(userId),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -360,7 +371,11 @@ class _AdminUserDetailsScreenState extends State<AdminUserDetailsScreen> {
 
   Widget _buildComplaintsTab() {
     return StreamBuilder<List<Map<String, dynamic>>>(
-      stream: AdminService.getUserComplaintsStream(widget.user['id']),
+      stream: AdminService.getUserComplaintsStream(
+        widget.user['id']?.toString() ?? 
+        widget.user['uid']?.toString() ?? 
+        '',
+      ),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
