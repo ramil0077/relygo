@@ -33,6 +33,9 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
   int _eta = 0;
   StreamSubscription<DocumentSnapshot>? _driverLocationSubscription;
   LocationData? _currentUserLocation;
+  bool _isLoadingDriverLocation = true;
+  // Default location (can be a default city center or pickup location)
+  LatLng _defaultLocation = const LatLng(11.2588, 75.7804); // Kozhikode, Kerala
 
   @override
   void initState() {
@@ -48,19 +51,15 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
 
   Future<void> _initializeTracking() async {
     final driverId = widget.bookingData['driverId'];
-    if (driverId == null) return;
-
-    // Get user's current location
-    _currentUserLocation = await LocationService.getCurrentLocation();
-    if (_currentUserLocation?.latitude != null &&
-        _currentUserLocation?.longitude != null) {
+    if (driverId == null) {
       setState(() {
-        _userPosition = LatLng(
-          _currentUserLocation!.latitude!,
-          _currentUserLocation!.longitude!,
-        );
+        _isLoadingDriverLocation = false;
       });
+      return;
     }
+
+    // Get user's current location (non-blocking - don't wait for it to show map)
+    _getUserLocation();
 
     // Listen to driver location updates
     _driverLocationSubscription = FirebaseFirestore.instance
@@ -75,6 +74,7 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
         if (lat != null && lng != null) {
           setState(() {
             _driverPosition = LatLng(lat, lng);
+            _isLoadingDriverLocation = false;
           });
 
           // Calculate distance and ETA if user location is available
@@ -90,28 +90,70 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
 
           // Update map camera
           _updateMapCamera();
+        } else {
+          setState(() {
+            _isLoadingDriverLocation = false;
+          });
         }
+      } else if (mounted) {
+        setState(() {
+          _isLoadingDriverLocation = false;
+        });
       }
     });
   }
 
+  Future<void> _getUserLocation() async {
+    try {
+      _currentUserLocation = await LocationService.getCurrentLocation();
+      if (_currentUserLocation?.latitude != null &&
+          _currentUserLocation?.longitude != null && mounted) {
+        setState(() {
+          _userPosition = LatLng(
+            _currentUserLocation!.latitude!,
+            _currentUserLocation!.longitude!,
+          );
+        });
+        // Update map camera if driver position is already available
+        if (_driverPosition != null) {
+          _updateMapCamera();
+        }
+      }
+    } catch (e) {
+      print('Error getting user location: $e');
+    }
+  }
+
   void _updateMapCamera() {
-    if (_mapController != null && _driverPosition != null && _userPosition != null) {
+    if (_mapController == null) return;
+    
+    if (_driverPosition != null && _userPosition != null) {
       // Fit both markers in view
-      final bounds = LatLngBounds(
-        southwest: LatLng(
-          math.min(_driverPosition!.latitude, _userPosition!.latitude),
-          math.min(_driverPosition!.longitude, _userPosition!.longitude),
-        ),
-        northeast: LatLng(
-          math.max(_driverPosition!.latitude, _userPosition!.latitude),
-          math.max(_driverPosition!.longitude, _userPosition!.longitude),
-        ),
-      );
-      _mapController!.animateCamera(CameraUpdate.newLatLngBounds(bounds, 100));
-    } else if (_mapController != null && _driverPosition != null) {
+      try {
+        final bounds = LatLngBounds(
+          southwest: LatLng(
+            math.min(_driverPosition!.latitude, _userPosition!.latitude),
+            math.min(_driverPosition!.longitude, _userPosition!.longitude),
+          ),
+          northeast: LatLng(
+            math.max(_driverPosition!.latitude, _userPosition!.latitude),
+            math.max(_driverPosition!.longitude, _userPosition!.longitude),
+          ),
+        );
+        _mapController!.animateCamera(CameraUpdate.newLatLngBounds(bounds, 100));
+      } catch (e) {
+        // Fallback to driver position if bounds calculation fails
+        _mapController!.animateCamera(
+          CameraUpdate.newLatLngZoom(_driverPosition!, 15),
+        );
+      }
+    } else if (_driverPosition != null) {
       _mapController!.animateCamera(
         CameraUpdate.newLatLngZoom(_driverPosition!, 15),
+      );
+    } else if (_userPosition != null) {
+      _mapController!.animateCamera(
+        CameraUpdate.newLatLngZoom(_userPosition!, 15),
       );
     }
   }
@@ -705,122 +747,141 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(8),
-              child: _driverPosition == null
-                  ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const CircularProgressIndicator(),
-                          const SizedBox(height: 16),
-                          Text(
-                            'Waiting for driver location...',
-                            style: GoogleFonts.poppins(
-                              fontSize: 14,
-                              color: Colors.grey[600],
-                            ),
-                          ),
-                        ],
-                      ),
-                    )
-                  : GoogleMap(
-                      initialCameraPosition: CameraPosition(
-                        target: _driverPosition!,
-                        zoom: 15,
-                      ),
-                      markers: _buildMarkers(),
-                      polylines: _buildPolylines(),
-                      onMapCreated: (controller) {
-                        _mapController = controller;
-                        _updateMapCamera();
-                      },
-                      myLocationEnabled: true,
-                      myLocationButtonEnabled: false,
-                      zoomControlsEnabled: false,
-                      mapToolbarEnabled: false,
+              child: Stack(
+                children: [
+                  GoogleMap(
+                    initialCameraPosition: CameraPosition(
+                      target: _driverPosition ?? 
+                              _userPosition ?? 
+                              _defaultLocation,
+                      zoom: _driverPosition != null || _userPosition != null ? 15 : 12,
                     ),
+                    markers: _buildMarkers(),
+                    polylines: _buildPolylines(),
+                    onMapCreated: (controller) {
+                      _mapController = controller;
+                      // Update camera after map is created
+                      if (_driverPosition != null || _userPosition != null) {
+                        _updateMapCamera();
+                      }
+                    },
+                    myLocationEnabled: true,
+                    myLocationButtonEnabled: false,
+                    zoomControlsEnabled: false,
+                    mapToolbarEnabled: false,
+                  ),
+                  // Show loading indicator overlay only when waiting for driver location
+                  if (_isLoadingDriverLocation && _driverPosition == null)
+                    Container(
+                      color: Colors.white.withOpacity(0.8),
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const CircularProgressIndicator(),
+                            const SizedBox(height: 16),
+                            Text(
+                              'Waiting for driver location...',
+                              style: GoogleFonts.poppins(
+                                fontSize: 14,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                ],
+              ),
             ),
           ),
 
           const SizedBox(height: 16),
 
           // Distance and ETA info
-          if (_driverPosition != null) ...[
-            Row(
-              children: [
-                Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Mycolors.basecolor.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(Icons.straighten, color: Mycolors.basecolor, size: 20),
-                        const SizedBox(width: 8),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Distance',
-                              style: GoogleFonts.poppins(
-                                fontSize: 12,
-                                color: Colors.grey[600],
-                              ),
+          Row(
+            children: [
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Mycolors.basecolor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.straighten, color: Mycolors.basecolor, size: 20),
+                      const SizedBox(width: 8),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Distance',
+                            style: GoogleFonts.poppins(
+                              fontSize: 12,
+                              color: Colors.grey[600],
                             ),
-                            Text(
-                              LocationService.formatDistance(_distance),
-                              style: GoogleFonts.poppins(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Mycolors.basecolor,
-                              ),
+                          ),
+                          Text(
+                            _driverPosition != null && _userPosition != null
+                                ? LocationService.formatDistance(_distance)
+                                : _isLoadingDriverLocation
+                                    ? 'Calculating...'
+                                    : 'Not available',
+                            style: GoogleFonts.poppins(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Mycolors.basecolor,
                             ),
-                          ],
-                        ),
-                      ],
-                    ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Mycolors.orange.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(Icons.access_time, color: Mycolors.orange, size: 20),
-                        const SizedBox(width: 8),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'ETA',
-                              style: GoogleFonts.poppins(
-                                fontSize: 12,
-                                color: Colors.grey[600],
-                              ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Mycolors.orange.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.access_time, color: Mycolors.orange, size: 20),
+                      const SizedBox(width: 8),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'ETA',
+                            style: GoogleFonts.poppins(
+                              fontSize: 12,
+                              color: Colors.grey[600],
                             ),
-                            Text(
-                              _eta > 0 ? '$_eta min' : 'Calculating...',
-                              style: GoogleFonts.poppins(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Mycolors.orange,
-                              ),
+                          ),
+                          Text(
+                            _driverPosition != null && _userPosition != null
+                                ? (_eta > 0 ? '$_eta min' : 'Calculating...')
+                                : _isLoadingDriverLocation
+                                    ? 'Calculating...'
+                                    : 'Not available',
+                            style: GoogleFonts.poppins(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Mycolors.orange,
                             ),
-                          ],
-                        ),
-                      ],
-                    ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
-              ],
-            ),
-          ],
+              ),
+            ],
+          ),
         ],
       ),
     );
