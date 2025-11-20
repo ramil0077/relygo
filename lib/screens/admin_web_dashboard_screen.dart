@@ -10,6 +10,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:relygo/services/admin_service.dart';
 import 'package:relygo/services/auth_service.dart';
 import 'package:relygo/screens/signin_screen.dart';
+import 'package:relygo/utils/responsive.dart';
 
 class AdminWebDashboardScreen extends StatefulWidget {
   const AdminWebDashboardScreen({super.key});
@@ -24,6 +25,7 @@ class _AdminWebDashboardScreenState extends State<AdminWebDashboardScreen> {
   int _userDriverTabIndex = 0; // 0 for users, 1 for drivers
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   bool _sidebarExpanded = true;
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   // Real-time data
   int _totalUsers = 0;
@@ -136,12 +138,16 @@ class _AdminWebDashboardScreenState extends State<AdminWebDashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = ResponsiveUtils.isMobile(context);
+
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: Colors.grey[50],
+      drawer: isMobile ? _buildMobileDrawer() : null,
       body: Row(
         children: [
-          // Sidebar Navigation
-          _buildSidebar(),
+          // Sidebar Navigation (hidden on mobile)
+          if (!isMobile) _buildSidebar(),
           // Main Content Area
           Expanded(
             child: Column(
@@ -343,8 +349,17 @@ class _AdminWebDashboardScreenState extends State<AdminWebDashboardScreen> {
   }
 
   Widget _buildTopBar() {
+    final isMobile = ResponsiveUtils.isMobile(context);
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+      padding: EdgeInsets.symmetric(
+        horizontal: ResponsiveUtils.getResponsiveHorizontalPadding(
+          context,
+        ).horizontal,
+        vertical: ResponsiveUtils.getResponsiveVerticalPadding(
+          context,
+        ).vertical,
+      ),
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
@@ -357,10 +372,20 @@ class _AdminWebDashboardScreenState extends State<AdminWebDashboardScreen> {
       ),
       child: Row(
         children: [
+          if (isMobile)
+            IconButton(
+              icon: const Icon(Icons.menu),
+              onPressed: () => _scaffoldKey.currentState?.openDrawer(),
+            ),
           Text(
             _getPageTitle(),
             style: GoogleFonts.poppins(
-              fontSize: 24,
+              fontSize: ResponsiveUtils.getResponsiveFontSize(
+                context,
+                mobile: 18,
+                tablet: 20,
+                desktop: 24,
+              ),
               fontWeight: FontWeight.bold,
               color: Colors.black87,
             ),
@@ -373,40 +398,113 @@ class _AdminWebDashboardScreenState extends State<AdminWebDashboardScreen> {
               final userData = snapshot.data;
               final userName = userData?['name'] ?? 'Admin';
               final userEmail = userData?['email'] ?? '';
-              return Row(
-                children: [
-                  CircleAvatar(
-                    backgroundColor: Mycolors.basecolor.withOpacity(0.1),
-                    child: Text(
-                      userName.isNotEmpty ? userName[0].toUpperCase() : 'A',
-                      style: GoogleFonts.poppins(
-                        color: Mycolors.basecolor,
-                        fontWeight: FontWeight.bold,
+              return ResponsiveWidget(
+                mobile: CircleAvatar(
+                  backgroundColor: Mycolors.basecolor.withOpacity(0.1),
+                  child: Text(
+                    userName.isNotEmpty ? userName[0].toUpperCase() : 'A',
+                    style: GoogleFonts.poppins(
+                      color: Mycolors.basecolor,
+                      fontWeight: FontWeight.bold,
+                      fontSize: ResponsiveUtils.getResponsiveFontSize(
+                        context,
+                        mobile: 14,
+                        tablet: 15,
+                        desktop: 16,
                       ),
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        userName,
+                ),
+                tablet: Row(
+                  children: [
+                    CircleAvatar(
+                      backgroundColor: Mycolors.basecolor.withOpacity(0.1),
+                      child: Text(
+                        userName.isNotEmpty ? userName[0].toUpperCase() : 'A',
                         style: GoogleFonts.poppins(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
+                          color: Mycolors.basecolor,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                      Text(
-                        userEmail,
+                    ),
+                    const SizedBox(width: 12),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          userName,
+                          style: GoogleFonts.poppins(
+                            fontSize: ResponsiveUtils.getResponsiveFontSize(
+                              context,
+                              mobile: 12,
+                              tablet: 13,
+                              desktop: 14,
+                            ),
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        Text(
+                          userEmail,
+                          style: GoogleFonts.poppins(
+                            fontSize: ResponsiveUtils.getResponsiveFontSize(
+                              context,
+                              mobile: 10,
+                              tablet: 11,
+                              desktop: 12,
+                            ),
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                desktop: Row(
+                  children: [
+                    CircleAvatar(
+                      backgroundColor: Mycolors.basecolor.withOpacity(0.1),
+                      child: Text(
+                        userName.isNotEmpty ? userName[0].toUpperCase() : 'A',
                         style: GoogleFonts.poppins(
-                          fontSize: 12,
-                          color: Colors.grey[600],
+                          color: Mycolors.basecolor,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                    ],
-                  ),
-                ],
+                    ),
+                    const SizedBox(width: 12),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          userName,
+                          style: GoogleFonts.poppins(
+                            fontSize: ResponsiveUtils.getResponsiveFontSize(
+                              context,
+                              mobile: 12,
+                              tablet: 13,
+                              desktop: 14,
+                            ),
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        Text(
+                          userEmail,
+                          style: GoogleFonts.poppins(
+                            fontSize: ResponsiveUtils.getResponsiveFontSize(
+                              context,
+                              mobile: 10,
+                              tablet: 11,
+                              desktop: 12,
+                            ),
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               );
             },
           ),
@@ -434,7 +532,7 @@ class _AdminWebDashboardScreenState extends State<AdminWebDashboardScreen> {
 
   Widget _buildContent() {
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: ResponsiveUtils.getResponsivePadding(context),
       child: IndexedStack(
         index: _selectedIndex,
         children: [
@@ -454,54 +552,241 @@ class _AdminWebDashboardScreenState extends State<AdminWebDashboardScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Stats Cards
-          Row(
-            children: [
-              Expanded(
-                child: _buildStatCard(
+          ResponsiveWidget(
+            mobile: Column(
+              children: [
+                _buildStatCard(
                   _totalUsers.toString(),
                   'Total Users',
                   Icons.people,
                   Mycolors.basecolor,
                 ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: _buildStatCard(
+                SizedBox(
+                  height: ResponsiveUtils.getResponsiveSpacing(
+                    context,
+                    mobile: 12,
+                    tablet: 14,
+                    desktop: 16,
+                  ),
+                ),
+                _buildStatCard(
                   _activeDrivers.toString(),
                   'Active Drivers',
                   Icons.drive_eta,
                   Mycolors.green,
                 ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: _buildStatCard(
+                SizedBox(
+                  height: ResponsiveUtils.getResponsiveSpacing(
+                    context,
+                    mobile: 12,
+                    tablet: 14,
+                    desktop: 16,
+                  ),
+                ),
+                _buildStatCard(
                   _pendingApprovals.toString(),
                   'Pending Approvals',
                   Icons.pending_actions,
                   Mycolors.orange,
                 ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: _buildStatCard(
+                SizedBox(
+                  height: ResponsiveUtils.getResponsiveSpacing(
+                    context,
+                    mobile: 12,
+                    tablet: 14,
+                    desktop: 16,
+                  ),
+                ),
+                _buildStatCard(
                   _openComplaints.toString(),
                   'Open Complaints',
                   Icons.report_problem,
                   Mycolors.red,
                 ),
-              ),
-            ],
+              ],
+            ),
+            tablet: Column(
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildStatCard(
+                        _totalUsers.toString(),
+                        'Total Users',
+                        Icons.people,
+                        Mycolors.basecolor,
+                      ),
+                    ),
+                    SizedBox(
+                      width: ResponsiveUtils.getResponsiveSpacing(
+                        context,
+                        mobile: 12,
+                        tablet: 14,
+                        desktop: 16,
+                      ),
+                    ),
+                    Expanded(
+                      child: _buildStatCard(
+                        _activeDrivers.toString(),
+                        'Active Drivers',
+                        Icons.drive_eta,
+                        Mycolors.green,
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: ResponsiveUtils.getResponsiveSpacing(
+                    context,
+                    mobile: 12,
+                    tablet: 14,
+                    desktop: 16,
+                  ),
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildStatCard(
+                        _pendingApprovals.toString(),
+                        'Pending Approvals',
+                        Icons.pending_actions,
+                        Mycolors.orange,
+                      ),
+                    ),
+                    SizedBox(
+                      width: ResponsiveUtils.getResponsiveSpacing(
+                        context,
+                        mobile: 12,
+                        tablet: 14,
+                        desktop: 16,
+                      ),
+                    ),
+                    Expanded(
+                      child: _buildStatCard(
+                        _openComplaints.toString(),
+                        'Open Complaints',
+                        Icons.report_problem,
+                        Mycolors.red,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            desktop: Row(
+              children: [
+                Expanded(
+                  child: _buildStatCard(
+                    _totalUsers.toString(),
+                    'Total Users',
+                    Icons.people,
+                    Mycolors.basecolor,
+                  ),
+                ),
+                SizedBox(
+                  width: ResponsiveUtils.getResponsiveSpacing(
+                    context,
+                    mobile: 12,
+                    tablet: 14,
+                    desktop: 16,
+                  ),
+                ),
+                Expanded(
+                  child: _buildStatCard(
+                    _activeDrivers.toString(),
+                    'Active Drivers',
+                    Icons.drive_eta,
+                    Mycolors.green,
+                  ),
+                ),
+                SizedBox(
+                  width: ResponsiveUtils.getResponsiveSpacing(
+                    context,
+                    mobile: 12,
+                    tablet: 14,
+                    desktop: 16,
+                  ),
+                ),
+                Expanded(
+                  child: _buildStatCard(
+                    _pendingApprovals.toString(),
+                    'Pending Approvals',
+                    Icons.pending_actions,
+                    Mycolors.orange,
+                  ),
+                ),
+                SizedBox(
+                  width: ResponsiveUtils.getResponsiveSpacing(
+                    context,
+                    mobile: 12,
+                    tablet: 14,
+                    desktop: 16,
+                  ),
+                ),
+                Expanded(
+                  child: _buildStatCard(
+                    _openComplaints.toString(),
+                    'Open Complaints',
+                    Icons.report_problem,
+                    Mycolors.red,
+                  ),
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: 24),
+          SizedBox(
+            height: ResponsiveUtils.getResponsiveSpacing(
+              context,
+              mobile: 16,
+              tablet: 20,
+              desktop: 24,
+            ),
+          ),
           // Recent Activity Section
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(flex: 2, child: _buildRecentBookingsCard()),
-              const SizedBox(width: 16),
-              Expanded(flex: 1, child: _buildQuickActionsCard()),
-            ],
+          ResponsiveWidget(
+            mobile: Column(
+              children: [
+                _buildRecentBookingsCard(),
+                SizedBox(
+                  height: ResponsiveUtils.getResponsiveSpacing(
+                    context,
+                    mobile: 16,
+                    tablet: 20,
+                    desktop: 24,
+                  ),
+                ),
+                _buildQuickActionsCard(),
+              ],
+            ),
+            tablet: Column(
+              children: [
+                _buildRecentBookingsCard(),
+                SizedBox(
+                  height: ResponsiveUtils.getResponsiveSpacing(
+                    context,
+                    mobile: 16,
+                    tablet: 20,
+                    desktop: 24,
+                  ),
+                ),
+                _buildQuickActionsCard(),
+              ],
+            ),
+            desktop: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(flex: 2, child: _buildRecentBookingsCard()),
+                SizedBox(
+                  width: ResponsiveUtils.getResponsiveSpacing(
+                    context,
+                    mobile: 12,
+                    tablet: 14,
+                    desktop: 16,
+                  ),
+                ),
+                Expanded(flex: 1, child: _buildQuickActionsCard()),
+              ],
+            ),
           ),
         ],
       ),
@@ -515,7 +800,14 @@ class _AdminWebDashboardScreenState extends State<AdminWebDashboardScreen> {
     Color color,
   ) {
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: EdgeInsets.all(
+        ResponsiveUtils.getResponsiveSpacing(
+          context,
+          mobile: 16,
+          tablet: 20,
+          desktop: 24,
+        ),
+      ),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
@@ -530,14 +822,37 @@ class _AdminWebDashboardScreenState extends State<AdminWebDashboardScreen> {
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: EdgeInsets.all(
+              ResponsiveUtils.getResponsiveSpacing(
+                context,
+                mobile: 8,
+                tablet: 10,
+                desktop: 12,
+              ),
+            ),
             decoration: BoxDecoration(
               color: color.withOpacity(0.1),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(icon, color: color, size: 28),
+            child: Icon(
+              icon,
+              color: color,
+              size: ResponsiveUtils.getResponsiveIconSize(
+                context,
+                mobile: 24,
+                tablet: 26,
+                desktop: 28,
+              ),
+            ),
           ),
-          const SizedBox(width: 16),
+          SizedBox(
+            width: ResponsiveUtils.getResponsiveSpacing(
+              context,
+              mobile: 12,
+              tablet: 14,
+              desktop: 16,
+            ),
+          ),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -545,7 +860,12 @@ class _AdminWebDashboardScreenState extends State<AdminWebDashboardScreen> {
                 Text(
                   value,
                   style: GoogleFonts.poppins(
-                    fontSize: 28,
+                    fontSize: ResponsiveUtils.getResponsiveFontSize(
+                      context,
+                      mobile: 24,
+                      tablet: 26,
+                      desktop: 28,
+                    ),
                     fontWeight: FontWeight.bold,
                     color: Colors.black87,
                   ),
@@ -553,7 +873,12 @@ class _AdminWebDashboardScreenState extends State<AdminWebDashboardScreen> {
                 Text(
                   label,
                   style: GoogleFonts.poppins(
-                    fontSize: 14,
+                    fontSize: ResponsiveUtils.getResponsiveFontSize(
+                      context,
+                      mobile: 12,
+                      tablet: 13,
+                      desktop: 14,
+                    ),
                     color: Colors.grey[600],
                   ),
                 ),
@@ -1272,6 +1597,136 @@ class _AdminWebDashboardScreenState extends State<AdminWebDashboardScreen> {
             ],
           ),
         );
+      },
+    );
+  }
+
+  Widget _buildMobileDrawer() {
+    return Drawer(
+      child: ListView(
+        padding: EdgeInsets.zero,
+        children: [
+          DrawerHeader(
+            decoration: BoxDecoration(color: Mycolors.basecolor),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(
+                    Icons.local_taxi,
+                    color: Mycolors.basecolor,
+                    size: 32,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'RelyGo Admin',
+                  style: GoogleFonts.poppins(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          _buildDrawerItem(
+            icon: Icons.dashboard_rounded,
+            label: 'Dashboard',
+            index: 0,
+          ),
+          _buildDrawerItem(
+            icon: Icons.people_rounded,
+            label: 'Users & Drivers',
+            index: 1,
+          ),
+          _buildDrawerItem(
+            icon: Icons.local_taxi_rounded,
+            label: 'Bookings',
+            index: 2,
+          ),
+          _buildDrawerItem(
+            icon: Icons.report_problem_rounded,
+            label: 'Complaints',
+            index: 3,
+            badge: _openComplaints > 0 ? _openComplaints.toString() : null,
+          ),
+          _buildDrawerItem(
+            icon: Icons.analytics_rounded,
+            label: 'Analytics',
+            index: 4,
+          ),
+          const Divider(),
+          _buildDrawerItem(
+            icon: Icons.logout_rounded,
+            label: 'Logout',
+            index: -1,
+            isLogout: true,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDrawerItem({
+    required IconData icon,
+    required String label,
+    required int index,
+    String? badge,
+    bool isLogout = false,
+  }) {
+    final isSelected = _selectedIndex == index;
+    final color = isLogout
+        ? Mycolors.red
+        : (isSelected ? Mycolors.basecolor : Colors.grey[700]!);
+
+    return ListTile(
+      leading: Icon(icon, color: color),
+      title: Row(
+        children: [
+          Expanded(
+            child: Text(
+              label,
+              style: GoogleFonts.poppins(
+                fontSize: 16,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                color: color,
+              ),
+            ),
+          ),
+          if (badge != null)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: Mycolors.red,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Text(
+                badge,
+                style: GoogleFonts.poppins(
+                  fontSize: 10,
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+        ],
+      ),
+      selected: isSelected,
+      onTap: () {
+        Navigator.pop(context);
+        if (isLogout) {
+          _showLogoutDialog();
+        } else {
+          setState(() {
+            _selectedIndex = index;
+          });
+        }
       },
     );
   }
