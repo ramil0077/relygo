@@ -1563,17 +1563,28 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                   final userId = AuthService.currentUserId;
                   if (userId == null) return;
 
-                  // Check for active ride
+                  // Check for active ride (including completed if paid)
                   final snapshot = await FirebaseFirestore.instance
                       .collection('ride_requests')
                       .where('userId', isEqualTo: userId)
-                      .where('status', whereIn: ['accepted', 'ongoing'])
-                      .limit(1)
+                      .where('status', whereIn: ['accepted', 'ongoing', 'paid', 'completed'])
+                      .limit(10)
                       .get();
+                  
+                  // Filter to get active rides (paid and completed, or accepted/ongoing/paid)
+                  final activeRides = snapshot.docs.where((doc) {
+                    final data = doc.data();
+                    final isPaid = data['isPaid'] ?? false;
+                    final status = (data['status'] ?? '').toString().toLowerCase();
+                    return status == 'accepted' ||
+                        status == 'ongoing' ||
+                        status == 'paid' ||
+                        (status == 'completed' && isPaid);
+                  }).toList();
 
-                  if (snapshot.docs.isNotEmpty) {
-                    final ride = snapshot.docs.first.data();
-                    ride['id'] = snapshot.docs.first.id;
+                  if (activeRides.isNotEmpty) {
+                    final ride = activeRides.first.data();
+                    ride['id'] = activeRides.first.id;
                     final driverId = ride['driverId'];
                     if (driverId != null) {
                       Navigator.push(
@@ -1671,17 +1682,28 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                   final userId = AuthService.currentUserId;
                   if (userId == null) return;
 
-                  // Check for active ride
+                  // Check for active ride (including completed if paid)
                   final snapshot = await FirebaseFirestore.instance
                       .collection('ride_requests')
                       .where('userId', isEqualTo: userId)
-                      .where('status', whereIn: ['accepted', 'ongoing'])
-                      .limit(1)
+                      .where('status', whereIn: ['accepted', 'ongoing', 'paid', 'completed'])
+                      .limit(10)
                       .get();
+                  
+                  // Filter to get active rides (paid and completed, or accepted/ongoing/paid)
+                  final activeRides = snapshot.docs.where((doc) {
+                    final data = doc.data();
+                    final isPaid = data['isPaid'] ?? false;
+                    final status = (data['status'] ?? '').toString().toLowerCase();
+                    return status == 'accepted' ||
+                        status == 'ongoing' ||
+                        status == 'paid' ||
+                        (status == 'completed' && isPaid);
+                  }).toList();
 
-                  if (snapshot.docs.isNotEmpty) {
-                    final ride = snapshot.docs.first.data();
-                    ride['id'] = snapshot.docs.first.id;
+                  if (activeRides.isNotEmpty) {
+                    final ride = activeRides.first.data();
+                    ride['id'] = activeRides.first.id;
                     final driverId = ride['driverId'];
                     if (driverId != null) {
                       Navigator.push(

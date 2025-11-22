@@ -40,6 +40,26 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
     ).map((bookings) => bookings.take(5).toList());
   }
 
+  Stream<List<Map<String, dynamic>>> _getActiveRidesStream() {
+    final driverId = AuthService.currentUserId;
+    if (driverId == null) {
+      return const Stream<List<Map<String, dynamic>>>.empty();
+    }
+    // Get active rides: paid and status is ongoing or accepted
+    return DriverService.getUnifiedDriverBookingsStream(driverId).map(
+      (bookings) => bookings
+          .where((booking) {
+            final isPaid = booking['isPaid'] ?? false;
+            final status = (booking['status'] ?? '').toString().toLowerCase();
+            return isPaid &&
+                (status == 'ongoing' ||
+                    status == 'accepted' ||
+                    status == 'paid');
+          })
+          .toList(),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -255,6 +275,52 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                 mobile: _buildMobileActionGrid(context),
                 tablet: _buildTabletActionGrid(context),
                 desktop: _buildDesktopActionGrid(context),
+              ),
+
+              SizedBox(height: ResponsiveSpacing.getLargeSpacing(context)),
+
+              // Active Rides Section
+              Text(
+                "Active Rides",
+                style: ResponsiveTextStyles.getTitleStyle(context),
+              ),
+              SizedBox(height: ResponsiveSpacing.getMediumSpacing(context)),
+              
+              StreamBuilder<List<Map<String, dynamic>>>(
+                stream: _getActiveRidesStream(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  if (snapshot.hasError) {
+                    return Center(
+                      child: Text(
+                        'Failed to load active rides',
+                        style: GoogleFonts.poppins(color: Mycolors.red),
+                      ),
+                    );
+                  }
+                  final activeRides = snapshot.data ?? [];
+                  if (activeRides.isEmpty) {
+                    return Container(
+                      padding: ResponsiveUtils.getResponsivePadding(context),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[100],
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        'No active rides',
+                        style: GoogleFonts.poppins(color: Mycolors.gray),
+                        textAlign: TextAlign.center,
+                      ),
+                    );
+                  }
+                  return Column(
+                    children: activeRides.map((ride) {
+                      return _buildActiveRideCard(context, ride);
+                    }).toList(),
+                  );
+                },
               ),
 
               SizedBox(height: ResponsiveSpacing.getLargeSpacing(context)),
@@ -830,6 +896,284 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
         ),
       ),
     );
+  }
+
+  Widget _buildActiveRideCard(BuildContext context, Map<String, dynamic> ride) {
+    final bookingId = ride['id'] ?? '';
+    final destination = ride['dropoffLocation'] ??
+        ride['destination'] ??
+        'Unknown Destination';
+    final pickup = ride['pickupLocation'] ?? ride['pickup'] ?? 'Unknown Pickup';
+    final fare = ride['fare'] ?? ride['price'] ?? 0;
+    final userName = ride['userName'] ?? 'User';
+    final status = (ride['status'] ?? '').toString().toLowerCase();
+    final isPaid = ride['isPaid'] ?? false;
+
+    return Container(
+      margin: EdgeInsets.only(
+        bottom: ResponsiveSpacing.getSmallSpacing(context),
+      ),
+      padding: ResponsiveUtils.getResponsivePadding(context),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(
+          ResponsiveUtils.getResponsiveBorderRadius(
+            context,
+            mobile: 12,
+            tablet: 14,
+            desktop: 16,
+          ),
+        ),
+        border: Border.all(color: Mycolors.green.withOpacity(0.3)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            blurRadius: ResponsiveUtils.getResponsiveElevation(
+              context,
+              mobile: 5,
+              tablet: 6,
+              desktop: 8,
+            ),
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'To: $destination',
+                      style: GoogleFonts.poppins(
+                        fontSize: ResponsiveUtils.getResponsiveFontSize(
+                          context,
+                          mobile: 16,
+                          tablet: 18,
+                          desktop: 20,
+                        ),
+                        fontWeight: FontWeight.bold,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'From: $pickup',
+                      style: GoogleFonts.poppins(
+                        fontSize: ResponsiveUtils.getResponsiveFontSize(
+                          context,
+                          mobile: 14,
+                          tablet: 15,
+                          desktop: 16,
+                        ),
+                        color: Colors.grey[600],
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Passenger: $userName • Fare: ₹$fare',
+                      style: GoogleFonts.poppins(
+                        fontSize: ResponsiveUtils.getResponsiveFontSize(
+                          context,
+                          mobile: 12,
+                          tablet: 13,
+                          desktop: 14,
+                        ),
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: ResponsiveUtils.getResponsiveSpacing(
+                      context,
+                      mobile: 8,
+                      tablet: 10,
+                      desktop: 12,
+                    ),
+                    vertical: ResponsiveUtils.getResponsiveSpacing(
+                      context,
+                      mobile: 6,
+                      tablet: 7,
+                      desktop: 8,
+                    ),
+                  ),
+                  decoration: BoxDecoration(
+                    color: Mycolors.green.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.check_circle,
+                        color: Mycolors.green,
+                        size: 16,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        isPaid ? 'Paid' : 'Unpaid',
+                        style: GoogleFonts.poppins(
+                          fontSize: ResponsiveUtils.getResponsiveFontSize(
+                            context,
+                            mobile: 12,
+                            tablet: 13,
+                            desktop: 14,
+                          ),
+                          color: Mycolors.green,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                flex: 2,
+                child: ElevatedButton.icon(
+                  onPressed: isPaid &&
+                          (status == 'ongoing' ||
+                              status == 'accepted' ||
+                              status == 'paid')
+                      ? () => _toggleRideCompletion(context, bookingId)
+                      : null,
+                  icon: const Icon(Icons.check, size: 18),
+                  label: Text(
+                    'Mark Completed',
+                    style: GoogleFonts.poppins(
+                      fontSize: ResponsiveUtils.getResponsiveFontSize(
+                        context,
+                        mobile: 14,
+                        tablet: 15,
+                        desktop: 16,
+                      ),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Mycolors.green,
+                    foregroundColor: Colors.white,
+                    padding: EdgeInsets.symmetric(
+                      vertical: ResponsiveUtils.getResponsiveSpacing(
+                        context,
+                        mobile: 10,
+                        tablet: 12,
+                        desktop: 14,
+                      ),
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _toggleRideCompletion(
+      BuildContext context, String bookingId) async {
+    // Show confirmation dialog
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(
+          'Complete Ride?',
+          style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+        ),
+        content: Text(
+          'Are you sure you want to mark this ride as completed?',
+          style: GoogleFonts.poppins(),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(
+              'Cancel',
+              style: GoogleFonts.poppins(color: Colors.grey),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Mycolors.green,
+              foregroundColor: Colors.white,
+            ),
+            child: Text(
+              'Complete',
+              style: GoogleFonts.poppins(),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      // Show loading
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  'Completing ride...',
+                  style: GoogleFonts.poppins(),
+                ),
+              ],
+            ),
+            backgroundColor: Mycolors.basecolor,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+
+      final result = await DriverService.completeBooking(bookingId);
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              result['success'] == true
+                  ? 'Ride completed successfully!'
+                  : result['error'] ?? 'Failed to complete ride',
+              style: GoogleFonts.poppins(),
+            ),
+            backgroundColor: result['success'] == true
+                ? Mycolors.green
+                : Mycolors.red,
+          ),
+        );
+      }
+    }
   }
 
   Widget _buildRecentRideCard(

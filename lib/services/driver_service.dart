@@ -393,6 +393,7 @@ class DriverService {
   }
 
   /// Mark booking as completed (handles both collections)
+  /// Only works if booking is paid and status is ongoing or accepted
   static Future<Map<String, dynamic>> completeBooking(String bookingId) async {
     try {
       // Try to find booking in 'bookings' collection first
@@ -412,12 +413,50 @@ class DriverService {
         return {'success': false, 'error': 'Booking not found'};
       }
 
-      // Update booking
+      final bookingData = bookingDoc.data() as Map<String, dynamic>;
+      final isPaid = bookingData['isPaid'] ?? false;
+      final status = (bookingData['status'] ?? '').toString().toLowerCase();
+
+      // Only allow completion if paid and status is ongoing or accepted
+      if (!isPaid) {
+        return {
+          'success': false,
+          'error': 'Cannot complete ride. Payment not received yet.'
+        };
+      }
+
+      if (status != 'ongoing' && status != 'accepted' && status != 'paid') {
+        return {
+          'success': false,
+          'error': 'Ride can only be completed when status is ongoing or accepted'
+        };
+      }
+
+      final userId = bookingData['userId'];
+
+      // Update booking to completed
+      // Note: Location tracking continues even after completion so user can track driver
       await bookingRef.update({
         'status': 'completed',
         'completedAt': FieldValue.serverTimestamp(),
         'updatedAt': FieldValue.serverTimestamp(),
       });
+
+      // DO NOT stop location tracking - it should continue so user can track driver
+      // Location tracking will only stop when the ride is truly finished (e.g., after drop time passes)
+
+      // Send notification to user
+      if (userId != null) {
+        await _firestore.collection('notifications').add({
+          'userId': userId,
+          'title': 'Ride Completed',
+          'message': 'Your ride has been completed by the driver.',
+          'type': 'ride_completed',
+          'bookingId': bookingId,
+          'read': false,
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+      }
 
       return {'success': true, 'message': 'Booking completed'};
     } catch (e) {

@@ -405,14 +405,38 @@ class _PaymentScreenState extends State<PaymentScreen> {
   }
 
   Future<void> _markPaid({required String method}) async {
+    // Update ride_requests collection
     await FirebaseFirestore.instance
         .collection('ride_requests')
         .doc(widget.requestId)
         .update({
-          'status': 'paid',
+          'status': 'ongoing',
+          'isPaid': true,
           'paymentMethod': method,
           'paidAt': Timestamp.now(),
         });
+    
+    // Also update bookings collection if it exists
+    try {
+      final bookingDoc = await FirebaseFirestore.instance
+          .collection('bookings')
+          .doc(widget.requestId)
+          .get();
+      if (bookingDoc.exists) {
+        await FirebaseFirestore.instance
+            .collection('bookings')
+            .doc(widget.requestId)
+            .update({
+              'status': 'ongoing',
+              'isPaid': true,
+              'paymentMethod': method,
+              'paymentDate': Timestamp.now(),
+            });
+      }
+    } catch (e) {
+      // Ignore if bookings collection doesn't have this document
+      print('Bookings collection update skipped: $e');
+    }
   }
 
   Future<void> _showSuccessDialog() async {

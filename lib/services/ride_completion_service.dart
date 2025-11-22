@@ -6,20 +6,26 @@ class RideCompletionService {
   static final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   // Check and update ride completion status based on drop time
+  // Only auto-completes if ride is paid and not already completed
   static Future<void> checkAndUpdateRideCompletion() async {
     final now = DateTime.now();
 
-    // Get all accepted rides that should be completed
+    // Get all accepted/ongoing rides that should be completed
     final ridesSnapshot = await _firestore
         .collection('ride_requests')
-        .where('status', isEqualTo: 'accepted')
+        .where('status', whereIn: ['accepted', 'ongoing', 'paid'])
         .get();
 
     for (final doc in ridesSnapshot.docs) {
       final data = doc.data();
       final dropTime = data['dropTime'] as Timestamp?;
+      final isPaid = data['isPaid'] ?? false;
+      final status = (data['status'] ?? '').toString().toLowerCase();
 
-      if (dropTime != null) {
+      // Only auto-complete if paid and status is accepted/ongoing/paid
+      if (isPaid && 
+          (status == 'accepted' || status == 'ongoing' || status == 'paid') &&
+          dropTime != null) {
         final dropDateTime = dropTime.toDate();
 
         // If current time is past drop time, mark as completed
@@ -27,6 +33,36 @@ class RideCompletionService {
           await _firestore.collection('ride_requests').doc(doc.id).update({
             'status': 'completed',
             'completedAt': Timestamp.now(),
+            'updatedAt': FieldValue.serverTimestamp(),
+          });
+        }
+      }
+    }
+
+    // Also check bookings collection
+    final bookingsSnapshot = await _firestore
+        .collection('bookings')
+        .where('status', whereIn: ['accepted', 'ongoing'])
+        .get();
+
+    for (final doc in bookingsSnapshot.docs) {
+      final data = doc.data();
+      final dropTime = data['dropTime'] as Timestamp?;
+      final isPaid = data['isPaid'] ?? false;
+      final status = (data['status'] ?? '').toString().toLowerCase();
+
+      // Only auto-complete if paid and status is accepted/ongoing
+      if (isPaid && 
+          (status == 'accepted' || status == 'ongoing') &&
+          dropTime != null) {
+        final dropDateTime = dropTime.toDate();
+
+        // If current time is past drop time, mark as completed
+        if (now.isAfter(dropDateTime)) {
+          await _firestore.collection('bookings').doc(doc.id).update({
+            'status': 'completed',
+            'completedAt': Timestamp.now(),
+            'updatedAt': FieldValue.serverTimestamp(),
           });
         }
       }

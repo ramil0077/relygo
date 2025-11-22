@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:relygo/services/auth_service.dart';
+import 'dart:async';
 
 class UserService {
   static final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -222,13 +223,13 @@ class UserService {
       // Simulate payment processing (in production, integrate with payment gateway)
       final paymentId = 'PAY_${DateTime.now().millisecondsSinceEpoch}';
 
-      // Update booking
+      // Update booking - set to ongoing (not completed) when paid
       await bookingRef.update({
         'isPaid': true,
         'paymentId': paymentId,
         'paymentMethod': paymentMethod,
         'paymentDate': FieldValue.serverTimestamp(),
-        'status': 'ongoing',
+        'status': 'ongoing', // Keep as ongoing, not completed
         'updatedAt': FieldValue.serverTimestamp(),
       });
 
@@ -584,36 +585,86 @@ class UserService {
   }
 
   /// Get user's active booking for tracking
+  /// Includes rides that are paid and completed (so user can track location)
   static Stream<Map<String, dynamic>?> getActiveBookingStream(String userId) {
+    // Check bookings collection first
     return _firestore
         .collection('bookings')
         .where('userId', isEqualTo: userId)
-        .where('status', whereIn: ['pending', 'accepted', 'ongoing'])
-        .limit(1)
         .snapshots()
         .asyncMap((snapshot) async {
-          if (snapshot.docs.isEmpty) return null;
-
-          final bookingData = snapshot.docs.first.data();
-          bookingData['id'] = snapshot.docs.first.id;
-
-          try {
-            // Get driver details
-            if (bookingData['driverId'] != null) {
+      // Process bookings collection
+      for (var doc in snapshot.docs) {
+        final data = doc.data();
+        data['id'] = doc.id;
+        final isPaid = data['isPaid'] ?? false;
+        final status = (data['status'] ?? '').toString().toLowerCase();
+        
+        // Include if: pending, accepted, ongoing, OR (completed and paid)
+        if (status == 'pending' ||
+            status == 'accepted' ||
+            status == 'ongoing' ||
+            (status == 'completed' && isPaid)) {
+          // Get driver details
+          if (data['driverId'] != null) {
+            try {
               final driverDoc = await _firestore
                   .collection('users')
-                  .doc(bookingData['driverId'])
+                  .doc(data['driverId'])
                   .get();
               if (driverDoc.exists) {
-                bookingData['driverDetails'] = driverDoc.data();
+                data['driverDetails'] = driverDoc.data();
+              }
+            } catch (e) {
+              print('Error getting driver details: $e');
+            }
+          }
+          return data;
+        }
+      }
+      
+      // If not found in bookings, check ride_requests
+      try {
+        final rideRequestsSnapshot = await _firestore
+            .collection('ride_requests')
+            .where('userId', isEqualTo: userId)
+            .limit(10)
+            .get();
+        
+        for (var doc in rideRequestsSnapshot.docs) {
+          final data = doc.data();
+          data['id'] = doc.id;
+          final isPaid = data['isPaid'] ?? false;
+          final status = (data['status'] ?? '').toString().toLowerCase();
+          
+          // Include if: pending, accepted, ongoing, paid, OR (completed and paid)
+          if (status == 'pending' ||
+              status == 'accepted' ||
+              status == 'ongoing' ||
+              status == 'paid' ||
+              (status == 'completed' && isPaid)) {
+            // Get driver details
+            if (data['driverId'] != null) {
+              try {
+                final driverDoc = await _firestore
+                    .collection('users')
+                    .doc(data['driverId'])
+                    .get();
+                if (driverDoc.exists) {
+                  data['driverDetails'] = driverDoc.data();
+                }
+              } catch (e) {
+                print('Error getting driver details: $e');
               }
             }
-
-            return bookingData;
-          } catch (e) {
-            print('Error getting active booking details: $e');
-            return bookingData;
+            return data;
           }
-        });
+        }
+      } catch (e) {
+        print('Error checking ride_requests: $e');
+      }
+      
+      return null;
+    });
   }
 }
