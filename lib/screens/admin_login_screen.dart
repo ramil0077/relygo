@@ -4,6 +4,7 @@ import 'package:relygo/constants.dart';
 import 'package:relygo/screens/admin_web_dashboard_screen.dart';
 import 'package:relygo/utils/platform_utils.dart';
 import 'package:relygo/utils/responsive.dart';
+import 'package:relygo/services/auth_service.dart';
 
 class AdminLoginScreen extends StatefulWidget {
   const AdminLoginScreen({super.key});
@@ -18,10 +19,6 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
   final _passwordController = TextEditingController();
   bool _isLoading = false;
   bool _obscurePassword = true;
-
-  // Hardcoded admin credentials
-  final String _adminEmail = "admin@relygo.com";
-  final String _adminPassword = "admin123";
 
   @override
   void dispose() {
@@ -252,9 +249,13 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
     // Simulate network delay
     await Future.delayed(const Duration(seconds: 1));
 
-    // Check credentials
-    if (_emailController.text.trim() == _adminEmail &&
-        _passwordController.text == _adminPassword) {
+    // Use AuthService for admin login (handles persistence)
+    final result = await AuthService.signInWithEmailAndPassword(
+      email: _emailController.text.trim(),
+      password: _passwordController.text,
+    );
+
+    if (result['success'] == true && result['userType'] == 'admin') {
       // Success - redirect to web admin dashboard
       if (mounted) {
         if (PlatformUtils.isWeb) {

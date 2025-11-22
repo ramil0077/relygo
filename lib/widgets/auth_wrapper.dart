@@ -24,14 +24,38 @@ class AuthWrapper extends StatelessWidget {
           );
         }
 
-        // If user is not logged in, show sign in screen
-        if (snapshot.data == null) {
-          return const SignInScreen();
+        // Check if Firebase user is logged in
+        final firebaseUser = snapshot.data;
+        
+        // If no Firebase user, check for admin login
+        if (firebaseUser == null) {
+          return FutureBuilder<bool>(
+            future: AuthService.isAdminLoggedIn,
+            builder: (context, adminSnapshot) {
+              if (adminSnapshot.connectionState == ConnectionState.waiting) {
+                return const Scaffold(
+                  body: Center(child: CircularProgressIndicator()),
+                );
+              }
+
+              // If admin is logged in, show admin dashboard
+              if (adminSnapshot.data == true) {
+                if (PlatformUtils.isWeb) {
+                  return const AdminWebDashboardScreen();
+                } else {
+                  return _buildAdminMobileRestrictionScreen(context);
+                }
+              }
+
+              // No user logged in, show sign in screen
+              return const SignInScreen();
+            },
+          );
         }
 
-        // If user is logged in, determine their role and show appropriate dashboard
+        // If Firebase user is logged in, determine their role and show appropriate dashboard
         return FutureBuilder<Map<String, dynamic>?>(
-          future: AuthService.getUserData(snapshot.data!.uid),
+          future: AuthService.getUserData(firebaseUser.uid),
           builder: (context, userSnapshot) {
             if (userSnapshot.connectionState == ConnectionState.waiting) {
               return const Scaffold(

@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:relygo/services/cloudinary_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthService {
   static final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -13,8 +14,32 @@ class AuthService {
   /// Get current user ID
   static String? get currentUserId => _auth.currentUser?.uid;
 
-  /// Check if user is logged in
-  static bool get isLoggedIn => _auth.currentUser != null;
+  /// Check if user is logged in (Firebase or Admin)
+  static Future<bool> get isLoggedIn async {
+    if (_auth.currentUser != null) return true;
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool('is_admin_logged_in') ?? false;
+  }
+
+  /// Check if admin is logged in
+  static Future<bool> get isAdminLoggedIn async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool('is_admin_logged_in') ?? false;
+  }
+
+  /// Get admin user data
+  static Future<Map<String, dynamic>?> getAdminUserData() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (prefs.getBool('is_admin_logged_in') ?? false) {
+      return {
+        'name': 'Admin User',
+        'email': 'admin@relygo.com',
+        'userType': 'admin',
+        'status': 'approved',
+      };
+    }
+    return null;
+  }
 
   /// Sign in with email and password
   static Future<Map<String, dynamic>> signInWithEmailAndPassword({
@@ -23,6 +48,10 @@ class AuthService {
   }) async {
     // Check for hardcoded admin credentials
     if (email.trim() == 'admin@relygo.com' && password == 'admin123') {
+      // Save admin login state to SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('is_admin_logged_in', true);
+      
       return {
         'success': true,
         'user': null, // No Firebase user for hardcoded admin
@@ -138,9 +167,14 @@ class AuthService {
     }
   }
 
-  /// Sign out
+  /// Sign out (clears both Firebase and admin sessions)
   static Future<void> signOut() async {
+    // Sign out from Firebase
     await _auth.signOut();
+    
+    // Clear admin login state
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('is_admin_logged_in', false);
   }
 
   /// Reset password
