@@ -10,7 +10,6 @@ import 'package:relygo/screens/chat_detail_screen.dart';
 import 'package:relygo/services/location_service.dart';
 import 'package:relygo/utils/platform_utils.dart';
 import 'package:relygo/utils/responsive.dart';
-import 'package:relygo/utils/responsive_helper.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class DriverTrackingScreen extends StatefulWidget {
@@ -905,29 +904,37 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
             ),
           ),
 
-          const SizedBox(height: 16),
+          SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 16, tablet: 18, desktop: 20)),
 
           // Distance and ETA info
           Row(
             children: [
               Expanded(
                 child: Container(
-                  padding: const EdgeInsets.all(12),
+                  padding: EdgeInsets.all(
+                    ResponsiveUtils.getResponsiveSpacing(context, mobile: 12, tablet: 14, desktop: 16),
+                  ),
                   decoration: BoxDecoration(
                     color: Mycolors.basecolor.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(
+                      ResponsiveUtils.getResponsiveBorderRadius(context, mobile: 8, tablet: 10, desktop: 12),
+                    ),
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.straighten, color: Mycolors.basecolor, size: 20),
-                      const SizedBox(width: 8),
+                      Icon(
+                        Icons.straighten,
+                        color: Mycolors.basecolor,
+                        size: ResponsiveUtils.getResponsiveIconSize(context, mobile: 20, tablet: 22, desktop: 24),
+                      ),
+                      SizedBox(width: ResponsiveUtils.getResponsiveSpacing(context, mobile: 8, tablet: 10, desktop: 12)),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             'Distance',
                             style: GoogleFonts.poppins(
-                              fontSize: 12,
+                              fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 12, tablet: 13, desktop: 14),
                               color: Colors.grey[600],
                             ),
                           ),
@@ -938,7 +945,7 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
                                     ? 'Calculating...'
                                     : 'Not available',
                             style: GoogleFonts.poppins(
-                              fontSize: 16,
+                              fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 16, tablet: 17, desktop: 18),
                               fontWeight: FontWeight.bold,
                               color: Mycolors.basecolor,
                             ),
@@ -949,25 +956,33 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
                   ),
                 ),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: ResponsiveUtils.getResponsiveSpacing(context, mobile: 12, tablet: 14, desktop: 16)),
               Expanded(
                 child: Container(
-                  padding: const EdgeInsets.all(12),
+                  padding: EdgeInsets.all(
+                    ResponsiveUtils.getResponsiveSpacing(context, mobile: 12, tablet: 14, desktop: 16),
+                  ),
                   decoration: BoxDecoration(
                     color: Mycolors.orange.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(
+                      ResponsiveUtils.getResponsiveBorderRadius(context, mobile: 8, tablet: 10, desktop: 12),
+                    ),
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.access_time, color: Mycolors.orange, size: 20),
-                      const SizedBox(width: 8),
+                      Icon(
+                        Icons.access_time,
+                        color: Mycolors.orange,
+                        size: ResponsiveUtils.getResponsiveIconSize(context, mobile: 20, tablet: 22, desktop: 24),
+                      ),
+                      SizedBox(width: ResponsiveUtils.getResponsiveSpacing(context, mobile: 8, tablet: 10, desktop: 12)),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             'ETA',
                             style: GoogleFonts.poppins(
-                              fontSize: 12,
+                              fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 12, tablet: 13, desktop: 14),
                               color: Colors.grey[600],
                             ),
                           ),
@@ -978,7 +993,7 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
                                     ? 'Calculating...'
                                     : 'Not available',
                             style: GoogleFonts.poppins(
-                              fontSize: 16,
+                              fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 16, tablet: 17, desktop: 18),
                               fontWeight: FontWeight.bold,
                               color: Mycolors.orange,
                             ),

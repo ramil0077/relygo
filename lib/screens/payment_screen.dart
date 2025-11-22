@@ -6,6 +6,7 @@ import 'package:razorpay_flutter/razorpay_flutter.dart';
 import 'package:relygo/services/payment_service.dart';
 import 'package:relygo/screens/user_dashboard_screen.dart';
 import 'package:relygo/utils/platform_utils.dart';
+import 'package:relygo/utils/responsive.dart';
 
 class PaymentScreen extends StatefulWidget {
   final String requestId;
@@ -84,7 +85,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
           title: Text(
             "Payment",
             style: GoogleFonts.poppins(
-              fontSize: 20,
+              fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 20, tablet: 22, desktop: 24),
               fontWeight: FontWeight.bold,
               color: Colors.black,
             ),
@@ -92,52 +93,54 @@ class _PaymentScreenState extends State<PaymentScreen> {
         ),
         body: Center(
           child: Padding(
-            padding: const EdgeInsets.all(40),
+            padding: ResponsiveUtils.getResponsivePadding(context),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(
                   Icons.payment_outlined,
-                  size: 80,
+                  size: ResponsiveUtils.getResponsiveIconSize(context, mobile: 80, tablet: 100, desktop: 120),
                   color: Mycolors.basecolor.withOpacity(0.5),
                 ),
-                const SizedBox(height: 24),
+                SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 24, tablet: 28, desktop: 32)),
                 Text(
                   'Payment Not Available on Web',
                   style: GoogleFonts.poppins(
-                    fontSize: 24,
+                    fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 24, tablet: 26, desktop: 28),
                     fontWeight: FontWeight.bold,
                     color: Colors.black87,
                   ),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 16, tablet: 18, desktop: 20)),
                 Text(
                   'Payment features are only available on mobile devices. Please use the mobile app to complete your payment.',
                   style: GoogleFonts.poppins(
-                    fontSize: 16,
+                    fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 16, tablet: 17, desktop: 18),
                     color: Colors.grey[600],
                   ),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 32),
+                SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 32, tablet: 36, desktop: 40)),
                 ElevatedButton(
                   onPressed: () => Navigator.of(context).pop(),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Mycolors.basecolor,
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 32,
-                      vertical: 16,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: ResponsiveUtils.getResponsiveSpacing(context, mobile: 32, tablet: 36, desktop: 40),
+                      vertical: ResponsiveUtils.getResponsiveSpacing(context, mobile: 16, tablet: 18, desktop: 20),
                     ),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(
+                        ResponsiveUtils.getResponsiveBorderRadius(context, mobile: 12, tablet: 14, desktop: 16),
+                      ),
                     ),
                   ),
                   child: Text(
                     'Go Back',
                     style: GoogleFonts.poppins(
-                      fontSize: 16,
+                      fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 16, tablet: 17, desktop: 18),
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -161,7 +164,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
         title: Text(
           "Payment",
           style: GoogleFonts.poppins(
-            fontSize: 20,
+            fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 20, tablet: 22, desktop: 24),
             fontWeight: FontWeight.bold,
             color: Colors.black,
           ),
@@ -169,16 +172,18 @@ class _PaymentScreenState extends State<PaymentScreen> {
       ),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(20),
+          padding: ResponsiveUtils.getResponsivePadding(context),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Ride Details
               Container(
-                padding: const EdgeInsets.all(16),
+                padding: ResponsiveUtils.getResponsivePadding(context),
                 decoration: BoxDecoration(
                   color: Mycolors.lightGray,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(
+                    ResponsiveUtils.getResponsiveBorderRadius(context, mobile: 12, tablet: 14, desktop: 16),
+                  ),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -186,30 +191,36 @@ class _PaymentScreenState extends State<PaymentScreen> {
                     Text(
                       "Ride Details",
                       style: GoogleFonts.poppins(
-                        fontSize: 16,
+                        fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 16, tablet: 17, desktop: 18),
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 8, tablet: 10, desktop: 12)),
                     Text(
                       "Driver: ${widget.driverName}",
-                      style: GoogleFonts.poppins(fontSize: 14),
+                      style: GoogleFonts.poppins(
+                        fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 14, tablet: 15, desktop: 16),
+                      ),
                     ),
                     Text(
                       "Destination: ${widget.destination}",
-                      style: GoogleFonts.poppins(fontSize: 14),
+                      style: GoogleFonts.poppins(
+                        fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 14, tablet: 15, desktop: 16),
+                      ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 20),
+              SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 20, tablet: 24, desktop: 28)),
 
               // Amount
               Container(
-                padding: const EdgeInsets.all(20),
+                padding: ResponsiveUtils.getResponsivePadding(context),
                 decoration: BoxDecoration(
                   color: Mycolors.basecolor.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(
+                    ResponsiveUtils.getResponsiveBorderRadius(context, mobile: 12, tablet: 14, desktop: 16),
+                  ),
                   border: Border.all(
                     color: Mycolors.basecolor.withOpacity(0.3),
                   ),
@@ -220,14 +231,14 @@ class _PaymentScreenState extends State<PaymentScreen> {
                     Text(
                       "Total Amount",
                       style: GoogleFonts.poppins(
-                        fontSize: 18,
+                        fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 18, tablet: 20, desktop: 22),
                         fontWeight: FontWeight.w600,
                       ),
                     ),
                     Text(
                       "₹${widget.amount.toStringAsFixed(0)}",
                       style: GoogleFonts.poppins(
-                        fontSize: 24,
+                        fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 24, tablet: 26, desktop: 28),
                         fontWeight: FontWeight.bold,
                         color: Mycolors.basecolor,
                       ),
@@ -235,17 +246,17 @@ class _PaymentScreenState extends State<PaymentScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: 30),
+              SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 30, tablet: 36, desktop: 40)),
 
               // Payment Methods
               Text(
                 "Payment Method",
                 style: GoogleFonts.poppins(
-                  fontSize: 18,
+                  fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 18, tablet: 20, desktop: 22),
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              const SizedBox(height: 15),
+              SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 15, tablet: 18, desktop: 20)),
 
               _buildPaymentMethod(
                 'card',
@@ -253,40 +264,42 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 Icons.credit_card,
                 'Pay with your card',
               ),
-              const SizedBox(height: 10),
+              SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 10, tablet: 12, desktop: 14)),
               _buildPaymentMethod(
                 'upi',
                 'UPI',
                 Icons.account_balance_wallet,
                 'Pay with UPI',
               ),
-              const SizedBox(height: 10),
+              SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 10, tablet: 12, desktop: 14)),
               _buildPaymentMethod(
                 'cash',
                 'Cash',
                 Icons.money,
                 'Pay in cash to driver',
               ),
-              const SizedBox(height: 30),
+              SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 30, tablet: 36, desktop: 40)),
 
               // Pay Now Button
               SizedBox(
                 width: double.infinity,
-                height: 55,
+                height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 55, tablet: 60, desktop: 65),
                 child: ElevatedButton(
                   onPressed: _isProcessing ? null : _processPayment,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Mycolors.basecolor,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(
+                        ResponsiveUtils.getResponsiveBorderRadius(context, mobile: 12, tablet: 14, desktop: 16),
+                      ),
                     ),
-                    elevation: 2,
+                    elevation: ResponsiveUtils.getResponsiveElevation(context, mobile: 2, tablet: 3, desktop: 4),
                   ),
                   child: _isProcessing
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
+                      ? SizedBox(
+                          height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 20, tablet: 22, desktop: 24),
+                          width: ResponsiveUtils.getResponsiveSpacing(context, mobile: 20, tablet: 22, desktop: 24),
                           child: CircularProgressIndicator(
                             color: Colors.white,
                             strokeWidth: 2,
@@ -295,7 +308,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                       : Text(
                           "Pay ₹${widget.amount.toStringAsFixed(0)}",
                           style: GoogleFonts.poppins(
-                            fontSize: 18,
+                            fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 18, tablet: 20, desktop: 22),
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -322,12 +335,14 @@ class _PaymentScreenState extends State<PaymentScreen> {
         });
       },
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: ResponsiveUtils.getResponsivePadding(context),
         decoration: BoxDecoration(
           color: isSelected
               ? Mycolors.basecolor.withOpacity(0.1)
               : Colors.white,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(
+            ResponsiveUtils.getResponsiveBorderRadius(context, mobile: 12, tablet: 14, desktop: 16),
+          ),
           border: Border.all(
             color: isSelected ? Mycolors.basecolor : Colors.grey.shade300,
             width: isSelected ? 2 : 1,
@@ -338,9 +353,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
             Icon(
               icon,
               color: isSelected ? Mycolors.basecolor : Colors.grey,
-              size: 24,
+              size: ResponsiveUtils.getResponsiveIconSize(context, mobile: 24, tablet: 26, desktop: 28),
             ),
-            const SizedBox(width: 12),
+            SizedBox(width: ResponsiveUtils.getResponsiveSpacing(context, mobile: 12, tablet: 14, desktop: 16)),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -348,7 +363,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                   Text(
                     title,
                     style: GoogleFonts.poppins(
-                      fontSize: 16,
+                      fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 16, tablet: 17, desktop: 18),
                       fontWeight: FontWeight.w600,
                       color: isSelected ? Mycolors.basecolor : Colors.black,
                     ),
@@ -356,7 +371,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                   Text(
                     subtitle,
                     style: GoogleFonts.poppins(
-                      fontSize: 12,
+                      fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 12, tablet: 13, desktop: 14),
                       color: Colors.grey,
                     ),
                   ),
@@ -364,7 +379,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
               ),
             ),
             if (isSelected)
-              Icon(Icons.check_circle, color: Mycolors.basecolor, size: 24),
+              Icon(
+                Icons.check_circle,
+                color: Mycolors.basecolor,
+                size: ResponsiveUtils.getResponsiveIconSize(context, mobile: 24, tablet: 26, desktop: 28),
+              ),
           ],
         ),
       ),

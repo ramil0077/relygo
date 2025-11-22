@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:relygo/constants.dart';
 import 'package:relygo/screens/admin_web_dashboard_screen.dart';
 import 'package:relygo/utils/platform_utils.dart';
+import 'package:relygo/utils/responsive.dart';
 
 class AdminLoginScreen extends StatefulWidget {
   const AdminLoginScreen({super.key});
@@ -35,43 +36,45 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
       backgroundColor: Colors.white,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
+          padding: ResponsiveUtils.getResponsivePadding(context),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 40),
+              SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 40, tablet: 50, desktop: 60)),
 
               // Logo and Title
               Center(
                 child: Column(
                   children: [
                     Container(
-                      width: 80,
-                      height: 80,
+                      width: ResponsiveUtils.getResponsiveSpacing(context, mobile: 80, tablet: 100, desktop: 120),
+                      height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 80, tablet: 100, desktop: 120),
                       decoration: BoxDecoration(
                         color: Mycolors.basecolor,
-                        borderRadius: BorderRadius.circular(20),
+                        borderRadius: BorderRadius.circular(
+                          ResponsiveUtils.getResponsiveBorderRadius(context, mobile: 20, tablet: 24, desktop: 28),
+                        ),
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.admin_panel_settings,
                         color: Colors.white,
-                        size: 40,
+                        size: ResponsiveUtils.getResponsiveIconSize(context, mobile: 40, tablet: 50, desktop: 60),
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 20, tablet: 24, desktop: 28)),
                     Text(
                       "Admin Login",
                       style: GoogleFonts.poppins(
-                        fontSize: 28,
+                        fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 28, tablet: 32, desktop: 36),
                         fontWeight: FontWeight.bold,
                         color: Colors.black,
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 8, tablet: 10, desktop: 12)),
                     Text(
                       "RelyGO Administration Panel",
                       style: GoogleFonts.poppins(
-                        fontSize: 16,
+                        fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 16, tablet: 17, desktop: 18),
                         color: Mycolors.gray,
                       ),
                     ),
@@ -79,7 +82,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                 ),
               ),
 
-              const SizedBox(height: 50),
+              SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 50, tablet: 60, desktop: 70)),
 
               // Login Form
               Form(
@@ -91,12 +94,12 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                     Text(
                       "Email Address",
                       style: GoogleFonts.poppins(
-                        fontSize: 16,
+                        fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 16, tablet: 17, desktop: 18),
                         fontWeight: FontWeight.w600,
                         color: Colors.black,
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 8, tablet: 10, desktop: 12)),
                     TextFormField(
                       controller: _emailController,
                       keyboardType: TextInputType.emailAddress,
@@ -105,12 +108,17 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                         prefixIcon: Icon(
                           Icons.email,
                           color: Mycolors.basecolor,
+                          size: ResponsiveUtils.getResponsiveIconSize(context, mobile: 24, tablet: 26, desktop: 28),
                         ),
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(
+                            ResponsiveUtils.getResponsiveBorderRadius(context, mobile: 12, tablet: 14, desktop: 16),
+                          ),
                         ),
                         focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(
+                            ResponsiveUtils.getResponsiveBorderRadius(context, mobile: 12, tablet: 14, desktop: 16),
+                          ),
                           borderSide: BorderSide(
                             color: Mycolors.basecolor,
                             width: 2,
@@ -127,30 +135,35 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                         return null;
                       },
                     ),
-                    const SizedBox(height: 20),
+                    SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 20, tablet: 24, desktop: 28)),
 
                     // Password Field
                     Text(
                       "Password",
                       style: GoogleFonts.poppins(
-                        fontSize: 16,
+                        fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 16, tablet: 17, desktop: 18),
                         fontWeight: FontWeight.w600,
                         color: Colors.black,
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 8, tablet: 10, desktop: 12)),
                     TextFormField(
                       controller: _passwordController,
                       obscureText: _obscurePassword,
                       decoration: InputDecoration(
                         hintText: "Enter password",
-                        prefixIcon: Icon(Icons.lock, color: Mycolors.basecolor),
+                        prefixIcon: Icon(
+                          Icons.lock,
+                          color: Mycolors.basecolor,
+                          size: ResponsiveUtils.getResponsiveIconSize(context, mobile: 24, tablet: 26, desktop: 28),
+                        ),
                         suffixIcon: IconButton(
                           icon: Icon(
                             _obscurePassword
                                 ? Icons.visibility
                                 : Icons.visibility_off,
                             color: Mycolors.gray,
+                            size: ResponsiveUtils.getResponsiveIconSize(context, mobile: 24, tablet: 26, desktop: 28),
                           ),
                           onPressed: () {
                             setState(() {
@@ -159,10 +172,14 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                           },
                         ),
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(
+                            ResponsiveUtils.getResponsiveBorderRadius(context, mobile: 12, tablet: 14, desktop: 16),
+                          ),
                         ),
                         focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(
+                            ResponsiveUtils.getResponsiveBorderRadius(context, mobile: 12, tablet: 14, desktop: 16),
+                          ),
                           borderSide: BorderSide(
                             color: Mycolors.basecolor,
                             width: 2,
@@ -179,26 +196,28 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                         return null;
                       },
                     ),
-                    const SizedBox(height: 30),
+                    SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 30, tablet: 36, desktop: 40)),
 
                     // Login Button
                     SizedBox(
                       width: double.infinity,
-                      height: 55,
+                      height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 55, tablet: 60, desktop: 65),
                       child: ElevatedButton(
                         onPressed: _isLoading ? null : _handleLogin,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Mycolors.basecolor,
                           foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(
+                              ResponsiveUtils.getResponsiveBorderRadius(context, mobile: 12, tablet: 14, desktop: 16),
+                            ),
                           ),
-                          elevation: 2,
+                          elevation: ResponsiveUtils.getResponsiveElevation(context, mobile: 2, tablet: 3, desktop: 4),
                         ),
                         child: _isLoading
-                            ? const SizedBox(
-                                width: 20,
-                                height: 20,
+                            ? SizedBox(
+                                width: ResponsiveUtils.getResponsiveSpacing(context, mobile: 20, tablet: 22, desktop: 24),
+                                height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 20, tablet: 22, desktop: 24),
                                 child: CircularProgressIndicator(
                                   color: Colors.white,
                                   strokeWidth: 2,
@@ -207,7 +226,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                             : Text(
                                 "Login",
                                 style: GoogleFonts.poppins(
-                                  fontSize: 18,
+                                  fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 18, tablet: 20, desktop: 22),
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),

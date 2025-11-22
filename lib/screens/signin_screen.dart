@@ -8,6 +8,7 @@ import 'package:relygo/screens/user_registration_screen.dart';
 import 'package:relygo/screens/driver_registration_screen.dart';
 import 'package:relygo/screens/forgot_password_screen.dart';
 import 'package:relygo/services/auth_service.dart';
+import 'package:relygo/utils/responsive.dart';
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
@@ -44,31 +45,35 @@ class _SignInScreenState extends State<SignInScreen> {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
+          padding: ResponsiveUtils.getResponsivePadding(context),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 20),
+              SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 20, tablet: 30, desktop: 40)),
 
               // Logo and Title
               Center(
                 child: Column(
                   children: [
-                    Image.asset('assets/logooo.png', width: 120, height: 120),
-                    const SizedBox(height: 20),
+                    Image.asset(
+                      'assets/logooo.png',
+                      width: ResponsiveUtils.getResponsiveSpacing(context, mobile: 120, tablet: 140, desktop: 160),
+                      height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 120, tablet: 140, desktop: 160),
+                    ),
+                    SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 20, tablet: 24, desktop: 28)),
                     Text(
                       "Welcome to RelyGO",
                       style: GoogleFonts.poppins(
-                        fontSize: 28,
+                        fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 28, tablet: 32, desktop: 36),
                         fontWeight: FontWeight.bold,
                         color: Colors.black,
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 8, tablet: 10, desktop: 12)),
                     Text(
                       "Sign in to continue",
                       style: GoogleFonts.poppins(
-                        fontSize: 16,
+                        fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 16, tablet: 17, desktop: 18),
                         color: Mycolors.gray,
                       ),
                     ),
@@ -76,7 +81,7 @@ class _SignInScreenState extends State<SignInScreen> {
                 ),
               ),
 
-              const SizedBox(height: 50),
+              SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 50, tablet: 60, desktop: 70)),
 
               // Login Form
               Form(
@@ -88,12 +93,12 @@ class _SignInScreenState extends State<SignInScreen> {
                     Text(
                       "Email Address",
                       style: GoogleFonts.poppins(
-                        fontSize: 16,
+                        fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 16, tablet: 17, desktop: 18),
                         fontWeight: FontWeight.w600,
                         color: Colors.black,
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 8, tablet: 10, desktop: 12)),
                     TextFormField(
                       controller: _emailController,
                       keyboardType: TextInputType.emailAddress,
@@ -102,12 +107,17 @@ class _SignInScreenState extends State<SignInScreen> {
                         prefixIcon: Icon(
                           Icons.email,
                           color: Mycolors.basecolor,
+                          size: ResponsiveUtils.getResponsiveIconSize(context, mobile: 24, tablet: 26, desktop: 28),
                         ),
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(
+                            ResponsiveUtils.getResponsiveBorderRadius(context, mobile: 12, tablet: 14, desktop: 16),
+                          ),
                         ),
                         focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(
+                            ResponsiveUtils.getResponsiveBorderRadius(context, mobile: 12, tablet: 14, desktop: 16),
+                          ),
                           borderSide: BorderSide(
                             color: Mycolors.basecolor,
                             width: 2,
@@ -124,30 +134,35 @@ class _SignInScreenState extends State<SignInScreen> {
                         return null;
                       },
                     ),
-                    const SizedBox(height: 20),
+                    SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 20, tablet: 24, desktop: 28)),
 
                     // Password Field
                     Text(
                       "Password",
                       style: GoogleFonts.poppins(
-                        fontSize: 16,
+                        fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 16, tablet: 17, desktop: 18),
                         fontWeight: FontWeight.w600,
                         color: Colors.black,
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 8, tablet: 10, desktop: 12)),
                     TextFormField(
                       controller: _passwordController,
                       obscureText: _obscurePassword,
                       decoration: InputDecoration(
                         hintText: "Enter your password",
-                        prefixIcon: Icon(Icons.lock, color: Mycolors.basecolor),
+                        prefixIcon: Icon(
+                          Icons.lock,
+                          color: Mycolors.basecolor,
+                          size: ResponsiveUtils.getResponsiveIconSize(context, mobile: 24, tablet: 26, desktop: 28),
+                        ),
                         suffixIcon: IconButton(
                           icon: Icon(
                             _obscurePassword
                                 ? Icons.visibility_off
                                 : Icons.visibility,
                             color: Mycolors.gray,
+                            size: ResponsiveUtils.getResponsiveIconSize(context, mobile: 24, tablet: 26, desktop: 28),
                           ),
                           onPressed: () {
                             setState(() {
@@ -156,10 +171,14 @@ class _SignInScreenState extends State<SignInScreen> {
                           },
                         ),
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(
+                            ResponsiveUtils.getResponsiveBorderRadius(context, mobile: 12, tablet: 14, desktop: 16),
+                          ),
                         ),
                         focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(
+                            ResponsiveUtils.getResponsiveBorderRadius(context, mobile: 12, tablet: 14, desktop: 16),
+                          ),
                           borderSide: BorderSide(
                             color: Mycolors.basecolor,
                             width: 2,
@@ -176,26 +195,28 @@ class _SignInScreenState extends State<SignInScreen> {
                         return null;
                       },
                     ),
-                    const SizedBox(height: 30),
+                    SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 30, tablet: 36, desktop: 40)),
 
                     // Login Button
                     SizedBox(
                       width: double.infinity,
-                      height: 55,
+                      height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 55, tablet: 60, desktop: 65),
                       child: ElevatedButton(
                         onPressed: _isLoading ? null : _handleLogin,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Mycolors.basecolor,
                           foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(
+                              ResponsiveUtils.getResponsiveBorderRadius(context, mobile: 12, tablet: 14, desktop: 16),
+                            ),
                           ),
-                          elevation: 2,
+                          elevation: ResponsiveUtils.getResponsiveElevation(context, mobile: 2, tablet: 3, desktop: 4),
                         ),
                         child: _isLoading
-                            ? const SizedBox(
-                                width: 20,
-                                height: 20,
+                            ? SizedBox(
+                                width: ResponsiveUtils.getResponsiveSpacing(context, mobile: 20, tablet: 22, desktop: 24),
+                                height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 20, tablet: 22, desktop: 24),
                                 child: CircularProgressIndicator(
                                   color: Colors.white,
                                   strokeWidth: 2,
@@ -204,13 +225,13 @@ class _SignInScreenState extends State<SignInScreen> {
                             : Text(
                                 "Sign In",
                                 style: GoogleFonts.poppins(
-                                  fontSize: 18,
+                                  fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 18, tablet: 20, desktop: 22),
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 20, tablet: 24, desktop: 28)),
 
                     // Forgot Password Link
                     Center(
@@ -227,14 +248,14 @@ class _SignInScreenState extends State<SignInScreen> {
                         child: Text(
                           "Forgot Password?",
                           style: GoogleFonts.poppins(
-                            fontSize: 16,
+                            fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 16, tablet: 17, desktop: 18),
                             color: Mycolors.basecolor,
                             decoration: TextDecoration.underline,
                           ),
                         ),
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 20, tablet: 24, desktop: 28)),
 
                     // Sign Up Link
                     Center(
@@ -245,7 +266,7 @@ class _SignInScreenState extends State<SignInScreen> {
                         child: Text(
                           "Don't have an account? Sign Up",
                           style: GoogleFonts.poppins(
-                            fontSize: 16,
+                            fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 16, tablet: 17, desktop: 18),
                             color: Mycolors.basecolor,
                             decoration: TextDecoration.underline,
                           ),
