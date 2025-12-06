@@ -63,7 +63,7 @@ dependencies:
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/icon/relygologo.png"  
+  image_path: "assets/icon/relygologoo.png"  
 
 dev_dependencies:
   flutter_test:
