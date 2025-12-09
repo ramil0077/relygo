@@ -13,6 +13,7 @@ import 'package:relygo/widgets/animated_bottom_nav_bar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:relygo/services/auth_service.dart';
 import 'package:relygo/services/driver_service.dart';
+import 'package:relygo/services/driver_location_service.dart';
 import 'package:relygo/screens/driver_notifications_screen.dart';
 import 'package:relygo/screens/chat_detail_screen.dart';
 import 'package:relygo/widgets/driver_ai_assistant.dart';
@@ -27,6 +28,48 @@ class DriverDashboardScreen extends StatefulWidget {
 class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
   int _selectedIndex = 0;
   bool _isOnline = false;
+  String?
+  _currentActiveRideId; // Track current active ride for location tracking
+
+  @override
+  void initState() {
+    super.initState();
+    _setupActiveRideListener();
+  }
+
+  @override
+  void dispose() {
+    DriverLocationService.stopLocationTracking();
+    super.dispose();
+  }
+
+  /// Listen to active paid rides and start location tracking automatically
+  void _setupActiveRideListener() {
+    final driverId = AuthService.currentUserId;
+    if (driverId == null) return;
+
+    _getActiveRidesStream().listen((activeRides) {
+      if (activeRides.isNotEmpty) {
+        final activeRide = activeRides.first;
+        final rideId = activeRide['id'] ?? activeRide['bookingId'] ?? '';
+
+        // Only start tracking if it's a new ride
+        if (rideId.isNotEmpty && rideId != _currentActiveRideId) {
+          _currentActiveRideId = rideId;
+          // Start location tracking for this ride
+          DriverLocationService.startLocationTracking(driverId);
+          print('Started location tracking for ride: $rideId');
+        }
+      } else {
+        // No active rides, stop tracking
+        if (_currentActiveRideId != null) {
+          DriverLocationService.stopLocationTracking();
+          _currentActiveRideId = null;
+          print('Stopped location tracking - no active rides');
+        }
+      }
+    });
+  }
 
   Stream<List<Map<String, dynamic>>> _recentRequestsStream() {
     final driverId = AuthService.currentUserId;
@@ -47,16 +90,12 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
     }
     // Get active rides: paid and status is ongoing or accepted
     return DriverService.getUnifiedDriverBookingsStream(driverId).map(
-      (bookings) => bookings
-          .where((booking) {
-            final isPaid = booking['isPaid'] ?? false;
-            final status = (booking['status'] ?? '').toString().toLowerCase();
-            return isPaid &&
-                (status == 'ongoing' ||
-                    status == 'accepted' ||
-                    status == 'paid');
-          })
-          .toList(),
+      (bookings) => bookings.where((booking) {
+        final isPaid = booking['isPaid'] ?? false;
+        final status = (booking['status'] ?? '').toString().toLowerCase();
+        return isPaid &&
+            (status == 'ongoing' || status == 'accepted' || status == 'paid');
+      }).toList(),
     );
   }
 
@@ -285,7 +324,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                 style: ResponsiveTextStyles.getTitleStyle(context),
               ),
               SizedBox(height: ResponsiveSpacing.getMediumSpacing(context)),
-              
+
               StreamBuilder<List<Map<String, dynamic>>>(
                 stream: _getActiveRidesStream(),
                 builder: (context, snapshot) {
@@ -900,9 +939,8 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
 
   Widget _buildActiveRideCard(BuildContext context, Map<String, dynamic> ride) {
     final bookingId = ride['id'] ?? '';
-    final destination = ride['dropoffLocation'] ??
-        ride['destination'] ??
-        'Unknown Destination';
+    final destination =
+        ride['dropoffLocation'] ?? ride['destination'] ?? 'Unknown Destination';
     final pickup = ride['pickupLocation'] ?? ride['pickup'] ?? 'Unknown Pickup';
     final fare = ride['fare'] ?? ride['price'] ?? 0;
     final userName = ride['userName'] ?? 'User';
@@ -1020,11 +1058,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(
-                        Icons.check_circle,
-                        color: Mycolors.green,
-                        size: 16,
-                      ),
+                      Icon(Icons.check_circle, color: Mycolors.green, size: 16),
                       const SizedBox(width: 4),
                       Text(
                         isPaid ? 'Paid' : 'Unpaid',
@@ -1047,7 +1081,8 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
               Expanded(
                 flex: 2,
                 child: ElevatedButton.icon(
-                  onPressed: isPaid &&
+                  onPressed:
+                      isPaid &&
                           (status == 'ongoing' ||
                               status == 'accepted' ||
                               status == 'paid')
@@ -1091,7 +1126,9 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
   }
 
   Future<void> _toggleRideCompletion(
-      BuildContext context, String bookingId) async {
+    BuildContext context,
+    String bookingId,
+  ) async {
     // Show confirmation dialog
     final confirmed = await showDialog<bool>(
       context: context,
@@ -1118,10 +1155,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
               backgroundColor: Mycolors.green,
               foregroundColor: Colors.white,
             ),
-            child: Text(
-              'Complete',
-              style: GoogleFonts.poppins(),
-            ),
+            child: Text('Complete', style: GoogleFonts.poppins()),
           ),
         ],
       ),
@@ -1143,10 +1177,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                   ),
                 ),
                 const SizedBox(width: 12),
-                Text(
-                  'Completing ride...',
-                  style: GoogleFonts.poppins(),
-                ),
+                Text('Completing ride...', style: GoogleFonts.poppins()),
               ],
             ),
             backgroundColor: Mycolors.basecolor,
@@ -1156,6 +1187,11 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
       }
 
       final result = await DriverService.completeBooking(bookingId);
+
+      // Stop location tracking when ride is completed
+      if (result['success'] == true) {
+        DriverLocationService.stopLocationTracking();
+      }
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).hideCurrentSnackBar();

@@ -10,6 +10,7 @@ import 'package:relygo/utils/responsive.dart';
 import 'package:relygo/utils/animation_utils.dart';
 import 'package:relygo/services/driver_service.dart';
 import 'package:relygo/services/auth_service.dart';
+import 'package:relygo/services/driver_location_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ResponsiveDriverDashboardScreen extends StatefulWidget {
@@ -27,6 +28,8 @@ class _ResponsiveDriverDashboardScreenState
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
+  String?
+  _currentActiveRideId; // Track current active ride for location tracking
 
   final List<NavBarItem> _navItems = [
     const NavBarItem(icon: Icons.dashboard, label: 'Dashboard'),
@@ -56,11 +59,57 @@ class _ResponsiveDriverDashboardScreenState
         );
 
     _animationController.forward();
+    _setupActiveRideListener();
+  }
+
+  /// Listen to active paid rides and start location tracking automatically
+  void _setupActiveRideListener() {
+    final driverId = AuthService.currentUserId;
+    if (driverId == null) return;
+
+    _getActiveRidesStream().listen((activeRides) {
+      if (activeRides.isNotEmpty) {
+        final activeRide = activeRides.first;
+        final rideId = activeRide['id'] ?? activeRide['bookingId'] ?? '';
+
+        // Only start tracking if it's a new ride
+        if (rideId.isNotEmpty && rideId != _currentActiveRideId) {
+          _currentActiveRideId = rideId;
+          // Start location tracking for this ride
+          DriverLocationService.startLocationTracking(driverId);
+          print('Started location tracking for ride: $rideId');
+        }
+      } else {
+        // No active rides, stop tracking
+        if (_currentActiveRideId != null) {
+          DriverLocationService.stopLocationTracking();
+          _currentActiveRideId = null;
+          print('Stopped location tracking - no active rides');
+        }
+      }
+    });
+  }
+
+  Stream<List<Map<String, dynamic>>> _getActiveRidesStream() {
+    final driverId = AuthService.currentUserId;
+    if (driverId == null) {
+      return const Stream<List<Map<String, dynamic>>>.empty();
+    }
+    // Get active rides: paid and status is ongoing or accepted
+    return DriverService.getUnifiedDriverBookingsStream(driverId).map(
+      (bookings) => bookings.where((booking) {
+        final isPaid = booking['isPaid'] ?? false;
+        final status = (booking['status'] ?? '').toString().toLowerCase();
+        return isPaid &&
+            (status == 'ongoing' || status == 'accepted' || status == 'paid');
+      }).toList(),
+    );
   }
 
   @override
   void dispose() {
     _animationController.dispose();
+    DriverLocationService.stopLocationTracking();
     super.dispose();
   }
 

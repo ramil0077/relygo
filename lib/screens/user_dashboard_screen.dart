@@ -33,6 +33,7 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
   void initState() {
     super.initState();
     _checkForAcceptedRequests();
+    _checkForPaidRidesForTracking();
   }
 
   void _checkForAcceptedRequests() {
@@ -52,6 +53,46 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
               _showPaymentDialog(doc.id, data);
             }
           }
+        });
+  }
+
+  void _checkForPaidRidesForTracking() {
+    // Check for paid rides and show tracking screen automatically
+    final userId = AuthService.currentUserId;
+    if (userId == null) return;
+
+    FirebaseFirestore.instance
+        .collection('ride_requests')
+        .where('userId', isEqualTo: userId)
+        .where('isPaid', isEqualTo: true)
+        .snapshots()
+        .listen((snapshot) {
+          for (var doc in snapshot.docs) {
+            final data = doc.data();
+            final status = (data['status'] ?? '').toString().toLowerCase();
+            // Show tracking if ride is paid and ongoing (not yet completed)
+            if (data['isPaid'] == true && status != 'completed') {
+              _showTrackingScreen(doc.id, data);
+            }
+          }
+        });
+  }
+
+  void _showTrackingScreen(String requestId, Map<String, dynamic> requestData) {
+    // Navigate to tracking screen
+    Navigator.of(context)
+        .push(
+          MaterialPageRoute(
+            builder: (context) => DriverTrackingScreen(
+              bookingId: requestId,
+              bookingData: requestData,
+            ),
+          ),
+        )
+        .then((_) {
+          // After tracking screen closes, check if ride is completed
+          // If not, show tracking again
+          _checkForPaidRidesForTracking();
         });
   }
 
@@ -403,12 +444,16 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                 List<Map<String, dynamic>> drivers = snapshot.data ?? [];
 
                 // Filter by selected service type (vehicle type) strictly
-                if (_selectedServiceType != null && _selectedServiceType!.isNotEmpty) {
+                if (_selectedServiceType != null &&
+                    _selectedServiceType!.isNotEmpty) {
                   final vt = _selectedServiceType!.toLowerCase();
                   drivers = drivers.where((d) {
-                    final vehicleType = (d['vehicleType'] ?? d['documents']?['vehicleType'] ?? '')
-                        .toString()
-                        .toLowerCase();
+                    final vehicleType =
+                        (d['vehicleType'] ??
+                                d['documents']?['vehicleType'] ??
+                                '')
+                            .toString()
+                            .toLowerCase();
                     return vehicleType == vt;
                   }).toList();
                 }
@@ -421,10 +466,15 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                         .toString()
                         .toLowerCase();
                     final email = (d['email'] ?? '').toString().toLowerCase();
-                    final vehicleType = (d['vehicleType'] ?? d['documents']?['vehicleType'] ?? '')
-                        .toString()
-                        .toLowerCase();
-                    return name.contains(q) || email.contains(q) || vehicleType.contains(q);
+                    final vehicleType =
+                        (d['vehicleType'] ??
+                                d['documents']?['vehicleType'] ??
+                                '')
+                            .toString()
+                            .toLowerCase();
+                    return name.contains(q) ||
+                        email.contains(q) ||
+                        vehicleType.contains(q);
                   }).toList();
                 }
 
@@ -914,7 +964,10 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                   title: Text('Choose Driver', style: GoogleFonts.poppins()),
                   subtitle: Text(
                     'Browse and select a driver',
-                    style: GoogleFonts.poppins(fontSize: 12, color: Mycolors.gray),
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      color: Mycolors.gray,
+                    ),
                   ),
                   onTap: () {
                     Navigator.of(context).pop();
@@ -932,10 +985,16 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                 ),
                 ListTile(
                   leading: Icon(Icons.local_taxi, color: Mycolors.orange),
-                  title: Text('Choose Service Type', style: GoogleFonts.poppins()),
+                  title: Text(
+                    'Choose Service Type',
+                    style: GoogleFonts.poppins(),
+                  ),
                   subtitle: Text(
                     'Auto, Sedan, SUV, Delivery, etc.',
-                    style: GoogleFonts.poppins(fontSize: 12, color: Mycolors.gray),
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      color: Mycolors.gray,
+                    ),
                   ),
                   onTap: () {
                     Navigator.of(context).pop();
@@ -978,27 +1037,36 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                ...types.map((t) => ListTile(
-                      leading: Icon(t['icon'] as IconData, color: Mycolors.basecolor),
-                      title: Text(t['label'] as String, style: GoogleFonts.poppins()),
-                      onTap: () {
-                        final vehicle = (t['label'] as String);
-                        Navigator.of(context).pop();
-                        setState(() {
-                          _selectedIndex = 1; // go to Search tab
-                          _driverSearchQuery = vehicle.toLowerCase();
-                          _searchController.text = vehicle;
-                          _selectedServiceType = vehicle; // apply strict vehicle filter
-                        });
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Filtering drivers by $vehicle'),
-                            backgroundColor: Mycolors.basecolor,
-                            duration: const Duration(seconds: 2),
-                          ),
-                        );
-                      },
-                    )),
+                ...types.map(
+                  (t) => ListTile(
+                    leading: Icon(
+                      t['icon'] as IconData,
+                      color: Mycolors.basecolor,
+                    ),
+                    title: Text(
+                      t['label'] as String,
+                      style: GoogleFonts.poppins(),
+                    ),
+                    onTap: () {
+                      final vehicle = (t['label'] as String);
+                      Navigator.of(context).pop();
+                      setState(() {
+                        _selectedIndex = 1; // go to Search tab
+                        _driverSearchQuery = vehicle.toLowerCase();
+                        _searchController.text = vehicle;
+                        _selectedServiceType =
+                            vehicle; // apply strict vehicle filter
+                      });
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Filtering drivers by $vehicle'),
+                          backgroundColor: Mycolors.basecolor,
+                          duration: const Duration(seconds: 2),
+                        ),
+                      );
+                    },
+                  ),
+                ),
               ],
             ),
           ),
@@ -1037,21 +1105,42 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                 ListTile(
                   leading: Icon(Icons.local_police, color: Mycolors.basecolor),
                   title: Text('Police Station', style: GoogleFonts.poppins()),
-                  subtitle: Text('100', style: GoogleFonts.poppins(fontSize: 12, color: Mycolors.gray)),
+                  subtitle: Text(
+                    '100',
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      color: Mycolors.gray,
+                    ),
+                  ),
                   trailing: Icon(Icons.call, color: Mycolors.basecolor),
                   onTap: () => _callNumber('100'),
                 ),
                 ListTile(
                   leading: Icon(Icons.local_hospital, color: Mycolors.green),
                   title: Text('Ambulance', style: GoogleFonts.poppins()),
-                  subtitle: Text('102', style: GoogleFonts.poppins(fontSize: 12, color: Mycolors.gray)),
+                  subtitle: Text(
+                    '102',
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      color: Mycolors.gray,
+                    ),
+                  ),
                   trailing: Icon(Icons.call, color: Mycolors.basecolor),
                   onTap: () => _callNumber('102'),
                 ),
                 ListTile(
-                  leading: Icon(Icons.local_fire_department, color: Mycolors.orange),
+                  leading: Icon(
+                    Icons.local_fire_department,
+                    color: Mycolors.orange,
+                  ),
                   title: Text('Fire Force', style: GoogleFonts.poppins()),
-                  subtitle: Text('101', style: GoogleFonts.poppins(fontSize: 12, color: Mycolors.gray)),
+                  subtitle: Text(
+                    '101',
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      color: Mycolors.gray,
+                    ),
+                  ),
                   trailing: Icon(Icons.call, color: Mycolors.basecolor),
                   onTap: () => _callNumber('101'),
                 ),
@@ -1567,15 +1656,20 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                   final snapshot = await FirebaseFirestore.instance
                       .collection('ride_requests')
                       .where('userId', isEqualTo: userId)
-                      .where('status', whereIn: ['accepted', 'ongoing', 'paid', 'completed'])
+                      .where(
+                        'status',
+                        whereIn: ['accepted', 'ongoing', 'paid', 'completed'],
+                      )
                       .limit(10)
                       .get();
-                  
+
                   // Filter to get active rides (paid and completed, or accepted/ongoing/paid)
                   final activeRides = snapshot.docs.where((doc) {
                     final data = doc.data();
                     final isPaid = data['isPaid'] ?? false;
-                    final status = (data['status'] ?? '').toString().toLowerCase();
+                    final status = (data['status'] ?? '')
+                        .toString()
+                        .toLowerCase();
                     return status == 'accepted' ||
                         status == 'ongoing' ||
                         status == 'paid' ||
@@ -1686,15 +1780,20 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                   final snapshot = await FirebaseFirestore.instance
                       .collection('ride_requests')
                       .where('userId', isEqualTo: userId)
-                      .where('status', whereIn: ['accepted', 'ongoing', 'paid', 'completed'])
+                      .where(
+                        'status',
+                        whereIn: ['accepted', 'ongoing', 'paid', 'completed'],
+                      )
                       .limit(10)
                       .get();
-                  
+
                   // Filter to get active rides (paid and completed, or accepted/ongoing/paid)
                   final activeRides = snapshot.docs.where((doc) {
                     final data = doc.data();
                     final isPaid = data['isPaid'] ?? false;
-                    final status = (data['status'] ?? '').toString().toLowerCase();
+                    final status = (data['status'] ?? '')
+                        .toString()
+                        .toLowerCase();
                     return status == 'accepted' ||
                         status == 'ongoing' ||
                         status == 'paid' ||
@@ -1770,9 +1869,7 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
             () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (context) => RideHistoryScreen(),
-                ),
+                MaterialPageRoute(builder: (context) => RideHistoryScreen()),
               );
             },
           ),
