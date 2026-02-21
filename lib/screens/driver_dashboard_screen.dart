@@ -28,6 +28,15 @@ class DriverDashboardScreen extends StatefulWidget {
 class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
   int _selectedIndex = 0;
   bool _isOnline = false;
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    DriverLocationService.stopLocationTracking();
+    super.dispose();
+  }
+
   String?
   _currentActiveRideId; // Track current active ride for location tracking
 
@@ -35,12 +44,6 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
   void initState() {
     super.initState();
     _setupActiveRideListener();
-  }
-
-  @override
-  void dispose() {
-    DriverLocationService.stopLocationTracking();
-    super.dispose();
   }
 
   /// Listen to active paid rides and start location tracking automatically
@@ -195,6 +198,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
 
   Widget _buildHomeTab() {
     return SingleChildScrollView(
+      controller: _scrollController,
       padding: ResponsiveUtils.getResponsivePadding(context),
       child: ResponsiveLayoutBuilder(
         builder: (context, constraints) {
@@ -293,11 +297,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                     SizedBox(
                       height: ResponsiveSpacing.getMediumSpacing(context),
                     ),
-                    ResponsiveWidget(
-                      mobile: _buildMobileStatsGrid(context),
-                      tablet: _buildTabletStatsGrid(context),
-                      desktop: _buildDesktopStatsGrid(context),
-                    ),
+                    _buildLiveStatsGrid(context),
                   ],
                 ),
               ),
@@ -506,8 +506,62 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
     return const DriverProfileScreen();
   }
 
+  // Live Stats Wrapper
+  Widget _buildLiveStatsGrid(BuildContext context) {
+    final driverId = AuthService.currentUserId;
+    if (driverId == null) return const SizedBox.shrink();
+
+    return FutureBuilder<List<Map<String, dynamic>>>(
+      future: Future.wait([
+        DriverService.getDriverEarnings(driverId),
+        DriverService.getDriverRating(driverId),
+      ]),
+      builder: (context, snapshot) {
+        String ridesCount = "0";
+        String earningsAmount = "₹0";
+        String ratingValue = "0.0";
+
+        if (snapshot.hasData) {
+          final earningsData = snapshot.data![0];
+          final ratingData = snapshot.data![1];
+
+          ridesCount = (earningsData['todayRides'] ?? 0).toString();
+          earningsAmount =
+              "₹${(earningsData['todayEarnings'] ?? 0.0).toStringAsFixed(0)}";
+          ratingValue = (ratingData['averageRating'] ?? 0.0).toStringAsFixed(1);
+        }
+
+        return ResponsiveWidget(
+          mobile: _buildMobileStatsGrid(
+            context,
+            ridesCount,
+            earningsAmount,
+            ratingValue,
+          ),
+          tablet: _buildTabletStatsGrid(
+            context,
+            ridesCount,
+            earningsAmount,
+            ratingValue,
+          ),
+          desktop: _buildDesktopStatsGrid(
+            context,
+            ridesCount,
+            earningsAmount,
+            ratingValue,
+          ),
+        );
+      },
+    );
+  }
+
   // Mobile Stats Grid - adaptive for very narrow screens
-  Widget _buildMobileStatsGrid(BuildContext context) {
+  Widget _buildMobileStatsGrid(
+    BuildContext context,
+    String rides,
+    String earnings,
+    String rating,
+  ) {
     return LayoutBuilder(
       builder: (context, constraints) {
         final isVeryNarrow = constraints.maxWidth < 360;
@@ -517,8 +571,8 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
               Expanded(
                 child: _buildStatCard(
                   context,
-                  "8",
-                  "Rides",
+                  rides,
+                  "Rides Today",
                   Icons.directions_car,
                 ),
               ),
@@ -526,14 +580,14 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
               Expanded(
                 child: _buildStatCard(
                   context,
-                  "₹1,250",
-                  "Earnings",
+                  earnings,
+                  "Earned Today",
                   Icons.attach_money,
                 ),
               ),
               SizedBox(width: ResponsiveSpacing.getSmallSpacing(context)),
               Expanded(
-                child: _buildStatCard(context, "4.8", "Rating", Icons.star),
+                child: _buildStatCard(context, rating, "Rating", Icons.star),
               ),
             ],
           );
@@ -549,8 +603,8 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
               width: itemWidth,
               child: _buildStatCard(
                 context,
-                "8",
-                "Rides",
+                rides,
+                "Rides Today",
                 Icons.directions_car,
               ),
             ),
@@ -558,14 +612,14 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
               width: itemWidth,
               child: _buildStatCard(
                 context,
-                "₹1,250",
-                "Earnings",
+                earnings,
+                "Earned Today",
                 Icons.attach_money,
               ),
             ),
             SizedBox(
               width: itemWidth,
-              child: _buildStatCard(context, "4.8", "Rating", Icons.star),
+              child: _buildStatCard(context, rating, "Rating", Icons.star),
             ),
           ],
         );
@@ -574,45 +628,65 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
   }
 
   // Tablet Stats Grid - 3 columns with more spacing
-  Widget _buildTabletStatsGrid(BuildContext context) {
+  Widget _buildTabletStatsGrid(
+    BuildContext context,
+    String rides,
+    String earnings,
+    String rating,
+  ) {
     return Row(
       children: [
         Expanded(
-          child: _buildStatCard(context, "8", "Rides", Icons.directions_car),
+          child: _buildStatCard(
+            context,
+            rides,
+            "Rides Today",
+            Icons.directions_car,
+          ),
         ),
         SizedBox(width: ResponsiveSpacing.getMediumSpacing(context)),
         Expanded(
           child: _buildStatCard(
             context,
-            "₹1,250",
-            "Earnings",
+            earnings,
+            "Earned Today",
             Icons.attach_money,
           ),
         ),
         SizedBox(width: ResponsiveSpacing.getMediumSpacing(context)),
-        Expanded(child: _buildStatCard(context, "4.8", "Rating", Icons.star)),
+        Expanded(child: _buildStatCard(context, rating, "Rating", Icons.star)),
       ],
     );
   }
 
   // Desktop Stats Grid - 3 columns with maximum spacing
-  Widget _buildDesktopStatsGrid(BuildContext context) {
+  Widget _buildDesktopStatsGrid(
+    BuildContext context,
+    String rides,
+    String earnings,
+    String rating,
+  ) {
     return Row(
       children: [
         Expanded(
-          child: _buildStatCard(context, "8", "Rides", Icons.directions_car),
+          child: _buildStatCard(
+            context,
+            rides,
+            "Rides Today",
+            Icons.directions_car,
+          ),
         ),
         SizedBox(width: ResponsiveSpacing.getLargeSpacing(context)),
         Expanded(
           child: _buildStatCard(
             context,
-            "₹1,250",
-            "Earnings",
+            earnings,
+            "Earned Today",
             Icons.attach_money,
           ),
         ),
         SizedBox(width: ResponsiveSpacing.getLargeSpacing(context)),
-        Expanded(child: _buildStatCard(context, "4.8", "Rating", Icons.star)),
+        Expanded(child: _buildStatCard(context, rating, "Rating", Icons.star)),
       ],
     );
   }
@@ -630,7 +704,12 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                 Icons.play_arrow,
                 Mycolors.green,
                 () {
-                  // Start ride functionality
+                  // Scroll to active rides section
+                  _scrollController.animateTo(
+                    800, // Approximate position of active rides
+                    duration: const Duration(milliseconds: 500),
+                    curve: Curves.easeInOut,
+                  );
                 },
               ),
             ),
@@ -677,7 +756,9 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                 Icons.settings,
                 Mycolors.gray,
                 () {
-                  // Settings functionality
+                  setState(() {
+                    _selectedIndex = 4; // Profile tab
+                  });
                 },
               ),
             ),
@@ -747,7 +828,9 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                 Icons.settings,
                 Mycolors.gray,
                 () {
-                  // Settings functionality
+                  setState(() {
+                    _selectedIndex = 4; // Profile tab
+                  });
                 },
               ),
             ),
@@ -768,7 +851,12 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
             Icons.play_arrow,
             Mycolors.green,
             () {
-              // Start ride functionality
+              // Scroll to active rides section
+              _scrollController.animateTo(
+                800,
+                duration: const Duration(milliseconds: 500),
+                curve: Curves.easeInOut,
+              );
             },
           ),
         ),
@@ -811,7 +899,9 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
             Icons.settings,
             Mycolors.gray,
             () {
-              // Settings functionality
+              setState(() {
+                _selectedIndex = 4; // Profile tab
+              });
             },
           ),
         ),
@@ -1080,43 +1170,71 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
               const SizedBox(width: 12),
               Expanded(
                 flex: 2,
-                child: ElevatedButton.icon(
-                  onPressed:
-                      isPaid &&
-                          (status == 'ongoing' ||
-                              status == 'accepted' ||
-                              status == 'paid')
-                      ? () => _toggleRideCompletion(context, bookingId)
-                      : null,
-                  icon: const Icon(Icons.check, size: 18),
-                  label: Text(
-                    'Mark Completed',
-                    style: GoogleFonts.poppins(
-                      fontSize: ResponsiveUtils.getResponsiveFontSize(
-                        context,
-                        mobile: 14,
-                        tablet: 15,
-                        desktop: 16,
+                child: (status == 'accepted' || status == 'paid')
+                    ? ElevatedButton.icon(
+                        onPressed: () => _handleStartRide(context, bookingId),
+                        icon: const Icon(Icons.play_arrow, size: 18),
+                        label: Text(
+                          'Start Ride',
+                          style: GoogleFonts.poppins(
+                            fontSize: ResponsiveUtils.getResponsiveFontSize(
+                              context,
+                              mobile: 14,
+                              tablet: 15,
+                              desktop: 16,
+                            ),
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Mycolors.basecolor,
+                          foregroundColor: Colors.white,
+                          padding: EdgeInsets.symmetric(
+                            vertical: ResponsiveUtils.getResponsiveSpacing(
+                              context,
+                              mobile: 10,
+                              tablet: 12,
+                              desktop: 14,
+                            ),
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                      )
+                    : ElevatedButton.icon(
+                        onPressed: isPaid && status == 'ongoing'
+                            ? () => _toggleRideCompletion(context, bookingId)
+                            : null,
+                        icon: const Icon(Icons.check, size: 18),
+                        label: Text(
+                          'Mark Completed',
+                          style: GoogleFonts.poppins(
+                            fontSize: ResponsiveUtils.getResponsiveFontSize(
+                              context,
+                              mobile: 14,
+                              tablet: 15,
+                              desktop: 16,
+                            ),
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Mycolors.green,
+                          foregroundColor: Colors.white,
+                          padding: EdgeInsets.symmetric(
+                            vertical: ResponsiveUtils.getResponsiveSpacing(
+                              context,
+                              mobile: 10,
+                              tablet: 12,
+                              desktop: 14,
+                            ),
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
                       ),
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Mycolors.green,
-                    foregroundColor: Colors.white,
-                    padding: EdgeInsets.symmetric(
-                      vertical: ResponsiveUtils.getResponsiveSpacing(
-                        context,
-                        mobile: 10,
-                        tablet: 12,
-                        desktop: 14,
-                      ),
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                ),
               ),
             ],
           ),
@@ -1201,6 +1319,70 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
               result['success'] == true
                   ? 'Ride completed successfully!'
                   : result['error'] ?? 'Failed to complete ride',
+              style: GoogleFonts.poppins(),
+            ),
+            backgroundColor: result['success'] == true
+                ? Mycolors.green
+                : Mycolors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _handleStartRide(BuildContext context, String bookingId) async {
+    // Show confirmation dialog
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(
+          'Start Ride?',
+          style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+        ),
+        content: Text(
+          'Are you sure you want to start this ride?',
+          style: GoogleFonts.poppins(),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(
+              'Cancel',
+              style: GoogleFonts.poppins(color: Colors.grey),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Mycolors.basecolor,
+              foregroundColor: Colors.white,
+            ),
+            child: Text('Start', style: GoogleFonts.poppins()),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Starting ride...', style: GoogleFonts.poppins()),
+            backgroundColor: Mycolors.basecolor,
+          ),
+        );
+      }
+
+      final result = await DriverService.startRide(bookingId);
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              result['success'] == true
+                  ? 'Ride started! Good luck.'
+                  : result['error'] ?? 'Failed to start ride',
               style: GoogleFonts.poppins(),
             ),
             backgroundColor: result['success'] == true

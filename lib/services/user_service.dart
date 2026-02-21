@@ -114,29 +114,88 @@ class UserService {
         });
   }
 
-  /// Stream current user's rides from ride_requests
+  /// Unified stream of user's rides from both collections
   static Stream<List<Map<String, dynamic>>> getCurrentUserRidesStream() {
     final userId = AuthService.currentUserId;
-    if (userId == null) {
-      return const Stream.empty();
-    }
-    return _firestore
-        .collection('ride_requests')
+    if (userId == null) return const Stream.empty();
+
+    // Stream from 'bookings' collection
+    final bookingsStream = _firestore
+        .collection('bookings')
         .where('userId', isEqualTo: userId)
-        .snapshots()
-        .map(
-          (snapshot) => snapshot.docs.map((doc) {
-            final data = doc.data();
-            // Derive status: treat 'paid' as 'completed' for user display
-            final rawStatus = (data['status'] ?? '').toString().toLowerCase();
-            if (rawStatus == 'paid') data['status'] = 'completed';
-            // Provide a best-effort createdAt for UI if missing
-            data['createdAt'] =
-                data['createdAt'] ?? data['updatedAt'] ?? data['paidAt'];
-            data['id'] = doc.id;
-            return data;
-          }).toList(),
-        );
+        .snapshots();
+
+    return bookingsStream.asyncMap((bookingsSnapshot) async {
+      // Get ride_requests for this user
+      final rideRequestsSnapshot = await _firestore
+          .collection('ride_requests')
+          .where('userId', isEqualTo: userId)
+          .get();
+
+      List<Map<String, dynamic>> allRides = [];
+
+      // Process 'bookings'
+      for (var doc in bookingsSnapshot.docs) {
+        final data = doc.data();
+        data['id'] = doc.id;
+        // Normalize status
+        final rawStatus = (data['status'] ?? '').toString().toLowerCase();
+        if (rawStatus == 'paid') data['status'] = 'completed';
+        // Normalize coordinates/names if needed
+        if (data['pickupLocation'] == null && data['pickup'] != null) {
+          data['pickupLocation'] = data['pickup'];
+        }
+        if (data['dropoffLocation'] == null && data['destination'] != null) {
+          data['dropoffLocation'] = data['destination'];
+        }
+        // Normalize timestamps
+        data['createdAt'] =
+            data['createdAt'] ?? data['updatedAt'] ?? data['paidAt'];
+        allRides.add(data);
+      }
+
+      // Process 'ride_requests'
+      for (var doc in rideRequestsSnapshot.docs) {
+        final data = doc.data();
+        data['id'] = data['id'] ?? doc.id;
+        // Normalize status
+        final rawStatus = (data['status'] ?? '').toString().toLowerCase();
+        if (rawStatus == 'paid') data['status'] = 'completed';
+        // Normalize field names
+        if (data['pickupLocation'] == null && data['pickup'] != null) {
+          data['pickupLocation'] = data['pickup'];
+        }
+        if (data['dropoffLocation'] == null && data['destination'] != null) {
+          data['dropoffLocation'] = data['destination'];
+        }
+        // Normalize timestamps
+        data['createdAt'] =
+            data['createdAt'] ?? data['updatedAt'] ?? data['paidAt'];
+        allRides.add(data);
+      }
+
+      // Remove duplicates by doc ID
+      final uniqueRides = <String, Map<String, dynamic>>{};
+      for (var ride in allRides) {
+        final id = ride['id']?.toString() ?? '';
+        if (id.isNotEmpty && !uniqueRides.containsKey(id)) {
+          uniqueRides[id] = ride;
+        }
+      }
+
+      // Sort newest first
+      final sortedRides = uniqueRides.values.toList();
+      sortedRides.sort((a, b) {
+        final ta = a['createdAt'] as Timestamp?;
+        final tb = b['createdAt'] as Timestamp?;
+        if (ta == null && tb == null) return 0;
+        if (ta == null) return 1;
+        if (tb == null) return -1;
+        return tb.compareTo(ta);
+      });
+
+      return sortedRides;
+    });
   }
 
   /// Create a new booking
@@ -593,78 +652,78 @@ class UserService {
         .where('userId', isEqualTo: userId)
         .snapshots()
         .asyncMap((snapshot) async {
-      // Process bookings collection
-      for (var doc in snapshot.docs) {
-        final data = doc.data();
-        data['id'] = doc.id;
-        final isPaid = data['isPaid'] ?? false;
-        final status = (data['status'] ?? '').toString().toLowerCase();
-        
-        // Include if: pending, accepted, ongoing, OR (completed and paid)
-        if (status == 'pending' ||
-            status == 'accepted' ||
-            status == 'ongoing' ||
-            (status == 'completed' && isPaid)) {
-          // Get driver details
-          if (data['driverId'] != null) {
-            try {
-              final driverDoc = await _firestore
-                  .collection('users')
-                  .doc(data['driverId'])
-                  .get();
-              if (driverDoc.exists) {
-                data['driverDetails'] = driverDoc.data();
-              }
-            } catch (e) {
-              print('Error getting driver details: $e');
-            }
-          }
-          return data;
-        }
-      }
-      
-      // If not found in bookings, check ride_requests
-      try {
-        final rideRequestsSnapshot = await _firestore
-            .collection('ride_requests')
-            .where('userId', isEqualTo: userId)
-            .limit(10)
-            .get();
-        
-        for (var doc in rideRequestsSnapshot.docs) {
-          final data = doc.data();
-          data['id'] = doc.id;
-          final isPaid = data['isPaid'] ?? false;
-          final status = (data['status'] ?? '').toString().toLowerCase();
-          
-          // Include if: pending, accepted, ongoing, paid, OR (completed and paid)
-          if (status == 'pending' ||
-              status == 'accepted' ||
-              status == 'ongoing' ||
-              status == 'paid' ||
-              (status == 'completed' && isPaid)) {
-            // Get driver details
-            if (data['driverId'] != null) {
-              try {
-                final driverDoc = await _firestore
-                    .collection('users')
-                    .doc(data['driverId'])
-                    .get();
-                if (driverDoc.exists) {
-                  data['driverDetails'] = driverDoc.data();
+          // Process bookings collection
+          for (var doc in snapshot.docs) {
+            final data = doc.data();
+            data['id'] = doc.id;
+            final isPaid = data['isPaid'] ?? false;
+            final status = (data['status'] ?? '').toString().toLowerCase();
+
+            // Include if: pending, accepted, ongoing, OR (completed and paid)
+            if (status == 'pending' ||
+                status == 'accepted' ||
+                status == 'ongoing' ||
+                (status == 'completed' && isPaid)) {
+              // Get driver details
+              if (data['driverId'] != null) {
+                try {
+                  final driverDoc = await _firestore
+                      .collection('users')
+                      .doc(data['driverId'])
+                      .get();
+                  if (driverDoc.exists) {
+                    data['driverDetails'] = driverDoc.data();
+                  }
+                } catch (e) {
+                  print('Error getting driver details: $e');
                 }
-              } catch (e) {
-                print('Error getting driver details: $e');
+              }
+              return data;
+            }
+          }
+
+          // If not found in bookings, check ride_requests
+          try {
+            final rideRequestsSnapshot = await _firestore
+                .collection('ride_requests')
+                .where('userId', isEqualTo: userId)
+                .limit(10)
+                .get();
+
+            for (var doc in rideRequestsSnapshot.docs) {
+              final data = doc.data();
+              data['id'] = doc.id;
+              final isPaid = data['isPaid'] ?? false;
+              final status = (data['status'] ?? '').toString().toLowerCase();
+
+              // Include if: pending, accepted, ongoing, paid, OR (completed and paid)
+              if (status == 'pending' ||
+                  status == 'accepted' ||
+                  status == 'ongoing' ||
+                  status == 'paid' ||
+                  (status == 'completed' && isPaid)) {
+                // Get driver details
+                if (data['driverId'] != null) {
+                  try {
+                    final driverDoc = await _firestore
+                        .collection('users')
+                        .doc(data['driverId'])
+                        .get();
+                    if (driverDoc.exists) {
+                      data['driverDetails'] = driverDoc.data();
+                    }
+                  } catch (e) {
+                    print('Error getting driver details: $e');
+                  }
+                }
+                return data;
               }
             }
-            return data;
+          } catch (e) {
+            print('Error checking ride_requests: $e');
           }
-        }
-      } catch (e) {
-        print('Error checking ride_requests: $e');
-      }
-      
-      return null;
-    });
+
+          return null;
+        });
   }
 }

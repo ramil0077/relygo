@@ -421,14 +421,15 @@ class DriverService {
       if (!isPaid) {
         return {
           'success': false,
-          'error': 'Cannot complete ride. Payment not received yet.'
+          'error': 'Cannot complete ride. Payment not received yet.',
         };
       }
 
       if (status != 'ongoing' && status != 'accepted' && status != 'paid') {
         return {
           'success': false,
-          'error': 'Ride can only be completed when status is ongoing or accepted'
+          'error':
+              'Ride can only be completed when status is ongoing or accepted',
         };
       }
 
@@ -461,6 +462,55 @@ class DriverService {
       return {'success': true, 'message': 'Booking completed'};
     } catch (e) {
       return {'success': false, 'error': 'Failed to complete booking: $e'};
+    }
+  }
+
+  /// Start a ride (sets status to ongoing)
+  static Future<Map<String, dynamic>> startRide(String bookingId) async {
+    try {
+      // Try to find booking in 'bookings' collection first
+      DocumentReference? bookingRef;
+      DocumentSnapshot? bookingDoc;
+
+      bookingRef = _firestore.collection('bookings').doc(bookingId);
+      bookingDoc = await bookingRef.get();
+
+      // If not found in 'bookings', try 'ride_requests'
+      if (!bookingDoc.exists) {
+        bookingRef = _firestore.collection('ride_requests').doc(bookingId);
+        bookingDoc = await bookingRef.get();
+      }
+
+      if (!bookingDoc.exists) {
+        return {'success': false, 'error': 'Booking not found'};
+      }
+
+      final bookingData = bookingDoc.data() as Map<String, dynamic>;
+      final userId = bookingData['userId'];
+
+      // Update booking to ongoing
+      await bookingRef.update({
+        'status': 'ongoing',
+        'startedAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+
+      // Send notification to user
+      if (userId != null) {
+        await _firestore.collection('notifications').add({
+          'userId': userId,
+          'title': 'Ride Started',
+          'message': 'Your ride has started. Have a safe journey!',
+          'type': 'ride_started',
+          'bookingId': bookingId,
+          'read': false,
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+      }
+
+      return {'success': true, 'message': 'Ride started'};
+    } catch (e) {
+      return {'success': false, 'error': 'Failed to start ride: $e'};
     }
   }
 
