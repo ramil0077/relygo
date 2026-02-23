@@ -17,6 +17,11 @@ class AuthWrapper extends StatelessWidget {
     return StreamBuilder<User?>(
       stream: AuthService.authStateChanges,
       builder: (context, snapshot) {
+        // Log for debugging
+        print(
+          'AuthWrapper: connectionState=${snapshot.connectionState}, hasData=${snapshot.hasData}, error=${snapshot.error}',
+        );
+
         // Show loading while checking auth state
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
@@ -24,9 +29,27 @@ class AuthWrapper extends StatelessWidget {
           );
         }
 
+        // Show error if stream encounters an error
+        if (snapshot.hasError) {
+          print('AuthWrapper error: ${snapshot.error}');
+          return Scaffold(
+            appBar: AppBar(title: const Text('Connection Error')),
+            body: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Text(
+                  'Error: ${snapshot.error}',
+                  style: const TextStyle(color: Colors.red),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+          );
+        }
+
         // Check if Firebase user is logged in
         final firebaseUser = snapshot.data;
-        
+
         // If no Firebase user, check for admin login
         if (firebaseUser == null) {
           return FutureBuilder<bool>(
@@ -55,11 +78,38 @@ class AuthWrapper extends StatelessWidget {
 
         // If Firebase user is logged in, determine their role and show appropriate dashboard
         return FutureBuilder<Map<String, dynamic>?>(
-          future: AuthService.getUserData(firebaseUser.uid),
+          future: AuthService.getUserData(firebaseUser.uid).timeout(
+            const Duration(seconds: 10),
+            onTimeout: () {
+              print('AuthWrapper: getUserData timeout');
+              return null;
+            },
+          ),
           builder: (context, userSnapshot) {
+            print(
+              'AuthWrapper FutureBuilder: connectionState=${userSnapshot.connectionState}, hasData=${userSnapshot.hasData}',
+            );
+
             if (userSnapshot.connectionState == ConnectionState.waiting) {
               return const Scaffold(
                 body: Center(child: CircularProgressIndicator()),
+              );
+            }
+
+            if (userSnapshot.hasError) {
+              print('AuthWrapper FutureBuilder error: ${userSnapshot.error}');
+              return Scaffold(
+                appBar: AppBar(title: const Text('Error')),
+                body: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24.0),
+                    child: Text(
+                      'Error: ${userSnapshot.error}',
+                      style: const TextStyle(color: Colors.red),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
               );
             }
 

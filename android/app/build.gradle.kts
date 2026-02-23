@@ -31,12 +31,14 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        
+        // Enable multidex to support more than 64K methods
+        multiDexEnabled = true
     }
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
+            // Disable shrinking temporarily to diagnose white screen issue
             signingConfig = signingConfigs.getByName("debug")
         }
     }
