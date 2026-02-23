@@ -4,6 +4,19 @@ import 'package:relygo/constants.dart';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:relygo/services/auth_service.dart';
+
+/// Base fare by vehicle type (used when no distance calculation)
+int _baseFareForVehicle(String vehicle) {
+  switch (vehicle.toLowerCase()) {
+    case 'bike':
+      return 50;
+    case 'auto':
+      return 100;
+    case 'car':
+    default:
+      return 150;
+  }
+}
 // Map integration removed
 
 class ServiceBookingScreen extends StatefulWidget {
@@ -14,6 +27,7 @@ class ServiceBookingScreen extends StatefulWidget {
 }
 
 class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
+  final _formKey = GlobalKey<FormState>();
   String _selectedService = "Ride";
   String _selectedVehicle = "Car";
   DateTime? _selectedDate;
@@ -27,6 +41,8 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
   @override
   void initState() {
     super.initState();
+    _pickupController.addListener(_updateEstimatedPrice);
+    _destinationController.addListener(_updateEstimatedPrice);
     // Read driver args if provided
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final args = ModalRoute.of(context)?.settings.arguments;
@@ -38,9 +54,31 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
           if (vehicleArg != null && vehicleArg.isNotEmpty) {
             _selectedVehicle = vehicleArg;
           }
+          _updateEstimatedPrice();
         });
       }
     });
+  }
+
+  @override
+  void dispose() {
+    _pickupController.removeListener(_updateEstimatedPrice);
+    _destinationController.removeListener(_updateEstimatedPrice);
+    _pickupController.dispose();
+    _destinationController.dispose();
+    super.dispose();
+  }
+
+  void _updateEstimatedPrice() {
+    final pickup = _pickupController.text.trim();
+    final dest = _destinationController.text.trim();
+    int? estimate;
+    if (pickup.isNotEmpty && dest.isNotEmpty) {
+      estimate = _baseFareForVehicle(_selectedVehicle);
+    }
+    if (mounted && _estimatedPrice != estimate) {
+      setState(() => _estimatedPrice = estimate);
+    }
   }
 
   @override
@@ -68,10 +106,12 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Service Type Selection
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Service Type Selection
               Text(
                 "Select Service Type",
                 style: GoogleFonts.poppins(
@@ -207,7 +247,7 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
                 ),
               ),
               const SizedBox(height: 15),
-              TextField(
+              TextFormField(
                 controller: _pickupController,
                 decoration: InputDecoration(
                   hintText: "Enter pickup location",
@@ -219,6 +259,10 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
+                validator: (v) {
+                  if (v == null || v.trim().isEmpty) return 'Please enter pickup location';
+                  return null;
+                },
               ),
               const SizedBox(height: 20),
 
@@ -232,7 +276,7 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
                 ),
               ),
               const SizedBox(height: 15),
-              TextField(
+              TextFormField(
                 controller: _destinationController,
                 decoration: InputDecoration(
                   hintText: "Enter destination",
@@ -241,6 +285,10 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
+                validator: (v) {
+                  if (v == null || v.trim().isEmpty) return 'Please enter destination';
+                  return null;
+                },
               ),
               const SizedBox(height: 30),
 
@@ -418,7 +466,8 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
                 ),
               ),
               const SizedBox(height: 20),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -473,6 +522,7 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
       onTap: () {
         setState(() {
           _selectedVehicle = value;
+          _updateEstimatedPrice();
         });
       },
       child: Container(
@@ -549,6 +599,7 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
   }
 
   Future<void> _createBooking() async {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
     final userId = AuthService.currentUserId;
     if (userId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -562,6 +613,7 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
 
     try {
       final now = DateTime.now();
+      final fare = _estimatedPrice ?? _baseFareForVehicle(_selectedVehicle);
       final data = {
         'userId': userId,
         'driverId': _driverId, // can be null for open request
@@ -570,7 +622,7 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
         'vehicle': _selectedVehicle,
         'pickup': _pickupController.text.trim(),
         'destination': _destinationController.text.trim(),
-        // map fields removed
+        'fare': fare,
         'status': 'pending',
         'createdAt': Timestamp.fromDate(now),
         'scheduledDate': _selectedDate != null

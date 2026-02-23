@@ -2,6 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:relygo/utils/responsive.dart';
 
+/// Payment / Razorpay config. Override key via --dart-define=RAZORPAY_KEY=your_key
+class PaymentConfig {
+  static String get razorpayKey => const String.fromEnvironment(
+    'RAZORPAY_KEY',
+    defaultValue: 'rzp_test_1DP5mmOlF5G5ag',
+  );
+}
+
 class Mycolors {
   static Color textcolor = Colors.white;
   static Color basecolor = Color(0xFF8B4513); // Brown color

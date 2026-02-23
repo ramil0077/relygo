@@ -207,10 +207,11 @@ class UserService {
     required String pickupLocation,
     required String dropoffLocation,
     required String bookingType,
+    double? fare,
     Map<String, dynamic>? additionalDetails,
   }) async {
     try {
-      final bookingRef = await _firestore.collection('bookings').add({
+      final data = <String, dynamic>{
         'userId': userId,
         'userName': userName,
         'userPhone': userPhone,
@@ -223,7 +224,9 @@ class UserService {
         'additionalDetails': additionalDetails,
         'createdAt': FieldValue.serverTimestamp(),
         'updatedAt': FieldValue.serverTimestamp(),
-      });
+      };
+      if (fare != null) data['fare'] = fare;
+      final bookingRef = await _firestore.collection('bookings').add(data);
 
       // Send notification to driver
       await _firestore.collection('notifications').add({
@@ -641,6 +644,49 @@ class UserService {
         'ratingBreakdown': {1: 0, 2: 0, 3: 0, 4: 0, 5: 0},
       };
     }
+  }
+
+  /// One-time fetch of user's active booking (bookings + ride_requests) for Track Driver
+  static Future<Map<String, dynamic>?> getActiveBookingOnce(String userId) async {
+    try {
+      final bookingsSnapshot = await _firestore
+          .collection('bookings')
+          .where('userId', isEqualTo: userId)
+          .get();
+      for (var doc in bookingsSnapshot.docs) {
+        final data = doc.data();
+        data['id'] = doc.id;
+        final status = (data['status'] ?? '').toString().toLowerCase();
+        final isPaid = data['isPaid'] ?? false;
+        if (status == 'pending' ||
+            status == 'accepted' ||
+            status == 'ongoing' ||
+            (status == 'completed' && isPaid)) {
+          if (data['driverId'] != null) return data;
+        }
+      }
+      final rideRequestsSnapshot = await _firestore
+          .collection('ride_requests')
+          .where('userId', isEqualTo: userId)
+          .limit(20)
+          .get();
+      for (var doc in rideRequestsSnapshot.docs) {
+        final data = doc.data();
+        data['id'] = doc.id;
+        final status = (data['status'] ?? '').toString().toLowerCase();
+        final isPaid = data['isPaid'] ?? false;
+        if (status == 'pending' ||
+            status == 'accepted' ||
+            status == 'ongoing' ||
+            status == 'paid' ||
+            (status == 'completed' && isPaid)) {
+          if (data['driverId'] != null) return data;
+        }
+      }
+    } catch (e) {
+      print('Error getting active booking: $e');
+    }
+    return null;
   }
 
   /// Get user's active booking for tracking

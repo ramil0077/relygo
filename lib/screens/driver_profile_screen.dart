@@ -228,46 +228,52 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
                           final totalEarnings = data['totalEarnings'] != null
                               ? '₹${data['totalEarnings'].toStringAsFixed(0)}'
                               : '₹0';
-                          return Row(
+                          final todayRides =
+                              data['todayRides']?.toString() ?? '0';
+                          return Column(
                             children: [
-                              Expanded(
-                                child: _buildStatCard(
-                                  totalRides,
-                                  "Total Rides",
-                                  Icons.directions_car,
-                                ),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: _buildStatCard(
+                                      totalRides,
+                                      "Total Rides",
+                                      Icons.directions_car,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 15),
+                                  Expanded(
+                                    child: _buildStatCard(
+                                      totalEarnings,
+                                      "Total Earnings",
+                                      Icons.attach_money,
+                                    ),
+                                  ),
+                                ],
                               ),
-                              const SizedBox(width: 15),
-                              Expanded(
-                                child: _buildStatCard(
-                                  totalEarnings,
-                                  "Total Earnings",
-                                  Icons.attach_money,
-                                ),
+                              const SizedBox(height: 15),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: _buildStatCard(
+                                      todayRides,
+                                      "Rides Today",
+                                      Icons.access_time,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 15),
+                                  Expanded(
+                                    child: _buildStatCard(
+                                      vehicleType,
+                                      "Vehicle",
+                                      Icons.directions_car,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ],
                           );
                         },
-                      ),
-                      const SizedBox(height: 15),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _buildStatCard(
-                              "6.5",
-                              "Hours Today",
-                              Icons.access_time,
-                            ),
-                          ),
-                          const SizedBox(width: 15),
-                          Expanded(
-                            child: _buildStatCard(
-                              vehicleType,
-                              "Vehicle",
-                              Icons.directions_car,
-                            ),
-                          ),
-                        ],
                       ),
                       const SizedBox(height: 30),
 
@@ -798,6 +804,8 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
   }
 
   void _showEarningsDialog() {
+    final userId = AuthService.currentUserId;
+    if (userId == null) return;
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -809,14 +817,36 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
             "Earnings Summary",
             style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
           ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _buildEarningsItem("Today", "₹1,250", Mycolors.green),
-              _buildEarningsItem("This Week", "₹8,750", Mycolors.orange),
-              _buildEarningsItem("This Month", "₹35,000", Mycolors.basecolor),
-              _buildEarningsItem("Total", "₹1,25,000", Mycolors.green),
-            ],
+          content: FutureBuilder<Map<String, dynamic>>(
+            future: DriverService.getDriverEarnings(userId),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Padding(
+                  padding: EdgeInsets.all(24),
+                  child: Center(child: CircularProgressIndicator()),
+                );
+              }
+              final data = snapshot.data ?? {};
+              final todayEarnings = (data['todayEarnings'] ?? 0.0) as num;
+              final totalEarnings = (data['totalEarnings'] ?? 0.0) as num;
+              final todayRides = (data['todayRides'] ?? 0) as int;
+              final totalRides = (data['totalRides'] ?? 0) as int;
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _buildEarningsItem(
+                    "Today",
+                    "₹${todayEarnings.toStringAsFixed(0)} ($todayRides rides)",
+                    Mycolors.green,
+                  ),
+                  _buildEarningsItem(
+                    "Total",
+                    "₹${totalEarnings.toStringAsFixed(0)} ($totalRides rides)",
+                    Mycolors.basecolor,
+                  ),
+                ],
+              );
+            },
           ),
           actions: [
             TextButton(

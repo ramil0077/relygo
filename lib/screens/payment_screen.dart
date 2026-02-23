@@ -31,8 +31,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
   bool _isProcessing = false;
   PaymentService? _paymentService;
 
-  // NOTE: Use your Razorpay Test Key here for dummy/test payments
-  static const String _razorpayTestKey = 'rzp_test_1DP5mmOlF5G5ag';
+  static String get _razorpayKey => PaymentConfig.razorpayKey;
 
   @override
   void initState() {
@@ -413,7 +412,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
     // Card/UPI: open Razorpay test checkout
     final int amountPaise = (widget.amount * 100).toInt();
     _paymentService?.openCheckout(
-      key: _razorpayTestKey,
+      key: _razorpayKey,
       amountInPaise: amountPaise,
       name: 'RelyGo Ride',
       description: 'Payment for ${widget.destination}',

@@ -937,6 +937,38 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
     );
   }
 
+  Future<void> _handleTrackDriver() async {
+    final userId = AuthService.currentUserId;
+    if (userId == null) return;
+    final ride = await UserService.getActiveBookingOnce(userId);
+    if (!mounted) return;
+    if (ride != null && ride['driverId'] != null) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => DriverTrackingScreen(
+            bookingId: ride['id'] ?? '',
+            bookingData: ride,
+          ),
+        ),
+      );
+    } else if (ride != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('No driver assigned yet'),
+          backgroundColor: Mycolors.red,
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('No active rides found'),
+          backgroundColor: Mycolors.orange,
+        ),
+      );
+    }
+  }
+
   void _promptHomeBooking() {
     showModalBottomSheet(
       context: context,
@@ -1648,65 +1680,7 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                 "Track Driver",
                 Icons.my_location,
                 Mycolors.green,
-                () async {
-                  final userId = AuthService.currentUserId;
-                  if (userId == null) return;
-
-                  // Check for active ride (including completed if paid)
-                  final snapshot = await FirebaseFirestore.instance
-                      .collection('ride_requests')
-                      .where('userId', isEqualTo: userId)
-                      .where(
-                        'status',
-                        whereIn: ['accepted', 'ongoing', 'paid', 'completed'],
-                      )
-                      .limit(10)
-                      .get();
-
-                  // Filter to get active rides (paid and completed, or accepted/ongoing/paid)
-                  final activeRides = snapshot.docs.where((doc) {
-                    final data = doc.data();
-                    final isPaid = data['isPaid'] ?? false;
-                    final status = (data['status'] ?? '')
-                        .toString()
-                        .toLowerCase();
-                    return status == 'accepted' ||
-                        status == 'ongoing' ||
-                        status == 'paid' ||
-                        (status == 'completed' && isPaid);
-                  }).toList();
-
-                  if (activeRides.isNotEmpty) {
-                    final ride = activeRides.first.data();
-                    ride['id'] = activeRides.first.id;
-                    final driverId = ride['driverId'];
-                    if (driverId != null) {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => DriverTrackingScreen(
-                            bookingId: ride['id'] ?? '',
-                            bookingData: ride,
-                          ),
-                        ),
-                      );
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: const Text('No driver assigned yet'),
-                          backgroundColor: Mycolors.red,
-                        ),
-                      );
-                    }
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: const Text('No active rides found'),
-                        backgroundColor: Mycolors.orange,
-                      ),
-                    );
-                  }
-                },
+                () => _handleTrackDriver(),
               ),
             ),
           ],
@@ -1772,65 +1746,7 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                 "Track Driver",
                 Icons.my_location,
                 Mycolors.green,
-                () async {
-                  final userId = AuthService.currentUserId;
-                  if (userId == null) return;
-
-                  // Check for active ride (including completed if paid)
-                  final snapshot = await FirebaseFirestore.instance
-                      .collection('ride_requests')
-                      .where('userId', isEqualTo: userId)
-                      .where(
-                        'status',
-                        whereIn: ['accepted', 'ongoing', 'paid', 'completed'],
-                      )
-                      .limit(10)
-                      .get();
-
-                  // Filter to get active rides (paid and completed, or accepted/ongoing/paid)
-                  final activeRides = snapshot.docs.where((doc) {
-                    final data = doc.data();
-                    final isPaid = data['isPaid'] ?? false;
-                    final status = (data['status'] ?? '')
-                        .toString()
-                        .toLowerCase();
-                    return status == 'accepted' ||
-                        status == 'ongoing' ||
-                        status == 'paid' ||
-                        (status == 'completed' && isPaid);
-                  }).toList();
-
-                  if (activeRides.isNotEmpty) {
-                    final ride = activeRides.first.data();
-                    ride['id'] = activeRides.first.id;
-                    final driverId = ride['driverId'];
-                    if (driverId != null) {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => DriverTrackingScreen(
-                            bookingId: ride['id'] ?? '',
-                            bookingData: ride,
-                          ),
-                        ),
-                      );
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: const Text('No driver assigned yet'),
-                          backgroundColor: Mycolors.red,
-                        ),
-                      );
-                    }
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: const Text('No active rides found'),
-                        backgroundColor: Mycolors.orange,
-                      ),
-                    );
-                  }
-                },
+                () => _handleTrackDriver(),
               ),
             ),
           ],
