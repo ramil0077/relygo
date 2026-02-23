@@ -180,6 +180,14 @@ class ResponsiveUtils {
     }
   }
 
+  /// Max content width for web/desktop so layout doesn't stretch on large screens.
+  static const double maxContentWidth = 1280;
+
+  /// Whether to apply max width constraint (true on tablet/desktop).
+  static bool useConstrainedWidth(BuildContext context) {
+    return screenWidth(context) > mobileBreakpoint;
+  }
+
   // Get responsive elevation
   static double getResponsiveElevation(
     BuildContext context, {

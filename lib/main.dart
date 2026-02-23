@@ -28,10 +28,10 @@ class MyApp extends StatelessWidget {
       builder: (context, themeMode, _) {
         return MaterialApp(
           debugShowCheckedModeBanner: false,
+          title: 'RelyGo – Ride & Delivery',
           theme: AppTheme.theme,
           darkTheme: AppTheme.darkTheme,
           themeMode: themeMode,
-          // Show landing page on web, AuthWrapper on mobile (which handles persistent login)
           home: PlatformUtils.isWeb ? const LandingPage() : const AuthWrapper(),
         );
       },

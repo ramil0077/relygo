@@ -9,6 +9,7 @@ import 'package:relygo/screens/driver_registration_screen.dart';
 import 'package:relygo/screens/forgot_password_screen.dart';
 import 'package:relygo/services/auth_service.dart';
 import 'package:relygo/utils/responsive.dart';
+import 'package:relygo/utils/app_design_system.dart';
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
@@ -45,8 +46,10 @@ class _SignInScreenState extends State<SignInScreen> {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: ResponsiveUtils.getResponsivePadding(context),
-          child: Column(
+          child: AppDesignSystem.constrainedContent(
+            context: context,
+            maxWidth: 480,
+            child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 20, tablet: 30, desktop: 40)),
@@ -214,9 +217,9 @@ class _SignInScreenState extends State<SignInScreen> {
                           elevation: ResponsiveUtils.getResponsiveElevation(context, mobile: 2, tablet: 3, desktop: 4),
                         ),
                         child: _isLoading
-                            ? SizedBox(
-                                width: ResponsiveUtils.getResponsiveSpacing(context, mobile: 20, tablet: 22, desktop: 24),
-                                height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 20, tablet: 22, desktop: 24),
+                            ? const SizedBox(
+                                width: 24,
+                                height: 24,
                                 child: CircularProgressIndicator(
                                   color: Colors.white,
                                   strokeWidth: 2,
@@ -277,6 +280,7 @@ class _SignInScreenState extends State<SignInScreen> {
                 ),
               ),
             ],
+            ),
           ),
         ),
       ),
