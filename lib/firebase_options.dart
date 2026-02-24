@@ -41,49 +41,49 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyAiddlzqShefdxJd1Y95NADxGYPNdHBi3s',
-    appId: '1:1089618147151:web:b7ba6dad37eb32db07773a',
-    messagingSenderId: '1089618147151',
-    projectId: 'relygo-aba85',
-    authDomain: 'relygo-aba85.firebaseapp.com',
-    storageBucket: 'relygo-aba85.firebasestorage.app',
-    measurementId: 'G-ZHJE7GTGS7',
+    apiKey: 'AIzaSyALXp5_htDNwTa6CZ6bSK1GMXadHbUZwyI',
+    appId: '1:415454423321:web:c9aab44c0614ba088abd88',
+    messagingSenderId: '415454423321',
+    projectId: 'relygonew',
+    authDomain: 'relygonew.firebaseapp.com',
+    storageBucket: 'relygonew.firebasestorage.app',
+    measurementId: 'G-CVDWN57TW8',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyAtJATmOYSooUooPzH_aSwJ75bAOjDUwxY',
-    appId: '1:1089618147151:android:42762fadbdf85b8907773a',
-    messagingSenderId: '1089618147151',
-    projectId: 'relygo-aba85',
-    storageBucket: 'relygo-aba85.firebasestorage.app',
+    apiKey: 'AIzaSyCkd1egkAqcGiDRGbLTaDbQIqjXRFlgM0E',
+    appId: '1:415454423321:android:56c1e81bf371fa468abd88',
+    messagingSenderId: '415454423321',
+    projectId: 'relygonew',
+    storageBucket: 'relygonew.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyBLrhHEbR5--5pe9KRA7epXVI2NtqXnGsM',
-    appId: '1:1089618147151:ios:8604d1114f1c5ce607773a',
-    messagingSenderId: '1089618147151',
-    projectId: 'relygo-aba85',
-    storageBucket: 'relygo-aba85.firebasestorage.app',
+    apiKey: 'AIzaSyBpJYXrnGRJ4GyP_o1U-ZfrrQpb5a0XZ1M',
+    appId: '1:415454423321:ios:e789828b6683e3f88abd88',
+    messagingSenderId: '415454423321',
+    projectId: 'relygonew',
+    storageBucket: 'relygonew.firebasestorage.app',
     iosBundleId: 'com.example.relygo',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyBLrhHEbR5--5pe9KRA7epXVI2NtqXnGsM',
-    appId: '1:1089618147151:ios:8604d1114f1c5ce607773a',
-    messagingSenderId: '1089618147151',
-    projectId: 'relygo-aba85',
-    storageBucket: 'relygo-aba85.firebasestorage.app',
+    apiKey: 'AIzaSyBpJYXrnGRJ4GyP_o1U-ZfrrQpb5a0XZ1M',
+    appId: '1:415454423321:ios:e789828b6683e3f88abd88',
+    messagingSenderId: '415454423321',
+    projectId: 'relygonew',
+    storageBucket: 'relygonew.firebasestorage.app',
     iosBundleId: 'com.example.relygo',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyAiddlzqShefdxJd1Y95NADxGYPNdHBi3s',
-    appId: '1:1089618147151:web:c133d8c0b85e643d07773a',
-    messagingSenderId: '1089618147151',
-    projectId: 'relygo-aba85',
-    authDomain: 'relygo-aba85.firebaseapp.com',
-    storageBucket: 'relygo-aba85.firebasestorage.app',
-    measurementId: 'G-SXQCV3YZ2B',
+    apiKey: 'AIzaSyALXp5_htDNwTa6CZ6bSK1GMXadHbUZwyI',
+    appId: '1:415454423321:web:3bff534dc487713f8abd88',
+    messagingSenderId: '415454423321',
+    projectId: 'relygonew',
+    authDomain: 'relygonew.firebaseapp.com',
+    storageBucket: 'relygonew.firebasestorage.app',
+    measurementId: 'G-RBRD0J0N91',
   );
 
 }
