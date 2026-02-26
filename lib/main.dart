@@ -5,6 +5,9 @@ import 'package:relygo/screens/splash.dart';
 import 'package:relygo/constants.dart';
 import 'package:relygo/services/background_service.dart';
 
+import 'package:flutter/foundation.dart'; // For kIsWeb
+import 'package:relygo/screens/admin_landing_page.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
@@ -27,7 +30,7 @@ class MyApp extends StatelessWidget {
           theme: AppTheme.theme,
           darkTheme: AppTheme.darkTheme,
           themeMode: themeMode,
-          home: const Splashscreen(),
+          home: kIsWeb ? const AdminLandingPage() : const Splashscreen(),
         );
       },
     );

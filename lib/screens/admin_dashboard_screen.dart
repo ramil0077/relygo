@@ -15,7 +15,7 @@ import 'package:relygo/screens/admin_driver_details_screen.dart';
 import 'package:relygo/screens/admin_analytics_screen.dart';
 import 'package:relygo/services/admin_service.dart';
 import 'package:relygo/services/auth_service.dart';
-import 'package:relygo/screens/signin_screen.dart';
+import 'package:relygo/screens/admin_landing_page.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
   const AdminDashboardScreen({super.key});
@@ -180,7 +180,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
       if (context.mounted) {
         Navigator.pushAndRemoveUntil(
           context,
-          MaterialPageRoute(builder: (context) => const SignInScreen()),
+          MaterialPageRoute(builder: (context) => const AdminLandingPage()),
           (route) => false,
         );
       }
@@ -214,60 +214,24 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
-        child: ResponsiveLayoutBuilder(
-          builder: (context, constraints) {
-            return IndexedStack(
-              index: _selectedIndex,
-              children: [
-                _buildHomeTab(),
-                _buildUsersAndDriversTab(),
-                _buildBookingsTab(),
-                const AdminComplaintsScreen(),
-                _buildAnalyticsTab(),
-              ],
-            );
-          },
-        ),
-      ),
-      bottomNavigationBar: Container(
-        margin: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(25),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.15),
-              blurRadius: 20,
-              offset: const Offset(0, 8),
-              spreadRadius: 0,
-            ),
-            BoxShadow(
-              color: Mycolors.basecolor.withOpacity(0.1),
-              blurRadius: 30,
-              offset: const Offset(0, 4),
-              spreadRadius: 0,
+        child: Row(
+          children: [
+            // Admin Sidebar Portal Navigation
+            _buildSidebar(),
+            // Main Content Area
+            Expanded(
+              child: IndexedStack(
+                index: _selectedIndex,
+                children: [
+                  _buildHomeTab(),
+                  _buildUsersAndDriversTab(),
+                  _buildBookingsTab(),
+                  const AdminComplaintsScreen(),
+                  _buildAnalyticsTab(),
+                ],
+              ),
             ),
           ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(25),
-          child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _buildFloatingNavItem(Icons.dashboard_rounded, "Home", 0),
-                _buildFloatingNavItem(Icons.people_rounded, "Users", 1),
-                _buildFloatingNavItem(Icons.local_taxi_rounded, "Rides", 2),
-                _buildFloatingNavItem(
-                  Icons.report_problem_rounded,
-                  "Issues",
-                  3,
-                ),
-                _buildFloatingNavItem(Icons.analytics_rounded, "Stats", 4),
-              ],
-            ),
-          ),
         ),
       ),
     );
@@ -1080,6 +1044,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize:
+                  MainAxisSize.min, // Prevents bottom overflow on short screens
               children: [
                 Icon(Icons.people_outline, size: 64, color: Colors.grey[400]),
                 const SizedBox(height: 16),
@@ -1195,6 +1161,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 return Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize
+                        .min, // Prevents bottom overflow on short screens
                     children: [
                       Icon(Icons.drive_eta, size: 64, color: Colors.grey[400]),
                       const SizedBox(height: 16),
@@ -1225,357 +1193,358 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   }
 
   Widget _buildBookingsTab() {
-    return Padding(
+    return ListView(
       padding: ResponsiveUtils.getResponsivePadding(context),
-      child: Column(
-        children: [
-          SizedBox(
-            height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 20),
-          ),
-          Text(
-            "Ride Management",
-            style: GoogleFonts.poppins(
-              fontSize: ResponsiveUtils.getResponsiveFontSize(
-                context,
-                mobile: 24,
-                tablet: 28,
-                desktop: 32,
-              ),
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
+      children: [
+        SizedBox(
+          height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 20),
+        ),
+        Text(
+          "Ride Management",
+          style: GoogleFonts.poppins(
+            fontSize: ResponsiveUtils.getResponsiveFontSize(
+              context,
+              mobile: 24,
+              tablet: 28,
+              desktop: 32,
             ),
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
           ),
-          SizedBox(
-            height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 20),
-          ),
+        ),
+        SizedBox(
+          height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 20),
+        ),
 
-          // Booking Stats
-          FutureBuilder<Map<String, dynamic>>(
-            future: AdminService.getBookingStats(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              }
+        // Booking Stats
+        FutureBuilder<Map<String, dynamic>>(
+          future: AdminService.getBookingStats(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-              final stats = snapshot.data ?? {};
-              return ResponsiveWidget(
-                mobile: Column(
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildStatCard(
-                            (stats['totalBookings'] ?? 0).toString(),
-                            "Total Rides",
-                            Icons.local_taxi,
-                            Mycolors.basecolor,
-                          ),
+            final stats = snapshot.data ?? {};
+            return ResponsiveWidget(
+              mobile: Column(
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildStatCard(
+                          (stats['totalBookings'] ?? 0).toString(),
+                          "Total Rides",
+                          Icons.local_taxi,
+                          Mycolors.basecolor,
                         ),
-                        SizedBox(
-                          width: ResponsiveUtils.getResponsiveSpacing(
-                            context,
-                            mobile: 15,
-                          ),
-                        ),
-                        Expanded(
-                          child: _buildStatCard(
-                            (stats['completedBookings'] ?? 0).toString(),
-                            "Completed",
-                            Icons.check_circle,
-                            Mycolors.green,
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(
-                      height: ResponsiveUtils.getResponsiveSpacing(
-                        context,
-                        mobile: 15,
                       ),
-                    ),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildStatCard(
-                            (stats['ongoingBookings'] ?? 0).toString(),
-                            "Ongoing",
-                            Icons.directions_car,
-                            Mycolors.blue,
-                          ),
+                      SizedBox(
+                        width: ResponsiveUtils.getResponsiveSpacing(
+                          context,
+                          mobile: 15,
                         ),
-                        SizedBox(
-                          width: ResponsiveUtils.getResponsiveSpacing(
-                            context,
-                            mobile: 15,
-                          ),
-                        ),
-                        Expanded(
-                          child: _buildStatCard(
-                            "₹${(stats['totalRevenue'] ?? 0.0).toStringAsFixed(0)}",
-                            "Revenue",
-                            Icons.attach_money,
-                            Mycolors.orange,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-                tablet: Column(
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildStatCard(
-                            (stats['totalBookings'] ?? 0).toString(),
-                            "Total Rides",
-                            Icons.local_taxi,
-                            Mycolors.basecolor,
-                          ),
-                        ),
-                        SizedBox(
-                          width: ResponsiveUtils.getResponsiveSpacing(
-                            context,
-                            mobile: 15,
-                          ),
-                        ),
-                        Expanded(
-                          child: _buildStatCard(
-                            (stats['completedBookings'] ?? 0).toString(),
-                            "Completed",
-                            Icons.check_circle,
-                            Mycolors.green,
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(
-                      height: ResponsiveUtils.getResponsiveSpacing(
-                        context,
-                        mobile: 15,
                       ),
-                    ),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildStatCard(
-                            (stats['ongoingBookings'] ?? 0).toString(),
-                            "Ongoing",
-                            Icons.directions_car,
-                            Mycolors.blue,
-                          ),
+                      Expanded(
+                        child: _buildStatCard(
+                          (stats['completedBookings'] ?? 0).toString(),
+                          "Completed",
+                          Icons.check_circle,
+                          Mycolors.green,
                         ),
-                        SizedBox(
-                          width: ResponsiveUtils.getResponsiveSpacing(
-                            context,
-                            mobile: 15,
-                          ),
-                        ),
-                        Expanded(
-                          child: _buildStatCard(
-                            "₹${(stats['totalRevenue'] ?? 0.0).toStringAsFixed(0)}",
-                            "Revenue",
-                            Icons.attach_money,
-                            Mycolors.orange,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-                desktop: Row(
-                  children: [
-                    Expanded(
-                      child: _buildStatCard(
-                        (stats['totalBookings'] ?? 0).toString(),
-                        "Total Rides",
-                        Icons.local_taxi,
-                        Mycolors.basecolor,
                       ),
-                    ),
-                    SizedBox(
-                      width: ResponsiveUtils.getResponsiveSpacing(
-                        context,
-                        mobile: 15,
-                      ),
-                    ),
-                    Expanded(
-                      child: _buildStatCard(
-                        (stats['completedBookings'] ?? 0).toString(),
-                        "Completed",
-                        Icons.check_circle,
-                        Mycolors.green,
-                      ),
-                    ),
-                    SizedBox(
-                      width: ResponsiveUtils.getResponsiveSpacing(
-                        context,
-                        mobile: 15,
-                      ),
-                    ),
-                    Expanded(
-                      child: _buildStatCard(
-                        (stats['ongoingBookings'] ?? 0).toString(),
-                        "Ongoing",
-                        Icons.directions_car,
-                        Mycolors.blue,
-                      ),
-                    ),
-                    SizedBox(
-                      width: ResponsiveUtils.getResponsiveSpacing(
-                        context,
-                        mobile: 15,
-                      ),
-                    ),
-                    Expanded(
-                      child: _buildStatCard(
-                        "₹${(stats['totalRevenue'] ?? 0.0).toStringAsFixed(0)}",
-                        "Revenue",
-                        Icons.attach_money,
-                        Mycolors.orange,
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
-          SizedBox(
-            height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 20),
-          ),
-
-          // Search and Filter Section
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.grey[50],
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey.shade300),
-            ),
-            child: Column(
-              children: [
-                // Search Bar
-                TextField(
-                  controller: _searchController,
-                  decoration: InputDecoration(
-                    hintText:
-                        'Search by user name, driver name, or location...',
-                    hintStyle: GoogleFonts.poppins(
-                      fontSize: 14,
-                      color: Colors.grey[600],
-                    ),
-                    prefixIcon: Icon(Icons.search, color: Mycolors.gray),
-                    suffixIcon: _searchController.text.isNotEmpty
-                        ? IconButton(
-                            icon: Icon(Icons.clear, color: Mycolors.gray),
-                            onPressed: () {
-                              _searchController.clear();
-                              setState(() {});
-                            },
-                          )
-                        : null,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: Colors.grey.shade300),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: Colors.grey.shade300),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: Mycolors.basecolor),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
+                    ],
+                  ),
+                  SizedBox(
+                    height: ResponsiveUtils.getResponsiveSpacing(
+                      context,
+                      mobile: 15,
                     ),
                   ),
-                  onChanged: (value) {
-                    setState(() {});
-                  },
-                ),
-                const SizedBox(height: 12),
-
-                // Filter Buttons
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
+                  Row(
                     children: [
-                      _buildFilterChip('All', 'all'),
-                      const SizedBox(width: 8),
-                      _buildFilterChip('Completed', 'completed'),
-                      const SizedBox(width: 8),
-                      _buildFilterChip('Ongoing', 'ongoing'),
-                      const SizedBox(width: 8),
-                      _buildFilterChip('Pending', 'pending'),
-                      const SizedBox(width: 8),
-                      _buildFilterChip('Cancelled', 'cancelled'),
+                      Expanded(
+                        child: _buildStatCard(
+                          (stats['ongoingBookings'] ?? 0).toString(),
+                          "Ongoing",
+                          Icons.directions_car,
+                          Mycolors.blue,
+                        ),
+                      ),
+                      SizedBox(
+                        width: ResponsiveUtils.getResponsiveSpacing(
+                          context,
+                          mobile: 15,
+                        ),
+                      ),
+                      Expanded(
+                        child: _buildStatCard(
+                          "₹${(stats['totalRevenue'] ?? 0.0).toStringAsFixed(0)}",
+                          "Revenue",
+                          Icons.attach_money,
+                          Mycolors.orange,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              tablet: Column(
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildStatCard(
+                          (stats['totalBookings'] ?? 0).toString(),
+                          "Total Rides",
+                          Icons.local_taxi,
+                          Mycolors.basecolor,
+                        ),
+                      ),
+                      SizedBox(
+                        width: ResponsiveUtils.getResponsiveSpacing(
+                          context,
+                          mobile: 15,
+                        ),
+                      ),
+                      Expanded(
+                        child: _buildStatCard(
+                          (stats['completedBookings'] ?? 0).toString(),
+                          "Completed",
+                          Icons.check_circle,
+                          Mycolors.green,
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(
+                    height: ResponsiveUtils.getResponsiveSpacing(
+                      context,
+                      mobile: 15,
+                    ),
+                  ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildStatCard(
+                          (stats['ongoingBookings'] ?? 0).toString(),
+                          "Ongoing",
+                          Icons.directions_car,
+                          Mycolors.blue,
+                        ),
+                      ),
+                      SizedBox(
+                        width: ResponsiveUtils.getResponsiveSpacing(
+                          context,
+                          mobile: 15,
+                        ),
+                      ),
+                      Expanded(
+                        child: _buildStatCard(
+                          "₹${(stats['totalRevenue'] ?? 0.0).toStringAsFixed(0)}",
+                          "Revenue",
+                          Icons.attach_money,
+                          Mycolors.orange,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              desktop: Row(
+                children: [
+                  Expanded(
+                    child: _buildStatCard(
+                      (stats['totalBookings'] ?? 0).toString(),
+                      "Total Rides",
+                      Icons.local_taxi,
+                      Mycolors.basecolor,
+                    ),
+                  ),
+                  SizedBox(
+                    width: ResponsiveUtils.getResponsiveSpacing(
+                      context,
+                      mobile: 15,
+                    ),
+                  ),
+                  Expanded(
+                    child: _buildStatCard(
+                      (stats['completedBookings'] ?? 0).toString(),
+                      "Completed",
+                      Icons.check_circle,
+                      Mycolors.green,
+                    ),
+                  ),
+                  SizedBox(
+                    width: ResponsiveUtils.getResponsiveSpacing(
+                      context,
+                      mobile: 15,
+                    ),
+                  ),
+                  Expanded(
+                    child: _buildStatCard(
+                      (stats['ongoingBookings'] ?? 0).toString(),
+                      "Ongoing",
+                      Icons.directions_car,
+                      Mycolors.blue,
+                    ),
+                  ),
+                  SizedBox(
+                    width: ResponsiveUtils.getResponsiveSpacing(
+                      context,
+                      mobile: 15,
+                    ),
+                  ),
+                  Expanded(
+                    child: _buildStatCard(
+                      "₹${(stats['totalRevenue'] ?? 0.0).toStringAsFixed(0)}",
+                      "Revenue",
+                      Icons.attach_money,
+                      Mycolors.orange,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+        SizedBox(
+          height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 20),
+        ),
+
+        // Search and Filter Section
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.grey[50],
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.grey.shade300),
+          ),
+          child: Column(
+            children: [
+              // Search Bar
+              TextField(
+                controller: _searchController,
+                decoration: InputDecoration(
+                  hintText: 'Search by user name, driver name, or location...',
+                  hintStyle: GoogleFonts.poppins(
+                    fontSize: 14,
+                    color: Colors.grey[600],
+                  ),
+                  prefixIcon: Icon(Icons.search, color: Mycolors.gray),
+                  suffixIcon: _searchController.text.isNotEmpty
+                      ? IconButton(
+                          icon: Icon(Icons.clear, color: Mycolors.gray),
+                          onPressed: () {
+                            _searchController.clear();
+                            setState(() {});
+                          },
+                        )
+                      : null,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: Colors.grey.shade300),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: Colors.grey.shade300),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: Mycolors.basecolor),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                ),
+                onChanged: (value) {
+                  setState(() {});
+                },
+              ),
+              const SizedBox(height: 12),
+
+              // Filter Buttons
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    _buildFilterChip('All', 'all'),
+                    const SizedBox(width: 8),
+                    _buildFilterChip('Completed', 'completed'),
+                    const SizedBox(width: 8),
+                    _buildFilterChip('Ongoing', 'ongoing'),
+                    const SizedBox(width: 8),
+                    _buildFilterChip('Pending', 'pending'),
+                    const SizedBox(width: 8),
+                    _buildFilterChip('Cancelled', 'cancelled'),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        SizedBox(
+          height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 20),
+        ),
+
+        // Bookings List
+        StreamBuilder<List<Map<String, dynamic>>>(
+          stream: _getFilteredBookingsStream(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            if (snapshot.hasError) {
+              return Center(
+                child: Text(
+                  'Error loading bookings',
+                  style: GoogleFonts.poppins(color: Colors.red),
+                ),
+              );
+            }
+
+            final bookings = snapshot.data ?? [];
+
+            if (bookings.isEmpty) {
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 40),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.local_taxi_outlined,
+                        size: 64,
+                        color: Colors.grey[400],
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'No bookings found',
+                        style: GoogleFonts.poppins(
+                          fontSize: 16,
+                          color: Colors.grey[600],
+                        ),
+                      ),
                     ],
                   ),
                 ),
-              ],
-            ),
-          ),
-          SizedBox(
-            height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 20),
-          ),
+              );
+            }
 
-          // Bookings List
-          Expanded(
-            child: StreamBuilder<List<Map<String, dynamic>>>(
-              stream: _getFilteredBookingsStream(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-
-                if (snapshot.hasError) {
-                  return Center(
-                    child: Text(
-                      'Error loading bookings',
-                      style: GoogleFonts.poppins(color: Colors.red),
-                    ),
-                  );
-                }
-
-                final bookings = snapshot.data ?? [];
-
-                if (bookings.isEmpty) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.local_taxi_outlined,
-                          size: 64,
-                          color: Colors.grey[400],
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'No bookings found',
-                          style: GoogleFonts.poppins(
-                            fontSize: 16,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                }
-
-                return ListView.builder(
-                  itemCount: bookings.length,
-                  itemBuilder: (context, index) {
-                    final booking = bookings[index];
-                    return _buildBookingCard(booking);
-                  },
-                );
+            return ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: bookings.length,
+              itemBuilder: (context, index) {
+                final booking = bookings[index];
+                return _buildBookingCard(booking);
               },
-            ),
-          ),
-        ],
-      ),
+            );
+          },
+        ),
+      ],
     );
   }
 
@@ -2636,61 +2605,113 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     });
   }
 
-  Widget _buildFloatingNavItem(IconData icon, String label, int index) {
-    bool isSelected = _selectedIndex == index;
-    return GestureDetector(
+  Widget _buildSidebar() {
+    return Container(
+      width: 250, // Fixed width for sidebar
+      decoration: BoxDecoration(
+        color: Colors.white, // Light premium sidebar
+        border: Border(
+          right: BorderSide(color: Colors.grey.shade300, width: 1),
+        ),
+      ),
+      child: Column(
+        children: [
+          // Header Logo
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 20),
+            child: Row(
+              children: [
+                Image.asset(
+                  'assets/logooo.png',
+                  height: 30,
+                  color: Mycolors.basecolor,
+                  errorBuilder: (context, error, stackTrace) =>
+                      Icon(Icons.drive_eta, color: Mycolors.basecolor),
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  "RelyGO",
+                  style: GoogleFonts.poppins(
+                    color: Colors.black,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Divider(color: Colors.grey.shade300, height: 1),
+          const SizedBox(height: 20),
+          // Navigation Links
+          _buildSidebarItem(Icons.dashboard_rounded, "Dashboard", 0),
+          _buildSidebarItem(Icons.people_rounded, "User Management", 1),
+          _buildSidebarItem(Icons.local_taxi_rounded, "Ride Monitoring", 2),
+          _buildSidebarItem(
+            Icons.report_problem_rounded,
+            "Issue Resolution",
+            3,
+          ),
+          _buildSidebarItem(Icons.analytics_rounded, "Financial Stats", 4),
+          const Spacer(),
+          // Logout at the bottom
+          Divider(color: Colors.grey.shade300, height: 1),
+          InkWell(
+            onTap: _showLogoutDialog,
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
+              child: Row(
+                children: [
+                  const Icon(Icons.logout, color: Colors.redAccent, size: 24),
+                  const SizedBox(width: 16),
+                  Text(
+                    "Logout",
+                    style: GoogleFonts.poppins(
+                      color: Colors.redAccent,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSidebarItem(IconData icon, String title, int index) {
+    final bool isSelected = _selectedIndex == index;
+    return InkWell(
       onTap: () {
         setState(() {
           _selectedIndex = index;
         });
       },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-        padding: EdgeInsets.symmetric(
-          horizontal: isSelected ? 16 : 12,
-          vertical: isSelected ? 12 : 8,
-        ),
-        decoration: BoxDecoration(
-          color: isSelected ? Mycolors.basecolor : Colors.transparent,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: Mycolors.basecolor.withOpacity(0.3),
-                    blurRadius: 15,
-                    offset: const Offset(0, 4),
-                    spreadRadius: 0,
-                  ),
-                ]
-              : null,
-        ),
+      child: Container(
+        color: isSelected
+            ? Mycolors.basecolor.withOpacity(0.08)
+            : Colors.transparent,
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
         child: Row(
-          mainAxisSize: MainAxisSize.min,
           children: [
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 300),
-              child: Icon(
-                icon,
-                color: isSelected ? Colors.white : Colors.grey[600],
-                size: isSelected ? 22 : 20,
+            Icon(
+              icon,
+              color: isSelected ? Mycolors.basecolor : Colors.grey[600],
+              size: 24,
+            ),
+            const SizedBox(width: 16),
+            Flexible(
+              child: Text(
+                title,
+                style: GoogleFonts.poppins(
+                  color: isSelected ? Mycolors.basecolor : Colors.black87,
+                  fontSize: 14,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                ),
+                overflow: TextOverflow.ellipsis,
               ),
             ),
-            if (isSelected) ...[
-              const SizedBox(width: 6),
-              AnimatedOpacity(
-                duration: const Duration(milliseconds: 300),
-                opacity: isSelected ? 1.0 : 0.0,
-                child: Text(
-                  label,
-                  style: GoogleFonts.poppins(
-                    fontSize: 12,
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ],
           ],
         ),
       ),

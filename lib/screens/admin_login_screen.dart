@@ -212,47 +212,6 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                               ),
                       ),
                     ),
-                    const SizedBox(height: 20),
-
-                    // Demo Credentials
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Mycolors.lightGray,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: Mycolors.basecolor.withOpacity(0.3),
-                        ),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "Demo Credentials:",
-                            style: GoogleFonts.poppins(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: Mycolors.basecolor,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            "Email: admin@relygo.com",
-                            style: GoogleFonts.poppins(
-                              fontSize: 12,
-                              color: Colors.black87,
-                            ),
-                          ),
-                          Text(
-                            "Password: admin123",
-                            style: GoogleFonts.poppins(
-                              fontSize: 12,
-                              color: Colors.black87,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
                   ],
                 ),
               ),

@@ -3,7 +3,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:relygo/constants.dart';
 import 'package:relygo/screens/user_dashboard_screen.dart';
 import 'package:relygo/screens/driver_dashboard_screen.dart';
-import 'package:relygo/screens/admin_dashboard_screen.dart';
 import 'package:relygo/screens/user_registration_screen.dart';
 import 'package:relygo/screens/driver_registration_screen.dart';
 import 'package:relygo/screens/forgot_password_screen.dart';
@@ -288,9 +287,6 @@ class _SignInScreenState extends State<SignInScreen> {
           break;
         case 'driver':
           destination = const DriverDashboardScreen();
-          break;
-        case 'admin':
-          destination = const AdminDashboardScreen();
           break;
         default:
           destination = const UserDashboardScreen();
