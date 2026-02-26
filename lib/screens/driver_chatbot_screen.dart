@@ -3,6 +3,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:relygo/constants.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:relygo/services/auth_service.dart';
+import 'package:relygo/api_keys.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class ChatMessage {
   final String text;
@@ -121,48 +124,92 @@ class _DriverChatbotScreenState extends State<DriverChatbotScreen> {
     _scrollToBottom();
 
     // Simulate network delay for typing effect
-    Future.delayed(const Duration(milliseconds: 1000), () {
+    Future.delayed(const Duration(milliseconds: 100), () {
       _generateBotResponse(text);
     });
   }
 
-  void _generateBotResponse(String userText) {
-    String response = "";
-    final lowerText = userText.toLowerCase();
+  Future<void> _generateBotResponse(String userText) async {
+    final String groqApiKey = ApiKeys.groqApiKey;
 
-    if (lowerText.contains("earning") ||
-        lowerText.contains("money") ||
-        lowerText.contains("paid")) {
-      if (lowerText.contains("today")) {
-        response =
-            "You have earned ₹${_todayEarnings.toStringAsFixed(0)} today.";
-      } else {
-        response =
-            "Your total earnings so far are ₹${_totalEarnings.toStringAsFixed(0)}.\nToday's earnings: ₹${_todayEarnings.toStringAsFixed(0)}.";
-      }
-    } else if (lowerText.contains("ride") || lowerText.contains("trip")) {
-      if (lowerText.contains("today")) {
-        response = "You have completed $_todayRides rides today.";
-      } else {
-        response =
-            "You have completed a total of $_totalRides rides.\nToday's rides: $_todayRides.";
-      }
-    } else if (lowerText.contains("rating") ||
-        lowerText.contains("review") ||
-        lowerText.contains("star")) {
-      response =
-          "Your current average rating is ${_averageRating > 0 ? _averageRating.toStringAsFixed(1) : 'Not rated yet'} ⭐️ based on passenger feedback.";
-    } else if (lowerText.contains("hi") ||
-        lowerText.contains("hello") ||
-        lowerText.contains("hey")) {
-      response =
-          "Hello again! Just let me know if you want to check your rides, earnings, or ratings.";
-    } else {
-      response =
-          "I'm not quite sure. Try asking me about your 'earnings', 'rides', or 'ratings'!";
+    if (groqApiKey == "gsk_YOUR_GROQ_API_KEY_HERE") {
+      _addBotMessage(
+        "Please configure your Groq API key in the code to use the live chatbot.",
+      );
+      return;
     }
 
-    _addBotMessage(response);
+    // System prompt with live driver stats injected
+    final String systemPrompt =
+        """
+You are a helpful, professional AI assistant built into the RelyGo driver app. You support driver partners.
+Your tone should be friendly, clear, and very concise. You are replying to a chat interface, keep it brief!
+
+The driver's current real-time statistics from Firebase are:
+- Total Rides Completed: $_totalRides
+- Today's Rides: $_todayRides
+- Total Earnings: ₹${_totalEarnings.toStringAsFixed(0)}
+- Today's Earnings: ₹${_todayEarnings.toStringAsFixed(0)}
+- Average Passenger Rating: ${_averageRating > 0 ? _averageRating.toStringAsFixed(1) : 'Not rated yet'} out of 5
+
+Answer their questions specifically and accurately based on exactly this data.
+If they ask a general question not related to stats, be helpful and informative.
+""";
+
+    // Prepare message history for the LLM
+    final List<Map<String, String>> conversationHistory = [
+      {"role": "system", "content": systemPrompt},
+    ];
+
+    // Read the recent messages to give context (ignore the welcome message)
+    int count = 0;
+    final List<ChatMessage> recentMessages = [];
+    for (int i = _messages.length - 1; i >= 0 && count < 10; i--) {
+      if (_messages[i].text.startsWith("Hello! I am your RelyGo Assistant")) {
+        continue;
+      }
+      recentMessages.insert(0, _messages[i]);
+      count++;
+    }
+
+    for (var msg in recentMessages) {
+      conversationHistory.add({
+        "role": msg.isUser ? "user" : "assistant",
+        "content": msg.text,
+      });
+    }
+
+    try {
+      final response = await http.post(
+        Uri.parse('https://api.groq.com/openai/v1/chat/completions'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $groqApiKey',
+        },
+        body: jsonEncode({
+          "model": "llama3-8b-8192", // Fast and capable model
+          "messages": conversationHistory,
+          "temperature": 0.5,
+          "max_tokens": 150,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final String botReply = data['choices'][0]['message']['content'];
+        _addBotMessage(botReply.trim());
+      } else {
+        debugPrint("Groq API Error: ${response.statusCode} - ${response.body}");
+        _addBotMessage(
+          "Sorry, I'm having trouble connecting to my brain right now.",
+        );
+      }
+    } catch (e) {
+      debugPrint("Error making Groq API call: $e");
+      _addBotMessage(
+        "Sorry, there was a network error. Please check your connection.",
+      );
+    }
   }
 
   void _addBotMessage(String text) {
