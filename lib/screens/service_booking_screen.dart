@@ -71,37 +71,6 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Service Type Selection
-              Text(
-                "Select Service Type",
-                style: GoogleFonts.poppins(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                ),
-              ),
-              const SizedBox(height: 15),
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildServiceTypeCard(
-                      "Ride",
-                      'assets/logooo.png',
-                      "Ride",
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: _buildServiceTypeCard(
-                      "Delivery",
-                      Icons.local_shipping,
-                      "Delivery",
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 30),
-
               // Vehicle Type Selection (only show if no specific driver selected)
               if (_driverId == null) ...[
                 Text(
@@ -420,48 +389,6 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
               const SizedBox(height: 20),
             ],
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildServiceTypeCard(String title, dynamic icon, String value) {
-    bool isSelected = _selectedService == value;
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _selectedService = value;
-        });
-      },
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: isSelected ? Mycolors.basecolor : Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: isSelected ? Mycolors.basecolor : Colors.grey.shade300,
-            width: isSelected ? 2 : 1,
-          ),
-        ),
-        child: Column(
-          children: [
-            icon is String
-                ? Image.asset(icon, width: 30, height: 30)
-                : Icon(
-                    icon,
-                    color: isSelected ? Colors.white : Mycolors.basecolor,
-                    size: 30,
-                  ),
-            const SizedBox(height: 10),
-            Text(
-              title,
-              style: GoogleFonts.poppins(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: isSelected ? Colors.white : Colors.black,
-              ),
-            ),
-          ],
         ),
       ),
     );

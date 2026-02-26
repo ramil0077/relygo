@@ -122,7 +122,6 @@ class UserService {
     return _firestore
         .collection('rides')
         .where('userId', isEqualTo: userId)
-       
         .snapshots()
         .map(
           (snapshot) => snapshot.docs.map((doc) {
@@ -188,7 +187,6 @@ class UserService {
     return _firestore
         .collection('bookings')
         .where('userId', isEqualTo: userId)
-       
         .snapshots()
         .map((snapshot) {
           return snapshot.docs.map((doc) {
@@ -294,7 +292,6 @@ class UserService {
     return _firestore
         .collection('notifications')
         .where('userId', isEqualTo: userId)
-       
         .limit(50)
         .snapshots()
         .map((snapshot) {
@@ -364,7 +361,6 @@ class UserService {
     return _firestore
         .collection('reviews')
         .where('driverId', isEqualTo: driverId)
-       
         .snapshots()
         .map((snapshot) {
           return snapshot.docs.map((doc) {
@@ -431,14 +427,14 @@ class UserService {
     }
   }
 
-  /// Get user's booking history
+  /// Get user's booking history (from ride_requests collection)
   static Stream<List<Map<String, dynamic>>> getUserBookingHistoryStream(
     String userId,
   ) {
     return _firestore
-        .collection('bookings')
+        .collection('ride_requests')
         .where('userId', isEqualTo: userId)
-       
+        .orderBy('createdAt', descending: true)
         .snapshots()
         .asyncMap((snapshot) async {
           List<Map<String, dynamic>> bookingsWithDetails = [];
@@ -446,10 +442,14 @@ class UserService {
           for (var doc in snapshot.docs) {
             final bookingData = doc.data();
             bookingData['id'] = doc.id;
+            // Normalize field names for UI compatibility
+            bookingData['pickupLocation'] ??= bookingData['pickup'] ?? '';
+            bookingData['dropoffLocation'] ??= bookingData['destination'] ?? '';
 
             try {
-              // Get driver details
-              if (bookingData['driverId'] != null) {
+              // Get driver details if driverId is present
+              if (bookingData['driverId'] != null &&
+                  bookingData['driverId'].toString().isNotEmpty) {
                 final driverDoc = await _firestore
                     .collection('users')
                     .doc(bookingData['driverId'])
@@ -457,11 +457,14 @@ class UserService {
                 if (driverDoc.exists) {
                   bookingData['driverDetails'] = driverDoc.data();
                 }
+              } else if (bookingData['driverName'] != null) {
+                bookingData['driverDetails'] = {
+                  'name': bookingData['driverName'],
+                };
               }
 
               bookingsWithDetails.add(bookingData);
             } catch (e) {
-              print('Error getting booking details: $e');
               bookingsWithDetails.add(bookingData);
             }
           }
@@ -478,7 +481,6 @@ class UserService {
         .collection('feedback')
         .where('driverId', isEqualTo: driverId)
         .where('status', isEqualTo: 'active')
-    
         .snapshots()
         .asyncMap((snapshot) async {
           List<Map<String, dynamic>> reviewsWithDetails = [];
@@ -554,10 +556,10 @@ class UserService {
     }
   }
 
-  /// Get user's active booking for tracking
+  /// Get user's active booking for tracking (from ride_requests)
   static Stream<Map<String, dynamic>?> getActiveBookingStream(String userId) {
     return _firestore
-        .collection('bookings')
+        .collection('ride_requests')
         .where('userId', isEqualTo: userId)
         .where('status', whereIn: ['pending', 'accepted', 'ongoing'])
         .limit(1)
@@ -567,10 +569,13 @@ class UserService {
 
           final bookingData = snapshot.docs.first.data();
           bookingData['id'] = snapshot.docs.first.id;
+          bookingData['pickupLocation'] ??= bookingData['pickup'] ?? '';
+          bookingData['dropoffLocation'] ??= bookingData['destination'] ?? '';
 
           try {
             // Get driver details
-            if (bookingData['driverId'] != null) {
+            if (bookingData['driverId'] != null &&
+                bookingData['driverId'].toString().isNotEmpty) {
               final driverDoc = await _firestore
                   .collection('users')
                   .doc(bookingData['driverId'])
@@ -582,7 +587,6 @@ class UserService {
 
             return bookingData;
           } catch (e) {
-            print('Error getting active booking details: $e');
             return bookingData;
           }
         });

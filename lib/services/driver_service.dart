@@ -30,21 +30,59 @@ class DriverService {
   }
 
   /// Get pending booking requests for driver
+  /// Shows both requests directed at this driver AND open/unassigned requests
   static Stream<List<Map<String, dynamic>>> getPendingBookingsStream(
     String driverId,
   ) {
-    return _firestore
-        .collection('bookings')
+    // Stream directed requests for this driver
+    final directedStream = _firestore
+        .collection('ride_requests')
         .where('driverId', isEqualTo: driverId)
         .where('status', isEqualTo: 'pending')
-        
-        .snapshots()
-        .map((snapshot) {
-      return snapshot.docs.map((doc) {
+        .snapshots();
+
+    // Merge: use directed stream and fetch all pending for deduplication
+    return directedStream.asyncMap((snapshot) async {
+      final List<Map<String, dynamic>> results = [];
+      // Get open (no driverId) pending requests as well
+      final openSnap = await _firestore
+          .collection('ride_requests')
+          .where('status', isEqualTo: 'pending')
+          .get();
+
+      for (final doc in openSnap.docs) {
         final data = doc.data();
-        data['id'] = doc.id;
-        return data;
-      }).toList();
+        final docDriverId = data['driverId'];
+        // Include if directed at this driver OR no driver assigned
+        if (docDriverId == driverId ||
+            docDriverId == null ||
+            docDriverId == '') {
+          data['id'] = doc.id;
+          // fetch userName if missing
+          if ((data['userName'] == null ||
+                  data['userName'].toString().isEmpty) &&
+              data['userId'] != null) {
+            try {
+              final userDoc = await _firestore
+                  .collection('users')
+                  .doc(data['userId'].toString())
+                  .get();
+              if (userDoc.exists) {
+                data['userName'] =
+                    userDoc.data()?['name'] ??
+                    userDoc.data()?['fullName'] ??
+                    'User';
+                data['userPhone'] = userDoc.data()?['phone'] ?? '';
+              }
+            } catch (_) {}
+          }
+          // Map pickup/destination field variations
+          data['pickupLocation'] ??= data['pickup'] ?? '';
+          data['dropoffLocation'] ??= data['destination'] ?? '';
+          results.add(data);
+        }
+      }
+      return results;
     });
   }
 
@@ -55,15 +93,14 @@ class DriverService {
     return _firestore
         .collection('bookings')
         .where('driverId', isEqualTo: driverId)
-       
         .snapshots()
         .map((snapshot) {
-      return snapshot.docs.map((doc) {
-        final data = doc.data();
-        data['id'] = doc.id;
-        return data;
-      }).toList();
-    });
+          return snapshot.docs.map((doc) {
+            final data = doc.data();
+            data['id'] = doc.id;
+            return data;
+          }).toList();
+        });
   }
 
   /// Accept booking request and set fare
@@ -73,40 +110,45 @@ class DriverService {
     String driverName,
   ) async {
     try {
-      final bookingRef = _firestore.collection('bookings').doc(bookingId);
+      final bookingRef = _firestore.collection('ride_requests').doc(bookingId);
       final bookingDoc = await bookingRef.get();
-      
+
       if (!bookingDoc.exists) {
-        return {'success': false, 'error': 'Booking not found'};
+        return {'success': false, 'error': 'Request not found'};
       }
 
       final bookingData = bookingDoc.data()!;
       final userId = bookingData['userId'];
 
-      // Update booking
+      // resolvedDriverName comes from caller (the driver's actual name)
+      final String resolvedDriverName = driverName;
+
+      // Update ride_request
       await bookingRef.update({
         'status': 'accepted',
         'fare': fare,
-        'driverName': driverName,
+        'driverName': resolvedDriverName,
         'acceptedAt': FieldValue.serverTimestamp(),
         'updatedAt': FieldValue.serverTimestamp(),
       });
 
       // Send notification to user
-      await _firestore.collection('notifications').add({
-        'userId': userId,
-        'title': 'Booking Accepted',
-        'message':
-            'Your booking has been accepted by $driverName. Fare: ₹$fare',
-        'type': 'booking_accepted',
-        'bookingId': bookingId,
-        'read': false,
-        'createdAt': FieldValue.serverTimestamp(),
-      });
+      if (userId != null) {
+        await _firestore.collection('notifications').add({
+          'userId': userId,
+          'title': 'Ride Accepted',
+          'message':
+              'Your ride request has been accepted by $resolvedDriverName. Fare: ₹$fare',
+          'type': 'booking_accepted',
+          'bookingId': bookingId,
+          'read': false,
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+      }
 
-      return {'success': true, 'message': 'Booking accepted'};
+      return {'success': true, 'message': 'Request accepted'};
     } catch (e) {
-      return {'success': false, 'error': 'Failed to accept booking: $e'};
+      return {'success': false, 'error': 'Failed to accept: $e'};
     }
   }
 
@@ -116,17 +158,17 @@ class DriverService {
     String? reason,
   ) async {
     try {
-      final bookingRef = _firestore.collection('bookings').doc(bookingId);
+      final bookingRef = _firestore.collection('ride_requests').doc(bookingId);
       final bookingDoc = await bookingRef.get();
-      
+
       if (!bookingDoc.exists) {
-        return {'success': false, 'error': 'Booking not found'};
+        return {'success': false, 'error': 'Request not found'};
       }
 
       final bookingData = bookingDoc.data()!;
       final userId = bookingData['userId'];
 
-      // Update booking
+      // Update ride_request
       await bookingRef.update({
         'status': 'rejected',
         'rejectionReason': reason,
@@ -135,20 +177,22 @@ class DriverService {
       });
 
       // Send notification to user
-      await _firestore.collection('notifications').add({
-        'userId': userId,
-        'title': 'Booking Rejected',
-        'message':
-            'Sorry, your booking request was declined. Please try booking another driver.',
-        'type': 'booking_rejected',
-        'bookingId': bookingId,
-        'read': false,
-        'createdAt': FieldValue.serverTimestamp(),
-      });
+      if (userId != null) {
+        await _firestore.collection('notifications').add({
+          'userId': userId,
+          'title': 'Ride Request Declined',
+          'message':
+              'Sorry, your ride request was declined. Please try booking another driver.',
+          'type': 'booking_rejected',
+          'bookingId': bookingId,
+          'read': false,
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+      }
 
-      return {'success': true, 'message': 'Booking rejected'};
+      return {'success': true, 'message': 'Request rejected'};
     } catch (e) {
-      return {'success': false, 'error': 'Failed to reject booking: $e'};
+      return {'success': false, 'error': 'Failed to reject: $e'};
     }
   }
 
@@ -190,13 +234,16 @@ class DriverService {
       // Get today's earnings
       final today = DateTime.now();
       final startOfDay = DateTime(today.year, today.month, today.day);
-      
+
       final todayBookings = await _firestore
           .collection('bookings')
           .where('driverId', isEqualTo: driverId)
           .where('status', isEqualTo: 'completed')
           .where('isPaid', isEqualTo: true)
-          .where('completedAt', isGreaterThanOrEqualTo: Timestamp.fromDate(startOfDay))
+          .where(
+            'completedAt',
+            isGreaterThanOrEqualTo: Timestamp.fromDate(startOfDay),
+          )
           .get();
 
       double todayEarnings = 0;
@@ -233,16 +280,15 @@ class DriverService {
     return _firestore
         .collection('notifications')
         .where('driverId', isEqualTo: driverId)
-      
         .limit(50)
         .snapshots()
         .map((snapshot) {
-      return snapshot.docs.map((doc) {
-        final data = doc.data();
-        data['id'] = doc.id;
-        return data;
-      }).toList();
-    });
+          return snapshot.docs.map((doc) {
+            final data = doc.data();
+            data['id'] = doc.id;
+            return data;
+          }).toList();
+        });
   }
 
   /// Mark notification as read
@@ -262,11 +308,7 @@ class DriverService {
           .get();
 
       if (reviews.docs.isEmpty) {
-        return {
-          'success': true,
-          'averageRating': 0.0,
-          'totalReviews': 0,
-        };
+        return {'success': true, 'averageRating': 0.0, 'totalReviews': 0};
       }
 
       double totalRating = 0;

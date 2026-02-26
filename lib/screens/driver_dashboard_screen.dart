@@ -14,6 +14,7 @@ import 'package:relygo/services/auth_service.dart';
 import 'package:relygo/screens/driver_notifications_screen.dart';
 import 'package:relygo/services/chat_service.dart';
 import 'package:relygo/screens/chat_detail_screen.dart';
+import 'dart:async';
 
 class DriverDashboardScreen extends StatefulWidget {
   const DriverDashboardScreen({super.key});
@@ -25,9 +26,93 @@ class DriverDashboardScreen extends StatefulWidget {
 class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
   int _selectedIndex = 0;
   bool _isOnline = false;
+  String _driverName = 'Driver';
+
+  // Today's performance
+  int _todayRides = 0;
+  double _todayEarnings = 0;
+  double _avgRating = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDriverInfo();
+    _loadTodayStats();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
+  Future<void> _loadDriverInfo() async {
+    final driverId = AuthService.currentUserId;
+    if (driverId == null) return;
+    final doc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(driverId)
+        .get();
+    if (mounted && doc.exists) {
+      final data = doc.data()!;
+      setState(() {
+        _driverName = (data['name'] ?? data['fullName'] ?? 'Driver').toString();
+      });
+    }
+  }
+
+  Future<void> _loadTodayStats() async {
+    final driverId = AuthService.currentUserId;
+    if (driverId == null) return;
+    final now = DateTime.now();
+    final startOfDay = DateTime(now.year, now.month, now.day);
+
+    try {
+      // Today's ride_requests for this driver
+      final ridesSnap = await FirebaseFirestore.instance
+          .collection('ride_requests')
+          .where('driverId', isEqualTo: driverId)
+          .where(
+            'createdAt',
+            isGreaterThanOrEqualTo: Timestamp.fromDate(startOfDay),
+          )
+          .get();
+
+      int rides = ridesSnap.docs.length;
+      double earnings = 0;
+      for (final d in ridesSnap.docs) {
+        final f = d.data()['fare'];
+        if (f is num) earnings += f.toDouble();
+      }
+
+      // Average rating from reviews
+      final reviewsSnap = await FirebaseFirestore.instance
+          .collection('reviews')
+          .where('driverId', isEqualTo: driverId)
+          .get();
+      double rating = 0;
+      if (reviewsSnap.docs.isNotEmpty) {
+        final total = reviewsSnap.docs.fold<double>(
+          0,
+          (sum, d) => sum + ((d.data()['rating'] ?? 0) as num).toDouble(),
+        );
+        rating = total / reviewsSnap.docs.length;
+      }
+
+      if (mounted) {
+        setState(() {
+          _todayRides = rides;
+          _todayEarnings = earnings;
+          _avgRating = rating;
+        });
+      }
+    } catch (_) {}
+  }
 
   Stream<QuerySnapshot<Map<String, dynamic>>> _recentRequestsStream() {
     final driverId = AuthService.currentUserId;
+    if (driverId == null) {
+      return const Stream.empty();
+    }
     return FirebaseFirestore.instance
         .collection('ride_requests')
         .where('driverId', isEqualTo: driverId)
@@ -117,7 +202,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          "Good Morning, John!",
+                          "Good Morning, $_driverName!",
                           style: ResponsiveTextStyles.getTitleStyle(context),
                         ),
                         Text(
@@ -322,14 +407,10 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                     ),
                   );
                 }
-                final String? myId = AuthService.currentUserId;
                 return ListView.builder(
                   itemCount: conversations.length,
                   itemBuilder: (context, index) {
                     final c = conversations[index];
-                    final List participants = (c['participants'] is List)
-                        ? (c['participants'] as List)
-                        : [];
                     final String conversationId = (c['id'] ?? '').toString();
                     final String lastMessage = (c['lastMessage'] ?? '')
                         .toString();
@@ -337,19 +418,13 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                     final String timeText = updatedAt != null
                         ? _formatDate(updatedAt)
                         : '';
-                    // pick a peerId (the other participant)
-                    String peerId = '';
-                    if (myId != null && participants.isNotEmpty) {
-                      for (final p in participants) {
-                        if (p != myId) {
-                          peerId = p.toString();
-                          break;
-                        }
-                      }
-                    }
-                    final String title = peerId.isNotEmpty
-                        ? 'Chat with $peerId'
-                        : 'Conversation';
+                    // Use enriched peerName from ChatService stream
+                    final String peerId = (c['peerId'] ?? '').toString();
+                    final String title =
+                        (c['peerName'] != null &&
+                            (c['peerName'] as String).isNotEmpty)
+                        ? c['peerName'] as String
+                        : (peerId.isNotEmpty ? 'User' : 'Conversation');
 
                     return GestureDetector(
                       onTap: () {
@@ -395,19 +470,31 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
     return Row(
       children: [
         Expanded(
-          child: _buildStatCard(context, "8", "Rides", Icons.directions_car),
+          child: _buildStatCard(
+            context,
+            '$_todayRides',
+            'Rides',
+            Icons.directions_car,
+          ),
         ),
         SizedBox(width: ResponsiveSpacing.getSmallSpacing(context)),
         Expanded(
           child: _buildStatCard(
             context,
-            "₹1,250",
-            "Earnings",
+            '₹${_todayEarnings.toStringAsFixed(0)}',
+            'Earnings',
             Icons.attach_money,
           ),
         ),
         SizedBox(width: ResponsiveSpacing.getSmallSpacing(context)),
-        Expanded(child: _buildStatCard(context, "4.8", "Rating", Icons.star)),
+        Expanded(
+          child: _buildStatCard(
+            context,
+            _avgRating == 0 ? 'New' : _avgRating.toStringAsFixed(1),
+            'Rating',
+            Icons.star,
+          ),
+        ),
       ],
     );
   }
@@ -417,19 +504,31 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
     return Row(
       children: [
         Expanded(
-          child: _buildStatCard(context, "8", "Rides", Icons.directions_car),
+          child: _buildStatCard(
+            context,
+            '$_todayRides',
+            'Rides',
+            Icons.directions_car,
+          ),
         ),
         SizedBox(width: ResponsiveSpacing.getMediumSpacing(context)),
         Expanded(
           child: _buildStatCard(
             context,
-            "₹1,250",
-            "Earnings",
+            '₹${_todayEarnings.toStringAsFixed(0)}',
+            'Earnings',
             Icons.attach_money,
           ),
         ),
         SizedBox(width: ResponsiveSpacing.getMediumSpacing(context)),
-        Expanded(child: _buildStatCard(context, "4.8", "Rating", Icons.star)),
+        Expanded(
+          child: _buildStatCard(
+            context,
+            _avgRating == 0 ? 'New' : _avgRating.toStringAsFixed(1),
+            'Rating',
+            Icons.star,
+          ),
+        ),
       ],
     );
   }
@@ -439,19 +538,31 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
     return Row(
       children: [
         Expanded(
-          child: _buildStatCard(context, "8", "Rides", Icons.directions_car),
+          child: _buildStatCard(
+            context,
+            '$_todayRides',
+            'Rides',
+            Icons.directions_car,
+          ),
         ),
         SizedBox(width: ResponsiveSpacing.getLargeSpacing(context)),
         Expanded(
           child: _buildStatCard(
             context,
-            "₹1,250",
-            "Earnings",
+            '₹${_todayEarnings.toStringAsFixed(0)}',
+            'Earnings',
             Icons.attach_money,
           ),
         ),
         SizedBox(width: ResponsiveSpacing.getLargeSpacing(context)),
-        Expanded(child: _buildStatCard(context, "4.8", "Rating", Icons.star)),
+        Expanded(
+          child: _buildStatCard(
+            context,
+            _avgRating == 0 ? 'New' : _avgRating.toStringAsFixed(1),
+            'Rating',
+            Icons.star,
+          ),
+        ),
       ],
     );
   }

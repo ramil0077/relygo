@@ -156,21 +156,6 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
           NavBarItem(icon: Icons.person, label: 'Profile'),
         ],
       ),
-      floatingActionButton: _selectedIndex == 0
-          ? FloatingQuickActionButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const ServiceBookingScreen(),
-                  ),
-                );
-              },
-              icon: Icons.add,
-              tooltip: 'Book a Ride',
-            )
-          : null,
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
 
@@ -771,91 +756,20 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
     required String driverName,
     String? vehicleType,
   }) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          title: Text(
-            'Book ride',
-            style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('How would you like to book?', style: GoogleFonts.poppins()),
-              const SizedBox(height: 12),
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: Icon(Icons.person, color: Mycolors.basecolor),
-                title: Text('This driver', style: GoogleFonts.poppins()),
-                onTap: () {
-                  Navigator.of(context).pop();
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const ServiceBookingScreen(),
-                      settings: RouteSettings(
-                        arguments: {
-                          'driverId': driverId,
-                          'driverName': driverName,
-                          if (vehicleType != null && vehicleType.isNotEmpty)
-                            'vehicle': vehicleType,
-                        },
-                      ),
-                    ),
-                  );
-                },
-              ),
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: Image.asset(
-                  'assets/logooo.png',
-                  width: 24,
-                  height: 24,
-                ),
-                title: Text('By vehicle only', style: GoogleFonts.poppins()),
-                subtitle: vehicleType != null && vehicleType.isNotEmpty
-                    ? Text(
-                        vehicleType,
-                        style: GoogleFonts.poppins(
-                          fontSize: 12,
-                          color: Mycolors.gray,
-                        ),
-                      )
-                    : null,
-                onTap: () {
-                  Navigator.of(context).pop();
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const ServiceBookingScreen(),
-                      settings: RouteSettings(
-                        arguments: {
-                          if (vehicleType != null && vehicleType.isNotEmpty)
-                            'vehicle': vehicleType,
-                        },
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text(
-                'Close',
-                style: GoogleFonts.poppins(color: Colors.grey),
-              ),
-            ),
-          ],
-        );
-      },
+    // Directly book with this driver - no dialog needed
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const ServiceBookingScreen(),
+        settings: RouteSettings(
+          arguments: {
+            'driverId': driverId,
+            'driverName': driverName,
+            if (vehicleType != null && vehicleType.isNotEmpty)
+              'vehicle': vehicleType,
+          },
+        ),
+      ),
     );
   }
 
@@ -1219,14 +1133,10 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                     ),
                   );
                 }
-                final String? myId = AuthService.currentUserId;
                 return ListView.builder(
                   itemCount: conversations.length,
                   itemBuilder: (context, index) {
                     final c = conversations[index];
-                    final List participants = (c['participants'] is List)
-                        ? (c['participants'] as List)
-                        : [];
                     final String conversationId = (c['id'] ?? '').toString();
                     final String lastMessage = (c['lastMessage'] ?? '')
                         .toString();
@@ -1234,19 +1144,13 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                     final String timeText = updatedAt != null
                         ? _formatDate(updatedAt)
                         : '';
-                    // pick a peerId (the other participant)
-                    String peerId = '';
-                    if (myId != null && participants.isNotEmpty) {
-                      for (final p in participants) {
-                        if (p != myId) {
-                          peerId = p.toString();
-                          break;
-                        }
-                      }
-                    }
-                    final String title = peerId.isNotEmpty
-                        ? 'Chat with $peerId'
-                        : 'Conversation';
+                    // Use enriched peerName from ChatService stream
+                    final String peerId = (c['peerId'] ?? '').toString();
+                    final String title =
+                        (c['peerName'] != null &&
+                            (c['peerName'] as String).isNotEmpty)
+                        ? c['peerName'] as String
+                        : (peerId.isNotEmpty ? 'User' : 'Conversation');
 
                     return GestureDetector(
                       onTap: () {
@@ -1292,16 +1196,11 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
             Expanded(
               child: _buildServiceCard(
                 context,
-                "Book a Ride",
-                Icons.directions_car,
+                "Search Drivers",
+                Icons.search,
                 Mycolors.basecolor,
                 () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const ServiceBookingScreen(),
-                    ),
-                  );
+                  setState(() => _selectedIndex = 1);
                 },
               ),
             ),
@@ -1313,7 +1212,7 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                 Icons.schedule,
                 Mycolors.orange,
                 () {
-                  // Navigate to schedule ride
+                  setState(() => _selectedIndex = 1);
                 },
               ),
             ),
@@ -1337,11 +1236,11 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
             Expanded(
               child: _buildServiceCard(
                 context,
-                "Package Delivery",
-                Icons.local_shipping,
+                "Ride History",
+                Icons.history,
                 Mycolors.green,
                 () {
-                  // Navigate to package delivery
+                  setState(() => _selectedIndex = 2);
                 },
               ),
             ),
@@ -1360,16 +1259,11 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
             Expanded(
               child: _buildServiceCard(
                 context,
-                "Book a Ride",
-                Icons.directions_car,
+                "Search Drivers",
+                Icons.search,
                 Mycolors.basecolor,
                 () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const ServiceBookingScreen(),
-                    ),
-                  );
+                  setState(() => _selectedIndex = 1);
                 },
               ),
             ),
@@ -1381,7 +1275,7 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                 Icons.schedule,
                 Mycolors.orange,
                 () {
-                  // Navigate to schedule ride
+                  setState(() => _selectedIndex = 1);
                 },
               ),
             ),
@@ -1405,11 +1299,11 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
             Expanded(
               child: _buildServiceCard(
                 context,
-                "Package Delivery",
-                Icons.local_shipping,
+                "Ride History",
+                Icons.history,
                 Mycolors.green,
                 () {
-                  // Navigate to package delivery
+                  setState(() => _selectedIndex = 2);
                 },
               ),
             ),
@@ -1426,16 +1320,11 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
         Expanded(
           child: _buildServiceCard(
             context,
-            "Book a Ride",
-            Icons.directions_car,
+            "Search Drivers",
+            Icons.search,
             Mycolors.basecolor,
             () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const ServiceBookingScreen(),
-                ),
-              );
+              setState(() => _selectedIndex = 1);
             },
           ),
         ),
@@ -1447,7 +1336,7 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
             Icons.schedule,
             Mycolors.orange,
             () {
-              // Navigate to schedule ride
+              setState(() => _selectedIndex = 1);
             },
           ),
         ),
@@ -1467,11 +1356,11 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
         Expanded(
           child: _buildServiceCard(
             context,
-            "Package Delivery",
-            Icons.local_shipping,
+            "Ride History",
+            Icons.history,
             Mycolors.green,
             () {
-              // Navigate to package delivery
+              setState(() => _selectedIndex = 2);
             },
           ),
         ),

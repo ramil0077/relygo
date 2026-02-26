@@ -10,6 +10,12 @@ class ChatService {
     return sorted.join('_');
   }
 
+  /// Fetches a user's name from Firestore
+  static Future<String?> _fetchUserName(String userId) async {
+    final doc = await _firestore.collection('users').doc(userId).get();
+    return doc.data()?['name'] as String?;
+  }
+
   /// Stream the current user's conversations ordered by last updated
   static Stream<List<Map<String, dynamic>>> getUserConversationsStream() {
     final String? userId = AuthService.currentUserId;
@@ -17,13 +23,35 @@ class ChatService {
     return _firestore
         .collection('conversations')
         .where('participants', arrayContains: userId)
-      
         .snapshots()
-        .map((snapshot) => snapshot.docs.map((doc) {
-              final data = doc.data();
-              data['id'] = doc.id;
-              return data;
-            }).toList());
+        .asyncMap((snapshot) async {
+          final List<Map<String, dynamic>> conversations = [];
+          for (final doc in snapshot.docs) {
+            final data = doc.data();
+            data['id'] = doc.id;
+
+            final List<String> participants = List<String>.from(
+              data['participants'] ?? [],
+            );
+            // Find the other participant (peer)
+            String? peerId;
+            for (final p in participants) {
+              if (p != userId) {
+                peerId = p;
+                break;
+              }
+            }
+
+            if (peerId != null) {
+              final String? peerName = await _fetchUserName(peerId);
+              data['peerName'] = peerName;
+              data['peerId'] = peerId;
+            }
+
+            conversations.add(data);
+          }
+          return conversations;
+        });
   }
 
   /// Stream messages for a given conversation
@@ -34,13 +62,14 @@ class ChatService {
         .collection('conversations')
         .doc(conversationId)
         .collection('messages')
-       
         .snapshots()
-        .map((snapshot) => snapshot.docs.map((doc) {
-              final data = doc.data();
-              data['id'] = doc.id;
-              return data;
-            }).toList());
+        .map(
+          (snapshot) => snapshot.docs.map((doc) {
+            final data = doc.data();
+            data['id'] = doc.id;
+            return data;
+          }).toList(),
+        );
   }
 
   /// Send a message to a peer; creates conversation if missing
@@ -52,8 +81,9 @@ class ChatService {
     if (userId == null) return;
 
     final String conversationId = _conversationIdFor(userId, peerId);
-    final DocumentReference convoRef =
-        _firestore.collection('conversations').doc(conversationId);
+    final DocumentReference convoRef = _firestore
+        .collection('conversations')
+        .doc(conversationId);
 
     // Ensure conversation exists
     await convoRef.set({
@@ -86,5 +116,3 @@ class ChatService {
     return _conversationIdFor(userId, peerId);
   }
 }
-
-
