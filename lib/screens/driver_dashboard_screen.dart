@@ -14,6 +14,7 @@ import 'package:relygo/services/auth_service.dart';
 import 'package:relygo/screens/driver_notifications_screen.dart';
 import 'package:relygo/services/chat_service.dart';
 import 'package:relygo/screens/chat_detail_screen.dart';
+import 'package:relygo/screens/driver_chatbot_screen.dart';
 import 'dart:async';
 
 class DriverDashboardScreen extends StatefulWidget {
@@ -149,6 +150,21 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                 ),
               ),
               actions: [
+                IconButton(
+                  icon: const Icon(
+                    Icons.smart_toy_outlined,
+                    color: Colors.black,
+                  ),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const DriverChatbotScreen(),
+                      ),
+                    );
+                  },
+                  tooltip: 'Chatbot Assistant',
+                ),
                 IconButton(
                   icon: const Icon(
                     Icons.notifications_none,
