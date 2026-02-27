@@ -288,6 +288,9 @@ class _SignInScreenState extends State<SignInScreen> {
         case 'driver':
           destination = const DriverDashboardScreen();
           break;
+        case 'admin':
+          destination = const AdminDashboardScreen();
+          break;
         default:
           destination = const UserDashboardScreen();
       }

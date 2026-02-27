@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:relygo/services/cloudinary_service.dart';
@@ -23,6 +24,12 @@ class AuthService {
   }) async {
    
     if (email.trim() == 'admin@relygo.com' && password == 'admin123') {
+      if (!kIsWeb) {
+        return {
+          'success': false,
+          'error': 'Admin access is only available on the web application. Please use a web browser.',
+        };
+      }
       return {
         'success': true,
         'user': null, 
@@ -50,6 +57,24 @@ class AuthService {
               userDoc.data() as Map<String, dynamic>;
           final userType = (userData['userType'] ?? 'user').toString();
           final status = (userData['status'] ?? '').toString();
+
+          // Enforce platform restrictions
+          if (userType.toLowerCase() == 'admin' && !kIsWeb) {
+            await _auth.signOut();
+            return {
+              'success': false,
+              'error': 'Admin access is restricted to the web application.',
+            };
+          }
+          
+          if ((userType.toLowerCase() == 'user' || userType.toLowerCase() == 'driver') && kIsWeb) {
+            await _auth.signOut();
+            return {
+              'success': false,
+              'error': 'Mobile app accounts (User/Driver) cannot log in on the web. Please use our mobile app.',
+            };
+          }
+
           if (userType.toLowerCase() == 'driver' &&
               status.toLowerCase() != 'approved') {
             await _auth.signOut();
@@ -66,6 +91,14 @@ class AuthService {
             'userType': userType,
           };
         } else {
+          // New user or user without document - default to user type
+          if (kIsWeb) {
+             await _auth.signOut();
+             return {
+              'success': false,
+              'error': 'Please use our mobile app for user/driver registration and access.',
+            };
+          }
           return {
             'success': true,
             'user': userCredential.user,

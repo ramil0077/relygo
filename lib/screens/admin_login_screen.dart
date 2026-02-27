@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:relygo/constants.dart';
 import 'package:relygo/screens/admin_dashboard_screen.dart';
+import 'package:relygo/services/auth_service.dart';
 
 class AdminLoginScreen extends StatefulWidget {
   const AdminLoginScreen({super.key});
@@ -229,13 +230,15 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
       _isLoading = true;
     });
 
-    // Simulate network delay
-    await Future.delayed(const Duration(seconds: 1));
+    final String email = _emailController.text.trim();
+    final String password = _passwordController.text;
 
-    // Check credentials
-    if (_emailController.text.trim() == _adminEmail &&
-        _passwordController.text == _adminPassword) {
-      // Success
+    final result = await AuthService.signInWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
+
+    if (result['success'] == true) {
       if (mounted) {
         Navigator.pushReplacement(
           context,
@@ -243,11 +246,10 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
         );
       }
     } else {
-      // Error
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Invalid email or password'),
+            content: Text(result['error'] ?? 'Login failed'),
             backgroundColor: Mycolors.red,
             behavior: SnackBarBehavior.floating,
           ),

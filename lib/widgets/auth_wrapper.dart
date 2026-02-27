@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:relygo/screens/signin_screen.dart';
 import 'package:relygo/screens/responsive_user_dashboard_screen.dart';
 import 'package:relygo/screens/responsive_driver_dashboard_screen.dart';
@@ -36,12 +37,28 @@ class AuthWrapper extends StatelessWidget {
               );
             }
 
-            final userData = userSnapshot.data;
-            final userType = userData?['userType'] ?? 'user';
+            final userTypeStr = (userData?['userType'] ?? 'user').toString().toLowerCase();
             final status = userData?['status'] ?? 'approved';
 
+            // Enforce platform restrictions
+            if (userTypeStr == 'admin' && !kIsWeb) {
+              return _buildPlatformRestrictionScreen(
+                context,
+                'Admin access is only available on the web application. Please log in using a web browser.',
+                Icons.web,
+              );
+            }
+
+            if ((userTypeStr == 'user' || userTypeStr == 'driver') && kIsWeb) {
+              return _buildPlatformRestrictionScreen(
+                context,
+                'User and Driver dashboards are only available on the mobile app. Please use your smartphone.',
+                Icons.phone_android,
+              );
+            }
+
             // Show appropriate dashboard based on user type and status
-            switch (userType.toLowerCase()) {
+            switch (userTypeStr) {
               case 'user':
                 return const ResponsiveUserDashboardScreen();
               case 'driver':
@@ -200,6 +217,68 @@ class AuthWrapper extends StatelessWidget {
                     ),
                   ),
                 ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+  Widget _buildPlatformRestrictionScreen(
+    BuildContext context,
+    String message,
+    IconData icon,
+  ) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 120,
+                height: 120,
+                decoration: BoxDecoration(
+                  color: Colors.red.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(60),
+                ),
+                child: Icon(icon, size: 60, color: Colors.blue),
+              ),
+              const SizedBox(height: 32),
+              Text(
+                'Platform Restricted',
+                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                message,
+                textAlign: TextAlign.center,
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyLarge?.copyWith(color: Colors.grey[600]),
+              ),
+              const SizedBox(height: 40),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () async {
+                    await AuthService.signOut();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text('Sign Out'),
+                ),
               ),
             ],
           ),
