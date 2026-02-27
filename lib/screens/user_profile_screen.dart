@@ -6,6 +6,7 @@ import 'package:relygo/screens/signin_screen.dart';
 import 'package:relygo/screens/complaint_submission_screen.dart';
 import 'package:relygo/screens/ride_history_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 // AppSettings are defined in constants.dart
 
 class UserProfileScreen extends StatefulWidget {
@@ -18,7 +19,6 @@ class UserProfileScreen extends StatefulWidget {
 class _UserProfileScreenState extends State<UserProfileScreen> {
   @override
   Widget build(BuildContext context) {
-    final String? uid = AuthService.currentUserId;
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -33,7 +33,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           ),
         ),
       ),
-      body: StreamBuilder(
+      body: StreamBuilder<User?>(
           stream: AuthService.authStateChanges,
           builder: (context, authSnapshot) {
             final uid = authSnapshot.data?.uid ?? AuthService.currentUserId;
@@ -267,8 +267,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     ],
                   ),
                 );
-              },
-            ),
+              },           // closes inner StreamBuilder builder
+            );             // closes inner StreamBuilder widget
+          },               // closes outer authStateChanges builder
+        ),                 // closes outer StreamBuilder widget
     );
   }
 

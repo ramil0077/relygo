@@ -21,11 +21,11 @@ class AuthService {
     required String email,
     required String password,
   }) async {
-    // Check for hardcoded admin credentials
+   
     if (email.trim() == 'admin@relygo.com' && password == 'admin123') {
       return {
         'success': true,
-        'user': null, // No Firebase user for hardcoded admin
+        'user': null, 
         'userData': {
           'name': 'Admin User',
           'email': 'admin@relygo.com',
@@ -35,13 +35,11 @@ class AuthService {
         'userType': 'admin',
       };
     }
-
     try {
       final UserCredential userCredential = await _auth
           .signInWithEmailAndPassword(email: email.trim(), password: password);
 
       if (userCredential.user != null) {
-        // Get user data from Firestore
         final DocumentSnapshot userDoc = await _firestore
             .collection('users')
             .doc(userCredential.user!.uid)
@@ -85,7 +83,6 @@ class AuthService {
     }
   }
 
-  /// Create user with email and password
   static Future<Map<String, dynamic>> createUserWithEmailAndPassword({
     required String email,
     required String password,
