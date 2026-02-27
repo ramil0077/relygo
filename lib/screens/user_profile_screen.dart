@@ -33,9 +33,29 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           ),
         ),
       ),
-      body: uid == null
-          ? const Center(child: CircularProgressIndicator())
-          : StreamBuilder<DocumentSnapshot>(
+      body: StreamBuilder(
+          stream: AuthService.authStateChanges,
+          builder: (context, authSnapshot) {
+            final uid = authSnapshot.data?.uid ?? AuthService.currentUserId;
+            if (uid == null) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.person_off, size: 64, color: Mycolors.gray),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Please log in to view your profile',
+                      style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        color: Mycolors.gray,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }
+            return StreamBuilder<DocumentSnapshot>(
               stream: FirebaseFirestore.instance
                   .collection('users')
                   .doc(uid)
@@ -52,6 +72,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     ),
                   );
                 }
+                // NOTE: closing brace for this builder is below, followed by
+                // closing of the outer authStateChanges StreamBuilder.
                 final data = snapshot.data!.data() as Map<String, dynamic>;
                 final String name = (data['name'] ?? 'User').toString();
                 final String email = (data['email'] ?? '').toString();

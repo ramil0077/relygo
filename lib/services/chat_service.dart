@@ -62,6 +62,7 @@ class ChatService {
         .collection('conversations')
         .doc(conversationId)
         .collection('messages')
+        .orderBy('createdAt', descending: false)
         .snapshots()
         .map(
           (snapshot) => snapshot.docs.map((doc) {
