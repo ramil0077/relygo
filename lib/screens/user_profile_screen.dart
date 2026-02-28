@@ -24,6 +24,13 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
+        automaticallyImplyLeading: false,
+        leading: Navigator.of(context).canPop()
+            ? IconButton(
+                icon: const Icon(Icons.arrow_back, color: Colors.black),
+                onPressed: () => Navigator.pop(context),
+              )
+            : null,
         title: Text(
           "Profile",
           style: GoogleFonts.poppins(
@@ -34,243 +41,242 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         ),
       ),
       body: StreamBuilder<User?>(
-          stream: AuthService.authStateChanges,
-          builder: (context, authSnapshot) {
-            final uid = authSnapshot.data?.uid ?? AuthService.currentUserId;
-            if (uid == null) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.person_off, size: 64, color: Mycolors.gray),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Please log in to view your profile',
-                      style: GoogleFonts.poppins(
-                        fontSize: 16,
-                        color: Mycolors.gray,
-                      ),
+        stream: AuthService.authStateChanges,
+        builder: (context, authSnapshot) {
+          final uid = authSnapshot.data?.uid ?? AuthService.currentUserId;
+          if (uid == null) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.person_off, size: 64, color: Mycolors.gray),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Please log in to view your profile',
+                    style: GoogleFonts.poppins(
+                      fontSize: 16,
+                      color: Mycolors.gray,
                     ),
-                  ],
-                ),
-              );
-            }
-            return StreamBuilder<DocumentSnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collection('users')
-                  .doc(uid)
-                  .snapshots(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                if (!snapshot.hasData || !snapshot.data!.exists) {
-                  return Center(
-                    child: Text(
-                      'Profile not found',
-                      style: GoogleFonts.poppins(color: Mycolors.red),
-                    ),
-                  );
-                }
-                // NOTE: closing brace for this builder is below, followed by
-                // closing of the outer authStateChanges StreamBuilder.
-                final data = snapshot.data!.data() as Map<String, dynamic>;
-                final String name = (data['name'] ?? 'User').toString();
-                final String email = (data['email'] ?? '').toString();
-                final Map<String, dynamic> docs =
-                    (data['documents'] is Map<String, dynamic>)
-                    ? (data['documents'] as Map<String, dynamic>)
-                    : {};
-                final bool isDriver =
-                    (data['userType']?.toString().toLowerCase() == 'driver') ||
-                    docs.isNotEmpty;
-                final String vehicleType =
-                    (data['vehicleType'] ?? docs['vehicleType'] ?? '')
-                        .toString();
-                final String vehicleNumber =
-                    (data['vehicleNumber'] ?? docs['vehicleNumber'] ?? '')
-                        .toString();
-                final String licenseNumber =
-                    (data['licenseNumber'] ?? docs['licenseNumber'] ?? '')
-                        .toString();
+                  ),
+                ],
+              ),
+            );
+          }
+          return StreamBuilder<DocumentSnapshot>(
+            stream: FirebaseFirestore.instance
+                .collection('users')
+                .doc(uid)
+                .snapshots(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              if (!snapshot.hasData || !snapshot.data!.exists) {
+                return Center(
+                  child: Text(
+                    'Profile not found',
+                    style: GoogleFonts.poppins(color: Mycolors.red),
+                  ),
+                );
+              }
+              // NOTE: closing brace for this builder is below, followed by
+              // closing of the outer authStateChanges StreamBuilder.
+              final data = snapshot.data!.data() as Map<String, dynamic>;
+              final String name = (data['name'] ?? 'User').toString();
+              final String email = (data['email'] ?? '').toString();
+              final Map<String, dynamic> docs =
+                  (data['documents'] is Map<String, dynamic>)
+                  ? (data['documents'] as Map<String, dynamic>)
+                  : {};
+              final bool isDriver =
+                  (data['userType']?.toString().toLowerCase() == 'driver') ||
+                  docs.isNotEmpty;
+              final String vehicleType =
+                  (data['vehicleType'] ?? docs['vehicleType'] ?? '').toString();
+              final String vehicleNumber =
+                  (data['vehicleNumber'] ?? docs['vehicleNumber'] ?? '')
+                      .toString();
+              final String licenseNumber =
+                  (data['licenseNumber'] ?? docs['licenseNumber'] ?? '')
+                      .toString();
 
-                return SingleChildScrollView(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    children: [
-                      // Profile Header (dynamic)
-                      Container(
-                        padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              Mycolors.basecolor,
-                              Mycolors.basecolor.withOpacity(0.8),
-                            ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          borderRadius: BorderRadius.circular(16),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Mycolors.basecolor.withOpacity(0.3),
-                              blurRadius: 10,
-                              offset: const Offset(0, 5),
-                            ),
+              return SingleChildScrollView(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  children: [
+                    // Profile Header (dynamic)
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            Mycolors.basecolor,
+                            Mycolors.basecolor.withOpacity(0.8),
                           ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
                         ),
-                        child: Column(
-                          children: [
-                            CircleAvatar(
-                              radius: 50,
-                              backgroundColor: Colors.white.withOpacity(0.2),
-                              child: Text(
-                                name.isNotEmpty ? name[0] : 'U',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 32,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 15),
-                            Text(
-                              name,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Mycolors.basecolor.withOpacity(0.3),
+                            blurRadius: 10,
+                            offset: const Offset(0, 5),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        children: [
+                          CircleAvatar(
+                            radius: 50,
+                            backgroundColor: Colors.white.withOpacity(0.2),
+                            child: Text(
+                              name.isNotEmpty ? name[0] : 'U',
                               style: GoogleFonts.poppins(
-                                fontSize: 24,
+                                fontSize: 32,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.white,
                               ),
                             ),
-                            Text(
-                              email,
+                          ),
+                          const SizedBox(height: 15),
+                          Text(
+                            name,
+                            style: GoogleFonts.poppins(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                          Text(
+                            email,
+                            style: GoogleFonts.poppins(
+                              fontSize: 16,
+                              color: Colors.white.withOpacity(0.9),
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(
+                              isDriver ? 'Driver' : 'User',
                               style: GoogleFonts.poppins(
-                                fontSize: 16,
-                                color: Colors.white.withOpacity(0.9),
+                                fontSize: 14,
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
                               ),
-                            ),
-                            const SizedBox(height: 10),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 6,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.2),
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Text(
-                                isDriver ? 'Driver' : 'User',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 14,
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 30),
-
-                      // Profile Options
-                      _buildProfileOption(
-                        "Personal Information",
-                        "Update your personal details",
-                        Icons.person_outline,
-                        () {
-                          _showPersonalInfoDialog(
-                            currentName: name,
-                            currentEmail: email,
-                            currentPhone: (data['phone'] ?? '').toString(),
-                          );
-                        },
-                      ),
-                      _buildProfileOption(
-                        "Ride History",
-                        "View your ride history",
-                        Icons.history,
-                        () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const RideHistoryScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                      _buildProfileOption(
-                        "Help & Support",
-                        "Get help and contact support",
-                        Icons.help,
-                        () {
-                          _showHelpSupportDialog();
-                        },
-                      ),
-                      const SizedBox(height: 20),
-
-                      // Logout Button
-                      SizedBox(
-                        width: double.infinity,
-                        height: 50,
-                        child: OutlinedButton.icon(
-                          onPressed: () {
-                            _showLogoutDialog();
-                          },
-                          icon: Icon(Icons.logout, color: Mycolors.red),
-                          label: Text(
-                            "Logout",
-                            style: GoogleFonts.poppins(
-                              fontSize: 16,
-                              color: Mycolors.red,
-                              fontWeight: FontWeight.w600,
                             ),
                           ),
-                          style: OutlinedButton.styleFrom(
-                            side: BorderSide(color: Mycolors.red),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 30),
+
+                    // Profile Options
+                    _buildProfileOption(
+                      "Personal Information",
+                      "Update your personal details",
+                      Icons.person_outline,
+                      () {
+                        _showPersonalInfoDialog(
+                          currentName: name,
+                          currentEmail: email,
+                          currentPhone: (data['phone'] ?? '').toString(),
+                        );
+                      },
+                    ),
+                    _buildProfileOption(
+                      "Ride History",
+                      "View your ride history",
+                      Icons.history,
+                      () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const RideHistoryScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                    _buildProfileOption(
+                      "Help & Support",
+                      "Get help and contact support",
+                      Icons.help,
+                      () {
+                        _showHelpSupportDialog();
+                      },
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Logout Button
+                    SizedBox(
+                      width: double.infinity,
+                      height: 50,
+                      child: OutlinedButton.icon(
+                        onPressed: () {
+                          _showLogoutDialog();
+                        },
+                        icon: Icon(Icons.logout, color: Mycolors.red),
+                        label: Text(
+                          "Logout",
+                          style: GoogleFonts.poppins(
+                            fontSize: 16,
+                            color: Mycolors.red,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          side: BorderSide(color: Mycolors.red),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
                           ),
                         ),
                       ),
-                      const SizedBox(height: 20),
+                    ),
+                    const SizedBox(height: 20),
 
-                      if (isDriver) ...[
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: Text(
-                            "Driver Documents",
-                            style: GoogleFonts.poppins(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.black,
-                            ),
+                    if (isDriver) ...[
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          "Driver Documents",
+                          style: GoogleFonts.poppins(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black,
                           ),
                         ),
-                        const SizedBox(height: 12),
+                      ),
+                      const SizedBox(height: 12),
+                      _buildDocTile(
+                        'License',
+                        docs['license'] ?? licenseNumber,
+                      ),
+                      _buildDocTile(
+                        'Vehicle Registration',
+                        docs['vehicleRegistration'] ?? vehicleNumber,
+                      ),
+                      _buildDocTile('Insurance', docs['insurance'] ?? ''),
+                      if (vehicleType.isNotEmpty || vehicleNumber.isNotEmpty)
                         _buildDocTile(
-                          'License',
-                          docs['license'] ?? licenseNumber,
+                          'Vehicle',
+                          '$vehicleType - $vehicleNumber',
                         ),
-                        _buildDocTile(
-                          'Vehicle Registration',
-                          docs['vehicleRegistration'] ?? vehicleNumber,
-                        ),
-                        _buildDocTile('Insurance', docs['insurance'] ?? ''),
-                        if (vehicleType.isNotEmpty || vehicleNumber.isNotEmpty)
-                          _buildDocTile(
-                            'Vehicle',
-                            '$vehicleType - $vehicleNumber',
-                          ),
-                      ],
                     ],
-                  ),
-                );
-              },           // closes inner StreamBuilder builder
-            );             // closes inner StreamBuilder widget
-          },               // closes outer authStateChanges builder
-        ),                 // closes outer StreamBuilder widget
+                  ],
+                ),
+              );
+            }, // closes inner StreamBuilder builder
+          ); // closes inner StreamBuilder widget
+        }, // closes outer authStateChanges builder
+      ), // closes outer StreamBuilder widget
     );
   }
 

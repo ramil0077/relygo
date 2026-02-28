@@ -434,12 +434,20 @@ class UserService {
     return _firestore
         .collection('ride_requests')
         .where('userId', isEqualTo: userId)
-        .orderBy('createdAt', descending: true)
         .snapshots()
         .asyncMap((snapshot) async {
           List<Map<String, dynamic>> bookingsWithDetails = [];
 
-          for (var doc in snapshot.docs) {
+          final docs = snapshot.docs.toList();
+          // Sort client-side to avoid index errors
+          docs.sort((a, b) {
+            final aTime = a.data()['createdAt'] as Timestamp?;
+            final bTime = b.data()['createdAt'] as Timestamp?;
+            if (aTime == null || bTime == null) return 0;
+            return bTime.compareTo(aTime);
+          });
+
+          for (var doc in docs) {
             final bookingData = doc.data();
             bookingData['id'] = doc.id;
             // Normalize field names for UI compatibility
@@ -591,6 +599,7 @@ class UserService {
           }
         });
   }
+
   /// Stream driver's today stats (rides, earnings, average rating)
   static Stream<Map<String, dynamic>> streamDriverTodayStats(String driverId) {
     final now = DateTime.now();

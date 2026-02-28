@@ -23,6 +23,13 @@ class _RideHistoryScreenState extends State<RideHistoryScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
+        automaticallyImplyLeading: false,
+        leading: Navigator.of(context).canPop()
+            ? IconButton(
+                icon: const Icon(Icons.arrow_back, color: Colors.black),
+                onPressed: () => Navigator.pop(context),
+              )
+            : null,
         title: Text(
           "Ride History",
           style: GoogleFonts.poppins(
@@ -53,7 +60,7 @@ class _RideHistoryScreenState extends State<RideHistoryScreen> {
           // Rides List - Firestore
           Expanded(
             child: StreamBuilder<List<Map<String, dynamic>>>(
-              stream: UserService.getUserBookingsStream(
+              stream: UserService.getUserBookingHistoryStream(
                 AuthService.currentUserId ?? '',
               ),
               builder: (context, snapshot) {
@@ -68,12 +75,23 @@ class _RideHistoryScreenState extends State<RideHistoryScreen> {
                     ),
                   );
                 }
-                final rides = snapshot.data ?? [];
+                final allRides = snapshot.data ?? [];
+                final rides = _getFilteredRides(allRides);
+
                 if (rides.isEmpty) {
                   return Center(
-                    child: Text(
-                      'No rides found',
-                      style: GoogleFonts.poppins(color: Mycolors.gray),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.history, size: 64, color: Colors.grey[200]),
+                        const SizedBox(height: 16),
+                        Text(
+                          _selectedFilter == "All"
+                              ? 'No rides found'
+                              : 'No rides found for this period',
+                          style: GoogleFonts.poppins(color: Mycolors.gray),
+                        ),
+                      ],
                     ),
                   );
                 }
@@ -83,17 +101,18 @@ class _RideHistoryScreenState extends State<RideHistoryScreen> {
                   itemBuilder: (context, index) {
                     final booking = rides[index];
                     final destination =
-                        booking['dropoffLocation'] ?? 'Destination';
+                        booking['destination'] ??
+                        booking['dropoffLocation'] ??
+                        'Destination';
                     final driverName = booking['driverName'] ?? 'Driver';
                     final distance = booking['distance'] ?? 'N/A';
-                    final price = booking['fare'] != null
-                        ? '₹${booking['fare']}'
-                        : '₹0';
-                    final status = _statusString(booking['status']);
+                    final fare = booking['fare'];
+                    final price = fare != null ? '₹$fare' : '₹0';
+                    final status = _statusString(booking['status'] ?? '');
                     final statusColor = _statusColor(status);
                     final time = _formatDate(booking['createdAt']);
                     final rating = (booking['rating'] is num)
-                        ? (booking['rating'] as num).toString()
+                        ? (booking['rating'] as num).toStringAsFixed(1)
                         : '0.0';
                     final icon = status == 'Cancelled'
                         ? Icons.cancel
@@ -604,5 +623,29 @@ class _RideHistoryScreenState extends State<RideHistoryScreen> {
         );
       },
     );
+  }
+
+  List<Map<String, dynamic>> _getFilteredRides(
+    List<Map<String, dynamic>> allRides,
+  ) {
+    if (_selectedFilter == "All") return allRides;
+
+    final now = DateTime.now();
+    final startOfToday = DateTime(now.year, now.month, now.day);
+
+    return allRides.where((ride) {
+      final createdAt = ride['createdAt'];
+      if (createdAt is! Timestamp) return false;
+      final date = createdAt.toDate();
+
+      if (_selectedFilter == "Today") {
+        return date.isAfter(startOfToday);
+      } else if (_selectedFilter == "Week") {
+        return date.isAfter(now.subtract(const Duration(days: 7)));
+      } else if (_selectedFilter == "Month") {
+        return date.isAfter(DateTime(now.year, now.month, 1));
+      }
+      return true;
+    }).toList();
   }
 }

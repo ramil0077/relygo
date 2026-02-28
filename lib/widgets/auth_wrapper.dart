@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:relygo/screens/signin_screen.dart';
+
+import 'package:relygo/screens/splash.dart';
 import 'package:relygo/screens/responsive_user_dashboard_screen.dart';
 import 'package:relygo/screens/responsive_driver_dashboard_screen.dart';
 import 'package:relygo/screens/admin_dashboard_screen.dart';
@@ -22,9 +23,9 @@ class AuthWrapper extends StatelessWidget {
           );
         }
 
-        // If user is not logged in, show sign in screen
+        // If user is not logged in, show splash screen
         if (snapshot.data == null) {
-          return const SignInScreen();
+          return const Splashscreen();
         }
 
         // If user is logged in, determine their role and show appropriate dashboard

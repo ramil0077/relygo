@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter/foundation.dart'; // For kIsWeb
+
 import 'package:relygo/constants.dart';
+
 import 'package:relygo/screens/signin_screen.dart';
 
 class Splashscreen extends StatefulWidget {

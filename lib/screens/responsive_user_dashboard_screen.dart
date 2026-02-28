@@ -18,10 +18,12 @@ class ResponsiveUserDashboardScreen extends StatefulWidget {
   const ResponsiveUserDashboardScreen({super.key});
 
   @override
-  State<ResponsiveUserDashboardScreen> createState() => _ResponsiveUserDashboardScreenState();
+  State<ResponsiveUserDashboardScreen> createState() =>
+      _ResponsiveUserDashboardScreenState();
 }
 
-class _ResponsiveUserDashboardScreenState extends State<ResponsiveUserDashboardScreen>
+class _ResponsiveUserDashboardScreenState
+    extends State<ResponsiveUserDashboardScreen>
     with TickerProviderStateMixin {
   int _selectedIndex = 0;
   late AnimationController _animationController;
@@ -43,21 +45,17 @@ class _ResponsiveUserDashboardScreenState extends State<ResponsiveUserDashboardS
       vsync: this,
     );
 
-    _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeOut,
-    ));
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
+    );
 
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.1),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeOutCubic,
-    ));
+    _slideAnimation =
+        Tween<Offset>(begin: const Offset(0, 0.1), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _animationController,
+            curve: Curves.easeOutCubic,
+          ),
+        );
 
     _animationController.forward();
     _checkForAcceptedRequests();
@@ -79,13 +77,13 @@ class _ResponsiveUserDashboardScreenState extends State<ResponsiveUserDashboardS
         .where('status', isEqualTo: 'accepted')
         .snapshots()
         .listen((snapshot) {
-      for (var doc in snapshot.docs) {
-        final data = doc.data();
-        if (data['status'] == 'accepted' && data['paymentMethod'] == null) {
-          _showPaymentDialog(doc.id, data);
-        }
-      }
-    });
+          for (var doc in snapshot.docs) {
+            final data = doc.data();
+            if (data['status'] == 'accepted' && data['paymentMethod'] == null) {
+              _showPaymentDialog(doc.id, data);
+            }
+          }
+        });
   }
 
   void _showPaymentDialog(String requestId, Map<String, dynamic> requestData) {
@@ -144,23 +142,35 @@ class _ResponsiveUserDashboardScreenState extends State<ResponsiveUserDashboardS
                     children: [
                       Row(
                         children: [
-                          Icon(Icons.person, color: Mycolors.basecolor, size: 16),
+                          Icon(
+                            Icons.person,
+                            color: Mycolors.basecolor,
+                            size: 16,
+                          ),
                           const SizedBox(width: 8),
                           Text(
                             'Driver: ${requestData['driverName'] ?? 'Driver'}',
-                            style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+                            style: GoogleFonts.poppins(
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ],
                       ),
                       const SizedBox(height: 8),
                       Row(
                         children: [
-                          Icon(Icons.location_on, color: Mycolors.basecolor, size: 16),
+                          Icon(
+                            Icons.location_on,
+                            color: Mycolors.basecolor,
+                            size: 16,
+                          ),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
                               'Destination: ${requestData['destination'] ?? 'Destination'}',
-                              style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+                              style: GoogleFonts.poppins(
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
                         ],
@@ -196,8 +206,10 @@ class _ResponsiveUserDashboardScreenState extends State<ResponsiveUserDashboardS
                             MaterialPageRoute(
                               builder: (context) => PaymentScreen(
                                 requestId: requestId,
-                                driverName: requestData['driverName'] ?? 'Driver',
-                                destination: requestData['destination'] ?? 'Destination',
+                                driverName:
+                                    requestData['driverName'] ?? 'Driver',
+                                destination:
+                                    requestData['destination'] ?? 'Destination',
                                 amount: (requestData['fare'] ?? 0).toDouble(),
                               ),
                             ),
@@ -255,9 +267,7 @@ class _ResponsiveUserDashboardScreenState extends State<ResponsiveUserDashboardS
               onPressed: () {
                 Navigator.push(
                   context,
-                  AnimationUtils.createSlideRoute(
-                    const ServiceBookingScreen(),
-                  ),
+                  AnimationUtils.createSlideRoute(const ServiceBookingScreen()),
                 );
               },
               icon: Icons.add,
@@ -291,16 +301,22 @@ class _ResponsiveUserDashboardScreenState extends State<ResponsiveUserDashboardS
         children: [
           // Welcome Header
           _buildWelcomeHeader(),
-          SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 24)),
-          
+          SizedBox(
+            height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 24),
+          ),
+
           // Quick Actions
           _buildQuickActions(),
-          SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 24)),
-          
+          SizedBox(
+            height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 24),
+          ),
+
           // Available Drivers
           _buildAvailableDrivers(),
-          SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 24)),
-          
+          SizedBox(
+            height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 24),
+          ),
+
           // Recent Bookings
           _buildRecentBookings(),
         ],
@@ -317,7 +333,7 @@ class _ResponsiveUserDashboardScreenState extends State<ResponsiveUserDashboardS
       builder: (context, snapshot) {
         final userName = snapshot.data?['name'] ?? 'User';
         final userType = snapshot.data?['userType'] ?? 'user';
-        
+
         return AnimatedCard(
           color: Colors.white,
           child: Column(
@@ -326,18 +342,29 @@ class _ResponsiveUserDashboardScreenState extends State<ResponsiveUserDashboardS
               Row(
                 children: [
                   CircleAvatar(
-                    radius: ResponsiveUtils.getResponsiveSpacing(context, mobile: 25),
+                    radius: ResponsiveUtils.getResponsiveSpacing(
+                      context,
+                      mobile: 25,
+                    ),
                     backgroundColor: Mycolors.basecolor.withOpacity(0.1),
                     child: Text(
                       userName.isNotEmpty ? userName[0].toUpperCase() : 'U',
                       style: GoogleFonts.poppins(
-                        fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 20),
+                        fontSize: ResponsiveUtils.getResponsiveFontSize(
+                          context,
+                          mobile: 20,
+                        ),
                         fontWeight: FontWeight.bold,
                         color: Mycolors.basecolor,
                       ),
                     ),
                   ),
-                  SizedBox(width: ResponsiveUtils.getResponsiveSpacing(context, mobile: 16)),
+                  SizedBox(
+                    width: ResponsiveUtils.getResponsiveSpacing(
+                      context,
+                      mobile: 16,
+                    ),
+                  ),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -345,14 +372,20 @@ class _ResponsiveUserDashboardScreenState extends State<ResponsiveUserDashboardS
                         Text(
                           'Welcome back!',
                           style: GoogleFonts.poppins(
-                            fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 14),
+                            fontSize: ResponsiveUtils.getResponsiveFontSize(
+                              context,
+                              mobile: 14,
+                            ),
                             color: Colors.grey[600],
                           ),
                         ),
                         Text(
                           userName,
                           style: GoogleFonts.poppins(
-                            fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 20),
+                            fontSize: ResponsiveUtils.getResponsiveFontSize(
+                              context,
+                              mobile: 20,
+                            ),
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -360,7 +393,10 @@ class _ResponsiveUserDashboardScreenState extends State<ResponsiveUserDashboardS
                     ),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
                     decoration: BoxDecoration(
                       color: Mycolors.basecolor.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(20),
@@ -368,7 +404,10 @@ class _ResponsiveUserDashboardScreenState extends State<ResponsiveUserDashboardS
                     child: Text(
                       userType.toUpperCase(),
                       style: GoogleFonts.poppins(
-                        fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 12),
+                        fontSize: ResponsiveUtils.getResponsiveFontSize(
+                          context,
+                          mobile: 12,
+                        ),
                         fontWeight: FontWeight.w600,
                         color: Mycolors.basecolor,
                       ),
@@ -412,7 +451,9 @@ class _ResponsiveUserDashboardScreenState extends State<ResponsiveUserDashboardS
         'color': Mycolors.orange,
         'onTap': () => Navigator.push(
           context,
-          AnimationUtils.createSlideRoute(const ChatDetailScreen(peerName: 'Support')),
+          AnimationUtils.createSlideRoute(
+            const ChatDetailScreen(peerName: 'Support'),
+          ),
         ),
       },
     ];
@@ -423,11 +464,16 @@ class _ResponsiveUserDashboardScreenState extends State<ResponsiveUserDashboardS
         Text(
           'Quick Actions',
           style: GoogleFonts.poppins(
-            fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 18),
+            fontSize: ResponsiveUtils.getResponsiveFontSize(
+              context,
+              mobile: 18,
+            ),
             fontWeight: FontWeight.bold,
           ),
         ),
-        SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 16)),
+        SizedBox(
+          height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 16),
+        ),
         ResponsiveWidget(
           mobile: Column(
             children: actions.map((action) {
@@ -446,10 +492,18 @@ class _ResponsiveUserDashboardScreenState extends State<ResponsiveUserDashboardS
                         child: Icon(
                           action['icon'] as IconData,
                           color: action['color'] as Color,
-                          size: ResponsiveUtils.getResponsiveIconSize(context, mobile: 24),
+                          size: ResponsiveUtils.getResponsiveIconSize(
+                            context,
+                            mobile: 24,
+                          ),
                         ),
                       ),
-                      SizedBox(width: ResponsiveUtils.getResponsiveSpacing(context, mobile: 16)),
+                      SizedBox(
+                        width: ResponsiveUtils.getResponsiveSpacing(
+                          context,
+                          mobile: 16,
+                        ),
+                      ),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -457,14 +511,20 @@ class _ResponsiveUserDashboardScreenState extends State<ResponsiveUserDashboardS
                             Text(
                               action['title'] as String,
                               style: GoogleFonts.poppins(
-                                fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 16),
+                                fontSize: ResponsiveUtils.getResponsiveFontSize(
+                                  context,
+                                  mobile: 16,
+                                ),
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
                             Text(
                               action['subtitle'] as String,
                               style: GoogleFonts.poppins(
-                                fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 14),
+                                fontSize: ResponsiveUtils.getResponsiveFontSize(
+                                  context,
+                                  mobile: 14,
+                                ),
                                 color: Colors.grey[600],
                               ),
                             ),
@@ -474,7 +534,10 @@ class _ResponsiveUserDashboardScreenState extends State<ResponsiveUserDashboardS
                       Icon(
                         Icons.arrow_forward_ios,
                         color: Colors.grey[400],
-                        size: ResponsiveUtils.getResponsiveIconSize(context, mobile: 16),
+                        size: ResponsiveUtils.getResponsiveIconSize(
+                          context,
+                          mobile: 16,
+                        ),
                       ),
                     ],
                   ),
@@ -510,14 +573,25 @@ class _ResponsiveUserDashboardScreenState extends State<ResponsiveUserDashboardS
                         child: Icon(
                           action['icon'] as IconData,
                           color: action['color'] as Color,
-                          size: ResponsiveUtils.getResponsiveIconSize(context, mobile: 28),
+                          size: ResponsiveUtils.getResponsiveIconSize(
+                            context,
+                            mobile: 28,
+                          ),
                         ),
                       ),
-                      SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 12)),
+                      SizedBox(
+                        height: ResponsiveUtils.getResponsiveSpacing(
+                          context,
+                          mobile: 12,
+                        ),
+                      ),
                       Text(
                         action['title'] as String,
                         style: GoogleFonts.poppins(
-                          fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 16),
+                          fontSize: ResponsiveUtils.getResponsiveFontSize(
+                            context,
+                            mobile: 16,
+                          ),
                           fontWeight: FontWeight.w600,
                         ),
                         textAlign: TextAlign.center,
@@ -525,7 +599,10 @@ class _ResponsiveUserDashboardScreenState extends State<ResponsiveUserDashboardS
                       Text(
                         action['subtitle'] as String,
                         style: GoogleFonts.poppins(
-                          fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 12),
+                          fontSize: ResponsiveUtils.getResponsiveFontSize(
+                            context,
+                            mobile: 12,
+                          ),
                           color: Colors.grey[600],
                         ),
                         textAlign: TextAlign.center,
@@ -551,7 +628,10 @@ class _ResponsiveUserDashboardScreenState extends State<ResponsiveUserDashboardS
             Text(
               'Available Drivers',
               style: GoogleFonts.poppins(
-                fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 18),
+                fontSize: ResponsiveUtils.getResponsiveFontSize(
+                  context,
+                  mobile: 18,
+                ),
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -572,35 +652,51 @@ class _ResponsiveUserDashboardScreenState extends State<ResponsiveUserDashboardS
             ),
           ],
         ),
-        SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 16)),
+        SizedBox(
+          height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 16),
+        ),
         StreamBuilder<List<Map<String, dynamic>>>(
           stream: UserService.getAvailableDriversStream(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: LoadingAnimation());
             }
-            
+
             if (!snapshot.hasData || snapshot.data!.isEmpty) {
               return AnimatedCard(
                 child: Column(
                   children: [
                     Icon(
                       Icons.directions_car_outlined,
-                      size: ResponsiveUtils.getResponsiveIconSize(context, mobile: 48),
+                      size: ResponsiveUtils.getResponsiveIconSize(
+                        context,
+                        mobile: 48,
+                      ),
                       color: Colors.grey[400],
                     ),
-                    SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 16)),
+                    SizedBox(
+                      height: ResponsiveUtils.getResponsiveSpacing(
+                        context,
+                        mobile: 16,
+                      ),
+                    ),
                     Text(
                       'No drivers available',
                       style: GoogleFonts.poppins(
-                        fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 16),
+                        fontSize: ResponsiveUtils.getResponsiveFontSize(
+                          context,
+                          mobile: 16,
+                        ),
                         color: Colors.grey[600],
                       ),
                     ),
                     Text(
                       'Check back later or try booking a ride',
                       style: GoogleFonts.poppins(
-                        fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 14),
+                        fontSize: ResponsiveUtils.getResponsiveFontSize(
+                          context,
+                          mobile: 14,
+                        ),
                         color: Colors.grey[500],
                       ),
                     ),
@@ -614,7 +710,7 @@ class _ResponsiveUserDashboardScreenState extends State<ResponsiveUserDashboardS
               children: drivers.asMap().entries.map((entry) {
                 int index = entry.key;
                 Map<String, dynamic> driver = entry.value;
-                
+
                 return AnimatedListItem(
                   index: index,
                   child: AnimatedCard(
@@ -622,18 +718,29 @@ class _ResponsiveUserDashboardScreenState extends State<ResponsiveUserDashboardS
                     child: Row(
                       children: [
                         CircleAvatar(
-                          radius: ResponsiveUtils.getResponsiveSpacing(context, mobile: 25),
+                          radius: ResponsiveUtils.getResponsiveSpacing(
+                            context,
+                            mobile: 25,
+                          ),
                           backgroundColor: Mycolors.basecolor.withOpacity(0.1),
                           child: Text(
                             (driver['name'] ?? 'D')[0].toUpperCase(),
                             style: GoogleFonts.poppins(
-                              fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 18),
+                              fontSize: ResponsiveUtils.getResponsiveFontSize(
+                                context,
+                                mobile: 18,
+                              ),
                               fontWeight: FontWeight.bold,
                               color: Mycolors.basecolor,
                             ),
                           ),
                         ),
-                        SizedBox(width: ResponsiveUtils.getResponsiveSpacing(context, mobile: 16)),
+                        SizedBox(
+                          width: ResponsiveUtils.getResponsiveSpacing(
+                            context,
+                            mobile: 16,
+                          ),
+                        ),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -641,14 +748,22 @@ class _ResponsiveUserDashboardScreenState extends State<ResponsiveUserDashboardS
                               Text(
                                 driver['name'] ?? 'Driver',
                                 style: GoogleFonts.poppins(
-                                  fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 16),
+                                  fontSize:
+                                      ResponsiveUtils.getResponsiveFontSize(
+                                        context,
+                                        mobile: 16,
+                                      ),
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
                               Text(
                                 driver['vehicleType'] ?? 'Vehicle',
                                 style: GoogleFonts.poppins(
-                                  fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 14),
+                                  fontSize:
+                                      ResponsiveUtils.getResponsiveFontSize(
+                                        context,
+                                        mobile: 14,
+                                      ),
                                   color: Colors.grey[600],
                                 ),
                               ),
@@ -656,7 +771,10 @@ class _ResponsiveUserDashboardScreenState extends State<ResponsiveUserDashboardS
                           ),
                         ),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
                             color: Mycolors.green.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(12),
@@ -664,7 +782,10 @@ class _ResponsiveUserDashboardScreenState extends State<ResponsiveUserDashboardS
                           child: Text(
                             'Available',
                             style: GoogleFonts.poppins(
-                              fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 12),
+                              fontSize: ResponsiveUtils.getResponsiveFontSize(
+                                context,
+                                mobile: 12,
+                              ),
                               color: Mycolors.green,
                               fontWeight: FontWeight.w600,
                             ),
@@ -692,7 +813,10 @@ class _ResponsiveUserDashboardScreenState extends State<ResponsiveUserDashboardS
             Text(
               'Recent Bookings',
               style: GoogleFonts.poppins(
-                fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 18),
+                fontSize: ResponsiveUtils.getResponsiveFontSize(
+                  context,
+                  mobile: 18,
+                ),
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -712,35 +836,53 @@ class _ResponsiveUserDashboardScreenState extends State<ResponsiveUserDashboardS
             ),
           ],
         ),
-        SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 16)),
+        SizedBox(
+          height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 16),
+        ),
         StreamBuilder<List<Map<String, dynamic>>>(
-          stream: UserService.getUserBookingsStream(AuthService.currentUserId ?? ''),
+          stream: UserService.getUserBookingHistoryStream(
+            AuthService.currentUserId ?? '',
+          ),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: LoadingAnimation());
             }
-            
+
             if (!snapshot.hasData || snapshot.data!.isEmpty) {
               return AnimatedCard(
                 child: Column(
                   children: [
                     Icon(
                       Icons.history,
-                      size: ResponsiveUtils.getResponsiveIconSize(context, mobile: 48),
+                      size: ResponsiveUtils.getResponsiveIconSize(
+                        context,
+                        mobile: 48,
+                      ),
                       color: Colors.grey[400],
                     ),
-                    SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 16)),
+                    SizedBox(
+                      height: ResponsiveUtils.getResponsiveSpacing(
+                        context,
+                        mobile: 16,
+                      ),
+                    ),
                     Text(
                       'No bookings yet',
                       style: GoogleFonts.poppins(
-                        fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 16),
+                        fontSize: ResponsiveUtils.getResponsiveFontSize(
+                          context,
+                          mobile: 16,
+                        ),
                         color: Colors.grey[600],
                       ),
                     ),
                     Text(
                       'Book your first ride to see it here',
                       style: GoogleFonts.poppins(
-                        fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 14),
+                        fontSize: ResponsiveUtils.getResponsiveFontSize(
+                          context,
+                          mobile: 14,
+                        ),
                         color: Colors.grey[500],
                       ),
                     ),
@@ -754,7 +896,7 @@ class _ResponsiveUserDashboardScreenState extends State<ResponsiveUserDashboardS
               children: bookings.asMap().entries.map((entry) {
                 int index = entry.key;
                 Map<String, dynamic> booking = entry.value;
-                
+
                 return AnimatedListItem(
                   index: index,
                   child: AnimatedCard(
@@ -763,31 +905,51 @@ class _ResponsiveUserDashboardScreenState extends State<ResponsiveUserDashboardS
                         Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: _getStatusColor(booking['status']).withOpacity(0.1),
+                            color: _getStatusColor(
+                              booking['status'],
+                            ).withOpacity(0.1),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Icon(
                             _getStatusIcon(booking['status']),
                             color: _getStatusColor(booking['status']),
-                            size: ResponsiveUtils.getResponsiveIconSize(context, mobile: 20),
+                            size: ResponsiveUtils.getResponsiveIconSize(
+                              context,
+                              mobile: 20,
+                            ),
                           ),
                         ),
-                        SizedBox(width: ResponsiveUtils.getResponsiveSpacing(context, mobile: 16)),
+                        SizedBox(
+                          width: ResponsiveUtils.getResponsiveSpacing(
+                            context,
+                            mobile: 16,
+                          ),
+                        ),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                booking['dropoffLocation'] ?? 'Destination',
+                                booking['destination'] ??
+                                    booking['dropoffLocation'] ??
+                                    'Destination',
                                 style: GoogleFonts.poppins(
-                                  fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 16),
+                                  fontSize:
+                                      ResponsiveUtils.getResponsiveFontSize(
+                                        context,
+                                        mobile: 16,
+                                      ),
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
                               Text(
                                 _formatDate(booking['createdAt']),
                                 style: GoogleFonts.poppins(
-                                  fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 14),
+                                  fontSize:
+                                      ResponsiveUtils.getResponsiveFontSize(
+                                        context,
+                                        mobile: 14,
+                                      ),
                                   color: Colors.grey[600],
                                 ),
                               ),
@@ -795,15 +957,23 @@ class _ResponsiveUserDashboardScreenState extends State<ResponsiveUserDashboardS
                           ),
                         ),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
-                            color: _getStatusColor(booking['status']).withOpacity(0.1),
+                            color: _getStatusColor(
+                              booking['status'],
+                            ).withOpacity(0.1),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
                             _getStatusText(booking['status']),
                             style: GoogleFonts.poppins(
-                              fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 12),
+                              fontSize: ResponsiveUtils.getResponsiveFontSize(
+                                context,
+                                mobile: 12,
+                              ),
                               color: _getStatusColor(booking['status']),
                               fontWeight: FontWeight.w600,
                             ),
@@ -840,21 +1010,35 @@ class _ResponsiveUserDashboardScreenState extends State<ResponsiveUserDashboardS
               children: [
                 Icon(
                   Icons.chat_bubble_outline,
-                  size: ResponsiveUtils.getResponsiveIconSize(context, mobile: 64),
+                  size: ResponsiveUtils.getResponsiveIconSize(
+                    context,
+                    mobile: 64,
+                  ),
                   color: Colors.grey[400],
                 ),
-                SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 16)),
+                SizedBox(
+                  height: ResponsiveUtils.getResponsiveSpacing(
+                    context,
+                    mobile: 16,
+                  ),
+                ),
                 Text(
                   'No conversations yet',
                   style: GoogleFonts.poppins(
-                    fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 18),
+                    fontSize: ResponsiveUtils.getResponsiveFontSize(
+                      context,
+                      mobile: 18,
+                    ),
                     color: Colors.grey[600],
                   ),
                 ),
                 Text(
                   'Start chatting with drivers after booking a ride',
                   style: GoogleFonts.poppins(
-                    fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 14),
+                    fontSize: ResponsiveUtils.getResponsiveFontSize(
+                      context,
+                      mobile: 14,
+                    ),
                     color: Colors.grey[500],
                   ),
                 ),
@@ -1007,7 +1191,10 @@ class _ResponsiveUserDashboardScreenState extends State<ResponsiveUserDashboardS
                           ),
                         ),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
                           decoration: BoxDecoration(
                             color: Mycolors.green.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(20),
@@ -1031,13 +1218,17 @@ class _ResponsiveUserDashboardScreenState extends State<ResponsiveUserDashboardS
                           Navigator.pop(context);
                           Navigator.push(
                             context,
-                            AnimationUtils.createSlideRoute(const ServiceBookingScreen()),
+                            AnimationUtils.createSlideRoute(
+                              const ServiceBookingScreen(),
+                            ),
                           );
                         },
                         icon: const Icon(Icons.directions_car),
                         label: Text(
                           'Book This Driver',
-                          style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+                          style: GoogleFonts.poppins(
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Mycolors.basecolor,
@@ -1068,7 +1259,9 @@ class _ResponsiveUserDashboardScreenState extends State<ResponsiveUserDashboardS
                         icon: const Icon(Icons.chat),
                         label: Text(
                           'Contact Driver',
-                          style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+                          style: GoogleFonts.poppins(
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: Mycolors.basecolor,

@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:relygo/constants.dart';
-import 'package:relygo/screens/admin_dashboard_screen.dart';
-import 'package:relygo/screens/user_dashboard_screen.dart';
-import 'package:relygo/screens/driver_dashboard_screen.dart';
 import 'package:relygo/screens/user_registration_screen.dart';
 import 'package:relygo/screens/driver_registration_screen.dart';
 import 'package:relygo/screens/forgot_password_screen.dart';
 import 'package:relygo/services/auth_service.dart';
+import 'package:relygo/widgets/auth_wrapper.dart';
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
@@ -37,10 +35,12 @@ class _SignInScreenState extends State<SignInScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
-        ),
+        leading: Navigator.of(context).canPop()
+            ? IconButton(
+                icon: const Icon(Icons.arrow_back, color: Colors.black),
+                onPressed: () => Navigator.pop(context),
+              )
+            : null,
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -278,28 +278,10 @@ class _SignInScreenState extends State<SignInScreen> {
     );
 
     if (result['success'] == true) {
-      final String userType = result['userType'] ?? 'user';
-
-      // Navigate based on role
-      Widget destination;
-      switch (userType.toLowerCase()) {
-        case 'user':
-          destination = const UserDashboardScreen();
-          break;
-        case 'driver':
-          destination = const DriverDashboardScreen();
-          break;
-        case 'admin':
-          destination = const AdminDashboardScreen();
-          break;
-        default:
-          destination = const UserDashboardScreen();
-      }
-
       if (mounted) {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => destination),
+          MaterialPageRoute(builder: (context) => const AuthWrapper()),
         );
       }
     } else {

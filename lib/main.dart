@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:relygo/firebase_options.dart';
-import 'package:relygo/screens/splash.dart';
 import 'package:relygo/constants.dart';
 import 'package:relygo/services/background_service.dart';
-
+import 'package:relygo/widgets/auth_wrapper.dart';
 import 'package:flutter/foundation.dart'; // For kIsWeb
 import 'package:relygo/screens/admin_landing_page.dart';
 
@@ -30,7 +29,7 @@ class MyApp extends StatelessWidget {
           theme: AppTheme.theme,
           darkTheme: AppTheme.darkTheme,
           themeMode: themeMode,
-          home: kIsWeb ? const AdminLandingPage() : const Splashscreen(),
+          home: kIsWeb ? const AdminLandingPage() : const AuthWrapper(),
         );
       },
     );

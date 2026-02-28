@@ -17,10 +17,17 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Mycolors.lightGray,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
+        automaticallyImplyLeading: false,
+        leading: Navigator.of(context).canPop()
+            ? IconButton(
+                icon: const Icon(Icons.arrow_back, color: Colors.black),
+                onPressed: () => Navigator.pop(context),
+              )
+            : null,
         title: Text(
           "Profile",
           style: GoogleFonts.poppins(
@@ -97,16 +104,20 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
                 );
               }
 
+              // Robust data extraction with safe type handling
+              final Map<String, dynamic> vehicle = (data['vehicle'] is Map)
+                  ? Map<String, dynamic>.from(data['vehicle'] as Map)
+                  : {};
+              final Map<String, dynamic> docs = (data['documents'] is Map)
+                  ? Map<String, dynamic>.from(data['documents'] as Map)
+                  : {};
+
               final name = (data['name'] ?? data['fullName'] ?? 'Driver')
                   .toString();
               final email = (data['email'] ?? '').toString();
               final phone = (data['phone'] ?? '').toString();
               final photoUrl = (data['photoUrl'] ?? '').toString();
               final rating = (data['rating'] ?? 4.8).toString();
-
-              // Robust vehicle info fetching
-              final vehicle = (data['vehicle'] ?? {}) as Map<String, dynamic>;
-              final docs = (data['documents'] ?? {}) as Map<String, dynamic>;
 
               final vehicleType =
                   (vehicle['type'] ?? docs['vehicleType'] ?? 'Vehicle')
