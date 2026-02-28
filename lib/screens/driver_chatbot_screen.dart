@@ -71,13 +71,28 @@ class _DriverChatbotScreenState extends State<DriverChatbotScreen> {
       for (var doc in ridesSnap.docs) {
         totRides++;
         final data = doc.data();
-        final fare = (data['fare'] ?? 0) as num;
-        totEarnings += fare.toDouble();
+
+        // Safe fare extraction
+        double fare = 0.0;
+        if (data['fare'] != null) {
+          if (data['fare'] is num) {
+            fare = (data['fare'] as num).toDouble();
+          } else if (data['fare'] is String) {
+            // Handle strings like "₹500" or "500"
+            String fareStr = data['fare'].toString().replaceAll(
+              RegExp(r'[^0-9.]'),
+              '',
+            );
+            fare = double.tryParse(fareStr) ?? 0.0;
+          }
+        }
+
+        totEarnings += fare;
 
         final createdAt = data['createdAt'] as Timestamp?;
         if (createdAt != null && createdAt.toDate().isAfter(startOfDay)) {
           todRides++;
-          todEarnings += fare.toDouble();
+          todEarnings += fare;
         }
       }
 
@@ -89,11 +104,18 @@ class _DriverChatbotScreenState extends State<DriverChatbotScreen> {
 
       double rating = 0;
       if (reviewsSnap.docs.isNotEmpty) {
-        final total = reviewsSnap.docs.fold<double>(
-          0,
-          (sum, d) => sum + ((d.data()['rating'] ?? 0) as num).toDouble(),
-        );
-        rating = total / reviewsSnap.docs.length;
+        double total = 0;
+        int count = 0;
+        for (var d in reviewsSnap.docs) {
+          final r = d.data()['rating'];
+          if (r is num) {
+            total += r.toDouble();
+            count++;
+          }
+        }
+        if (count > 0) {
+          rating = total / count;
+        }
       }
 
       if (mounted) {
@@ -180,19 +202,21 @@ If they ask a general question not related to stats, be helpful and informative.
     }
 
     try {
-      final response = await http.post(
-        Uri.parse('https://api.groq.com/openai/v1/chat/completions'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $groqApiKey',
-        },
-        body: jsonEncode({
-          "model": "llama3-8b-8192", // Fast and capable model
-          "messages": conversationHistory,
-          "temperature": 0.5,
-          "max_tokens": 150,
-        }),
-      );
+      final response = await http
+          .post(
+            Uri.parse('https://api.groq.com/openai/v1/chat/completions'),
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer $groqApiKey',
+            },
+            body: jsonEncode({
+              "model": "llama3-8b-8192", // Fast and capable model
+              "messages": conversationHistory,
+              "temperature": 0.5,
+              "max_tokens": 150,
+            }),
+          )
+          .timeout(const Duration(seconds: 15));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -206,9 +230,11 @@ If they ask a general question not related to stats, be helpful and informative.
       }
     } catch (e) {
       debugPrint("Error making Groq API call: $e");
-      _addBotMessage(
-        "Sorry, there was a network error. Please check your connection.",
-      );
+      String errorMessage = "Sorry, there was a network error.";
+      if (e.toString().contains('TimeoutException')) {
+        errorMessage = "Connection timed out. Please try again.";
+      }
+      _addBotMessage(errorMessage);
     }
   }
 

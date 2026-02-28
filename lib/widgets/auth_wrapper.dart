@@ -37,7 +37,10 @@ class AuthWrapper extends StatelessWidget {
               );
             }
 
-            final userTypeStr = (userData?['userType'] ?? 'user').toString().toLowerCase();
+            final userData = userSnapshot.data;
+            final userTypeStr = (userData?['userType'] ?? 'user')
+                .toString()
+                .toLowerCase();
             final status = userData?['status'] ?? 'approved';
 
             // Enforce platform restrictions
@@ -224,6 +227,7 @@ class AuthWrapper extends StatelessWidget {
       ),
     );
   }
+
   Widget _buildPlatformRestrictionScreen(
     BuildContext context,
     String message,

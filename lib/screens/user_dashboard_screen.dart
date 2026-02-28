@@ -125,6 +125,77 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
     );
   }
 
+  void _showEmergencyDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Row(
+            children: [
+              Icon(Icons.report_problem, color: Mycolors.red),
+              const SizedBox(width: 8),
+              Text(
+                'Emergency SOS',
+                style: GoogleFonts.poppins(
+                  fontWeight: FontWeight.bold,
+                  color: Mycolors.red,
+                ),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Are you in danger? Pressing the button below will alert our security team and share your live location.',
+                style: GoogleFonts.poppins(),
+              ),
+              const SizedBox(height: 16),
+              ListTile(
+                leading: const Icon(Icons.phone, color: Colors.blue),
+                title: const Text('Call Police (100)'),
+                onTap: () => Navigator.pop(context),
+              ),
+              ListTile(
+                leading: const Icon(Icons.medical_services, color: Colors.red),
+                title: const Text('Call Ambulance (102)'),
+                onTap: () => Navigator.pop(context),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                'Cancel',
+                style: GoogleFonts.poppins(color: Colors.grey),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: const Text('SOS Alert Sent! Help is on the way.'),
+                    backgroundColor: Mycolors.red,
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Mycolors.red,
+                foregroundColor: Colors.white,
+              ),
+              child: Text('SEND SOS', style: GoogleFonts.poppins()),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -1228,7 +1299,7 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                 Icons.emergency,
                 Mycolors.red,
                 () {
-                  // Navigate to emergency
+                  _showEmergencyDialog();
                 },
               ),
             ),
@@ -1291,7 +1362,7 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                 Icons.emergency,
                 Mycolors.red,
                 () {
-                  // Navigate to emergency
+                  _showEmergencyDialog();
                 },
               ),
             ),
@@ -1348,7 +1419,7 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
             Icons.emergency,
             Mycolors.red,
             () {
-              // Navigate to emergency
+              _showEmergencyDialog();
             },
           ),
         ),
@@ -1820,151 +1891,143 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
     String time,
     String unreadCount,
   ) {
-    return GestureDetector(
-      onTap: () {
-        // Navigator.push(
-        //   context,
-        //   MaterialPageRoute(
-        //     builder: (context) => ChatDetailScreen(peerName: name),
-        //   ),
-        // );
-      },
-      child: Container(
-        margin: EdgeInsets.only(
-          bottom: ResponsiveSpacing.getSmallSpacing(context),
+    return Container(
+      margin: EdgeInsets.only(
+        bottom: ResponsiveSpacing.getSmallSpacing(context),
+      ),
+      padding: ResponsiveUtils.getResponsivePadding(context),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(
+          ResponsiveUtils.getResponsiveBorderRadius(
+            context,
+            mobile: 12,
+            tablet: 14,
+            desktop: 16,
+          ),
         ),
-        padding: ResponsiveUtils.getResponsivePadding(context),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(
-            ResponsiveUtils.getResponsiveBorderRadius(
+        border: Border.all(color: Colors.grey.shade300),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            blurRadius: ResponsiveUtils.getResponsiveElevation(
               context,
-              mobile: 12,
-              tablet: 14,
-              desktop: 16,
+              mobile: 5,
+              tablet: 6,
+              desktop: 8,
+            ),
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: ResponsiveUtils.getResponsiveSpacing(
+              context,
+              mobile: 20,
+              tablet: 22,
+              desktop: 24,
+            ),
+            backgroundColor: Mycolors.basecolor.withOpacity(0.1),
+            child: Text(
+              name.isNotEmpty ? name[0] : '?',
+              style: GoogleFonts.poppins(
+                fontSize: ResponsiveUtils.getResponsiveFontSize(
+                  context,
+                  mobile: 16,
+                  tablet: 18,
+                  desktop: 20,
+                ),
+                fontWeight: FontWeight.bold,
+                color: Mycolors.basecolor,
+              ),
             ),
           ),
-          border: Border.all(color: Colors.grey.shade300),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.1),
-              blurRadius: ResponsiveUtils.getResponsiveElevation(
-                context,
-                mobile: 5,
-                tablet: 6,
-                desktop: 8,
-              ),
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            CircleAvatar(
-              radius: ResponsiveUtils.getResponsiveSpacing(
-                context,
-                mobile: 20,
-                tablet: 22,
-                desktop: 24,
-              ),
-              backgroundColor: Mycolors.basecolor.withOpacity(0.1),
-              child: Text(
-                name[0],
-                style: GoogleFonts.poppins(
-                  fontSize: ResponsiveUtils.getResponsiveFontSize(
-                    context,
-                    mobile: 16,
-                    tablet: 18,
-                    desktop: 20,
-                  ),
-                  fontWeight: FontWeight.bold,
-                  color: Mycolors.basecolor,
-                ),
-              ),
-            ),
-            SizedBox(width: ResponsiveSpacing.getMediumSpacing(context)),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    name,
-                    style: GoogleFonts.poppins(
-                      fontSize: ResponsiveUtils.getResponsiveFontSize(
-                        context,
-                        mobile: 16,
-                        tablet: 18,
-                        desktop: 20,
-                      ),
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black,
-                    ),
-                  ),
-                  Text(
-                    message,
-                    style: GoogleFonts.poppins(
-                      fontSize: ResponsiveUtils.getResponsiveFontSize(
-                        context,
-                        mobile: 14,
-                        tablet: 15,
-                        desktop: 16,
-                      ),
-                      color: Mycolors.gray,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
+          SizedBox(width: ResponsiveSpacing.getMediumSpacing(context)),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  time,
+                  name,
                   style: GoogleFonts.poppins(
                     fontSize: ResponsiveUtils.getResponsiveFontSize(
                       context,
-                      mobile: 12,
-                      tablet: 13,
-                      desktop: 14,
+                      mobile: 16,
+                      tablet: 18,
+                      desktop: 20,
+                    ),
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black,
+                  ),
+                ),
+                Text(
+                  message,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.poppins(
+                    fontSize: ResponsiveUtils.getResponsiveFontSize(
+                      context,
+                      mobile: 14,
+                      tablet: 15,
+                      desktop: 16,
                     ),
                     color: Mycolors.gray,
                   ),
                 ),
-                if (unreadCount.isNotEmpty)
-                  Container(
-                    margin: EdgeInsets.only(
-                      top: ResponsiveSpacing.getSmallSpacing(context) / 2,
-                    ),
-                    padding: EdgeInsets.all(
-                      ResponsiveUtils.getResponsiveSpacing(
-                        context,
-                        mobile: 6,
-                        tablet: 7,
-                        desktop: 8,
-                      ),
-                    ),
-                    decoration: BoxDecoration(
-                      color: Mycolors.basecolor,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Text(
-                      unreadCount,
-                      style: GoogleFonts.poppins(
-                        fontSize: ResponsiveUtils.getResponsiveFontSize(
-                          context,
-                          mobile: 10,
-                          tablet: 11,
-                          desktop: 12,
-                        ),
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
               ],
             ),
-          ],
-        ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                time,
+                style: GoogleFonts.poppins(
+                  fontSize: ResponsiveUtils.getResponsiveFontSize(
+                    context,
+                    mobile: 12,
+                    tablet: 13,
+                    desktop: 14,
+                  ),
+                  color: Mycolors.gray,
+                ),
+              ),
+              if (unreadCount.isNotEmpty)
+                Container(
+                  margin: EdgeInsets.only(
+                    top: ResponsiveSpacing.getSmallSpacing(context) / 2,
+                  ),
+                  padding: EdgeInsets.all(
+                    ResponsiveUtils.getResponsiveSpacing(
+                      context,
+                      mobile: 6,
+                      tablet: 7,
+                      desktop: 8,
+                    ),
+                  ),
+                  decoration: BoxDecoration(
+                    color: Mycolors.basecolor,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Text(
+                    unreadCount,
+                    style: GoogleFonts.poppins(
+                      fontSize: ResponsiveUtils.getResponsiveFontSize(
+                        context,
+                        mobile: 10,
+                        tablet: 11,
+                        desktop: 12,
+                      ),
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ],
       ),
     );
   }
