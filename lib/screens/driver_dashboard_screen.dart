@@ -38,7 +38,6 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
   void initState() {
     super.initState();
     _loadDriverInfo();
-    _loadTodayStats();
   }
 
   @override
@@ -57,57 +56,97 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
       final data = doc.data()!;
       setState(() {
         _driverName = (data['name'] ?? data['fullName'] ?? 'Driver').toString();
+        _isOnline = (data['isOnline'] ?? false) as bool;
       });
     }
   }
 
-  Future<void> _loadTodayStats() async {
+  void _toggleOnlineStatus(bool value) async {
     final driverId = AuthService.currentUserId;
     if (driverId == null) return;
-    final now = DateTime.now();
-    final startOfDay = DateTime(now.year, now.month, now.day);
 
+    setState(() => _isOnline = value);
     try {
-      // Today's ride_requests for this driver
-      final ridesSnap = await FirebaseFirestore.instance
-          .collection('ride_requests')
-          .where('driverId', isEqualTo: driverId)
-          .where(
-            'createdAt',
-            isGreaterThanOrEqualTo: Timestamp.fromDate(startOfDay),
-          )
-          .get();
-
-      int rides = ridesSnap.docs.length;
-      double earnings = 0;
-      for (final d in ridesSnap.docs) {
-        final f = d.data()['fare'];
-        if (f is num) earnings += f.toDouble();
-      }
-
-      // Average rating from reviews
-      final reviewsSnap = await FirebaseFirestore.instance
-          .collection('reviews')
-          .where('driverId', isEqualTo: driverId)
-          .get();
-      double rating = 0;
-      if (reviewsSnap.docs.isNotEmpty) {
-        final total = reviewsSnap.docs.fold<double>(
-          0,
-          (sum, d) => sum + ((d.data()['rating'] ?? 0) as num).toDouble(),
-        );
-        rating = total / reviewsSnap.docs.length;
-      }
-
+      await UserService.updateOnlineStatus(driverId, value);
+    } catch (e) {
       if (mounted) {
-        setState(() {
-          _todayRides = rides;
-          _todayEarnings = earnings;
-          _avgRating = rating;
-        });
+        setState(() => _isOnline = !value);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to update status: $e')),
+        );
       }
-    } catch (_) {}
+    }
   }
+
+  Future<void> _handleStartRide() async {
+    final driverId = AuthService.currentUserId;
+    if (driverId == null) return;
+
+    // Check for any paid ride requests for this driver
+    final snapshot = await FirebaseFirestore.instance
+        .collection('ride_requests')
+        .where('driverId', isEqualTo: driverId)
+        .where('status', isEqualTo: 'paid')
+        .limit(1)
+        .get();
+
+    if (snapshot.docs.isNotEmpty) {
+      if (mounted) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const DriverNotificationsScreen(),
+          ),
+        );
+      }
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('No active paid rides to start. Please check notifications.'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    }
+  }
+
+  void _showSettingsDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Settings', style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.notifications),
+              title: const Text('Notifications'),
+              trailing: Switch(value: true, onChanged: (v) {}),
+            ),
+            ListTile(
+              leading: const Icon(Icons.language),
+              title: const Text('Language'),
+              trailing: const Text('English'),
+              onTap: () {},
+            ),
+            ListTile(
+              leading: const Icon(Icons.info_outline),
+              title: const Text('App Version'),
+              trailing: const Text('1.0.0'),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
 
   Stream<QuerySnapshot<Map<String, dynamic>>> _recentRequestsStream() {
     final driverId = AuthService.currentUserId;
@@ -240,11 +279,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                   ),
                   Switch(
                     value: _isOnline,
-                    onChanged: (value) {
-                      setState(() {
-                        _isOnline = value;
-                      });
-                    },
+                    onChanged: _toggleOnlineStatus,
                     activeTrackColor: Mycolors.green,
                   ),
                 ],
@@ -252,44 +287,54 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
               SizedBox(height: ResponsiveSpacing.getLargeSpacing(context)),
 
               // Today's Stats
-              Container(
-                padding: ResponsiveUtils.getResponsivePadding(context),
-                decoration: BoxDecoration(
-                  color: Mycolors.basecolor,
-                  borderRadius: BorderRadius.circular(
-                    ResponsiveUtils.getResponsiveBorderRadius(
-                      context,
-                      mobile: 16,
-                      tablet: 18,
-                      desktop: 20,
-                    ),
-                  ),
-                ),
-                child: Column(
-                  children: [
-                    Text(
-                      "Today's Performance",
-                      style: GoogleFonts.poppins(
-                        fontSize: ResponsiveUtils.getResponsiveFontSize(
+              StreamBuilder<Map<String, dynamic>>(
+                stream: UserService.streamDriverTodayStats(AuthService.currentUserId!),
+                builder: (context, snapshot) {
+                  final data = snapshot.data ?? {
+                    'rides': _todayRides,
+                    'earnings': _todayEarnings,
+                    'averageRating': _avgRating,
+                  };
+                  return Container(
+                    padding: ResponsiveUtils.getResponsivePadding(context),
+                    decoration: BoxDecoration(
+                      color: Mycolors.basecolor,
+                      borderRadius: BorderRadius.circular(
+                        ResponsiveUtils.getResponsiveBorderRadius(
                           context,
-                          mobile: 18,
-                          tablet: 20,
-                          desktop: 22,
+                          mobile: 16,
+                          tablet: 18,
+                          desktop: 20,
                         ),
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
                       ),
                     ),
-                    SizedBox(
-                      height: ResponsiveSpacing.getMediumSpacing(context),
+                    child: Column(
+                      children: [
+                        Text(
+                          "Today's Performance",
+                          style: GoogleFonts.poppins(
+                            fontSize: ResponsiveUtils.getResponsiveFontSize(
+                              context,
+                              mobile: 18,
+                              tablet: 20,
+                              desktop: 22,
+                            ),
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        SizedBox(
+                          height: ResponsiveSpacing.getMediumSpacing(context),
+                        ),
+                        ResponsiveWidget(
+                          mobile: _buildMobileStatsGrid(context, data),
+                          tablet: _buildTabletStatsGrid(context, data),
+                          desktop: _buildDesktopStatsGrid(context, data),
+                        ),
+                      ],
                     ),
-                    ResponsiveWidget(
-                      mobile: _buildMobileStatsGrid(context),
-                      tablet: _buildTabletStatsGrid(context),
-                      desktop: _buildDesktopStatsGrid(context),
-                    ),
-                  ],
-                ),
+                  );
+                }
               ),
               SizedBox(height: ResponsiveSpacing.getLargeSpacing(context)),
 
@@ -482,13 +527,13 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
   }
 
   // Mobile Stats Grid - 3 columns
-  Widget _buildMobileStatsGrid(BuildContext context) {
+  Widget _buildMobileStatsGrid(BuildContext context, Map<String, dynamic> data) {
     return Row(
       children: [
         Expanded(
           child: _buildStatCard(
             context,
-            '$_todayRides',
+            '${data['rides']}',
             'Rides',
             Icons.directions_car,
           ),
@@ -497,7 +542,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
         Expanded(
           child: _buildStatCard(
             context,
-            '₹${_todayEarnings.toStringAsFixed(0)}',
+            '₹${(data['earnings'] as num).toStringAsFixed(0)}',
             'Earnings',
             Icons.attach_money,
           ),
@@ -506,7 +551,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
         Expanded(
           child: _buildStatCard(
             context,
-            _avgRating == 0 ? 'New' : _avgRating.toStringAsFixed(1),
+            data['averageRating'] == 0 ? 'New' : (data['averageRating'] as num).toStringAsFixed(1),
             'Rating',
             Icons.star,
           ),
@@ -516,13 +561,13 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
   }
 
   // Tablet Stats Grid - 3 columns with more spacing
-  Widget _buildTabletStatsGrid(BuildContext context) {
+  Widget _buildTabletStatsGrid(BuildContext context, Map<String, dynamic> data) {
     return Row(
       children: [
         Expanded(
           child: _buildStatCard(
             context,
-            '$_todayRides',
+            '${data['rides']}',
             'Rides',
             Icons.directions_car,
           ),
@@ -531,7 +576,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
         Expanded(
           child: _buildStatCard(
             context,
-            '₹${_todayEarnings.toStringAsFixed(0)}',
+            '₹${(data['earnings'] as num).toStringAsFixed(0)}',
             'Earnings',
             Icons.attach_money,
           ),
@@ -540,7 +585,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
         Expanded(
           child: _buildStatCard(
             context,
-            _avgRating == 0 ? 'New' : _avgRating.toStringAsFixed(1),
+            data['averageRating'] == 0 ? 'New' : (data['averageRating'] as num).toStringAsFixed(1),
             'Rating',
             Icons.star,
           ),
@@ -550,13 +595,13 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
   }
 
   // Desktop Stats Grid - 3 columns with maximum spacing
-  Widget _buildDesktopStatsGrid(BuildContext context) {
+  Widget _buildDesktopStatsGrid(BuildContext context, Map<String, dynamic> data) {
     return Row(
       children: [
         Expanded(
           child: _buildStatCard(
             context,
-            '$_todayRides',
+            '${data['rides']}',
             'Rides',
             Icons.directions_car,
           ),
@@ -565,7 +610,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
         Expanded(
           child: _buildStatCard(
             context,
-            '₹${_todayEarnings.toStringAsFixed(0)}',
+            '₹${(data['earnings'] as num).toStringAsFixed(0)}',
             'Earnings',
             Icons.attach_money,
           ),
@@ -574,7 +619,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
         Expanded(
           child: _buildStatCard(
             context,
-            _avgRating == 0 ? 'New' : _avgRating.toStringAsFixed(1),
+            data['averageRating'] == 0 ? 'New' : (data['averageRating'] as num).toStringAsFixed(1),
             'Rating',
             Icons.star,
           ),
@@ -582,6 +627,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
       ],
     );
   }
+
 
   // Mobile Action Grid - 2x2
   Widget _buildMobileActionGrid(BuildContext context) {
@@ -595,9 +641,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                 "Start Ride",
                 Icons.play_arrow,
                 Mycolors.green,
-                () {
-                  // Start ride functionality
-                },
+                _handleStartRide,
               ),
             ),
             SizedBox(width: ResponsiveSpacing.getSmallSpacing(context)),
@@ -642,9 +686,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                 "Settings",
                 Icons.settings,
                 Mycolors.gray,
-                () {
-                  // Settings functionality
-                },
+                _showSettingsDialog,
               ),
             ),
           ],
@@ -665,9 +707,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                 "Start Ride",
                 Icons.play_arrow,
                 Mycolors.green,
-                () {
-                  // Start ride functionality
-                },
+                _handleStartRide,
               ),
             ),
             SizedBox(width: ResponsiveSpacing.getMediumSpacing(context)),
@@ -712,9 +752,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                 "Settings",
                 Icons.settings,
                 Mycolors.gray,
-                () {
-                  // Settings functionality
-                },
+                _showSettingsDialog,
               ),
             ),
           ],
@@ -722,6 +760,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
       ],
     );
   }
+
 
   // Desktop Action Grid - 4 columns
   Widget _buildDesktopActionGrid(BuildContext context) {
@@ -733,9 +772,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
             "Start Ride",
             Icons.play_arrow,
             Mycolors.green,
-            () {
-              // Start ride functionality
-            },
+            _handleStartRide,
           ),
         ),
         SizedBox(width: ResponsiveSpacing.getMediumSpacing(context)),
@@ -776,9 +813,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
             "Settings",
             Icons.settings,
             Mycolors.gray,
-            () {
-              // Settings functionality
-            },
+            _showSettingsDialog,
           ),
         ),
       ],

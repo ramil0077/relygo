@@ -591,4 +591,43 @@ class UserService {
           }
         });
   }
+  /// Stream driver's today stats (rides, earnings, average rating)
+  static Stream<Map<String, dynamic>> streamDriverTodayStats(String driverId) {
+    final now = DateTime.now();
+    final startOfDay = DateTime(now.year, now.month, now.day);
+
+    return _firestore
+        .collection('ride_requests')
+        .where('driverId', isEqualTo: driverId)
+        .where(
+          'createdAt',
+          isGreaterThanOrEqualTo: Timestamp.fromDate(startOfDay),
+        )
+        .snapshots()
+        .asyncMap((snapshot) async {
+          int rides = snapshot.docs.length;
+          double earnings = 0;
+          for (var doc in snapshot.docs) {
+            final data = doc.data();
+            final fare = data['fare'];
+            if (fare is num) earnings += fare.toDouble();
+          }
+
+          final ratingStats = await getDriverRatingStats(driverId);
+
+          return {
+            'rides': rides,
+            'earnings': earnings,
+            'averageRating': ratingStats['averageRating'],
+          };
+        });
+  }
+
+  /// Update driver's online status
+  static Future<void> updateOnlineStatus(String userId, bool isOnline) async {
+    await updateUserFields(userId, {
+      'isOnline': isOnline,
+      'lastActive': FieldValue.serverTimestamp(),
+    });
+  }
 }

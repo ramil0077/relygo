@@ -35,15 +35,41 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
           : StreamBuilder<Map<String, dynamic>?>(
               stream: UserService.streamUserById(userId),
               builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (snapshot.hasError) {
+                  return Center(
+                    child: Text(
+                      "Error: ${snapshot.error}",
+                      style: GoogleFonts.poppins(color: Mycolors.red),
+                    ),
+                  );
+                }
+                
                 final data = snapshot.data;
-                final name = (data?['name'] ?? 'Driver').toString();
-                final email = (data?['email'] ?? '').toString();
-                final phone = (data?['phone'] ?? '').toString();
-                final photoUrl = (data?['photoUrl'] ?? '').toString();
-                final rating = (data?['rating'] ?? 4.8).toString();
+                if (data == null) {
+                  return Center(
+                    child: Text(
+                      "User data not found",
+                      style: GoogleFonts.poppins(color: Mycolors.gray),
+                    ),
+                  );
+                }
+
+                final name = (data['name'] ?? 'Driver').toString();
+                final email = (data['email'] ?? '').toString();
+                final phone = (data['phone'] ?? '').toString();
+                final photoUrl = (data['photoUrl'] ?? '').toString();
+                final rating = (data['rating'] ?? 4.8).toString();
                 final vehicle =
-                    (data?['vehicle'] ?? {}) as Map<String, dynamic>;
+                    (data['vehicle'] ?? {}) as Map<String, dynamic>;
                 final vehicleType = (vehicle['type'] ?? 'Vehicle').toString();
+                
+                // Dynamic stats from user data if available, otherwise defaults
+                final totalRides = (data['totalRides'] ?? '0').toString();
+                final totalEarnings = (data['totalEarnings'] ?? '0').toString();
+                final hoursToday = (data['hoursToday'] ?? '0').toString();
 
                 return SingleChildScrollView(
                   padding: const EdgeInsets.all(20),
@@ -129,7 +155,7 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
                                 borderRadius: BorderRadius.circular(20),
                               ),
                               child: Text(
-                                "Online",
+                                (data['isOnline'] ?? true) ? "Online" : "Offline",
                                 style: GoogleFonts.poppins(
                                   fontSize: 14,
                                   color: Colors.white,
@@ -147,7 +173,7 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
                         children: [
                           Expanded(
                             child: _buildStatCard(
-                              "150",
+                              totalRides,
                               "Total Rides",
                               Icons.directions_car,
                             ),
@@ -155,7 +181,7 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
                           const SizedBox(width: 15),
                           Expanded(
                             child: _buildStatCard(
-                              "₹45,000",
+                              "₹$totalEarnings",
                               "Total Earnings",
                               Icons.attach_money,
                             ),
@@ -167,7 +193,7 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
                         children: [
                           Expanded(
                             child: _buildStatCard(
-                              "6.5",
+                              hoursToday,
                               "Hours Today",
                               Icons.access_time,
                             ),
@@ -194,7 +220,7 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
                             currentName: name,
                             currentEmail: email,
                             currentPhone: phone,
-                            currentLicense: (data?['licenseNumber'] ?? '')
+                            currentLicense: (data['licenseNumber'] ?? '')
                                 .toString(),
                           );
                         },
@@ -302,6 +328,7 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
                 );
               },
             ),
+
     );
   }
 
