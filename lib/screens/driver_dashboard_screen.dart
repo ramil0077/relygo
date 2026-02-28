@@ -224,7 +224,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
     );
   }
 
-  Stream<QuerySnapshot<Map<String, dynamic>>> _recentRequestsStream() {
+  Stream<List<Map<String, dynamic>>> _recentRequestsStream() {
     final driverId = AuthService.currentUserId;
     if (driverId == null) {
       return const Stream.empty();
@@ -232,9 +232,24 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
     return FirebaseFirestore.instance
         .collection('ride_requests')
         .where('driverId', isEqualTo: driverId)
-        .orderBy('createdAt', descending: true)
-        .limit(5)
-        .snapshots();
+        .snapshots()
+        .map((snapshot) {
+          final docs = snapshot.docs.map((doc) {
+            final data = doc.data();
+            data['id'] = doc.id;
+            return data;
+          }).toList();
+
+          // Sort client-side
+          docs.sort((a, b) {
+            final aTime = a['createdAt'] as Timestamp?;
+            final bTime = b['createdAt'] as Timestamp?;
+            if (aTime == null || bTime == null) return 0;
+            return bTime.compareTo(aTime);
+          });
+
+          return docs;
+        });
   }
 
   @override
@@ -440,7 +455,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
               ),
               SizedBox(height: ResponsiveSpacing.getMediumSpacing(context)),
 
-              StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+              StreamBuilder<List<Map<String, dynamic>>>(
                 stream: _recentRequestsStream(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
@@ -454,7 +469,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                       ),
                     );
                   }
-                  final docs = snapshot.data?.docs ?? [];
+                  final docs = snapshot.data ?? [];
                   if (docs.isEmpty) {
                     return Center(
                       child: Text(
@@ -464,11 +479,15 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                     );
                   }
                   return Column(
-                    children: docs.take(3).map((doc) {
-                      final d = doc.data();
-                      final title = (d['destination'] ?? 'Ride Request')
-                          .toString();
-                      final price = d['price'] != null ? '₹${d['price']}' : '';
+                    children: docs.take(3).map((d) {
+                      final title =
+                          (d['destination'] ??
+                                  d['dropoffLocation'] ??
+                                  'Ride Request')
+                              .toString();
+                      final price = d['fare'] != null
+                          ? '₹${d['fare']}'
+                          : (d['price'] != null ? '₹${d['price']}' : '');
                       final status = (d['status'] ?? 'pending').toString();
                       final statusColor = status == 'pending'
                           ? Mycolors.orange

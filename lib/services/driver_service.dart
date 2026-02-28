@@ -91,15 +91,25 @@ class DriverService {
     String driverId,
   ) {
     return _firestore
-        .collection('bookings')
+        .collection('ride_requests')
         .where('driverId', isEqualTo: driverId)
         .snapshots()
         .map((snapshot) {
-          return snapshot.docs.map((doc) {
+          final items = snapshot.docs.map((doc) {
             final data = doc.data();
             data['id'] = doc.id;
             return data;
           }).toList();
+
+          // Sort client-side
+          items.sort((a, b) {
+            final aTime = a['createdAt'] as Timestamp?;
+            final bTime = b['createdAt'] as Timestamp?;
+            if (aTime == null || bTime == null) return 0;
+            return bTime.compareTo(aTime);
+          });
+
+          return items;
         });
   }
 

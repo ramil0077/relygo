@@ -120,16 +120,28 @@ class UserService {
       return const Stream.empty();
     }
     return _firestore
-        .collection('rides')
+        .collection('ride_requests')
         .where('userId', isEqualTo: userId)
         .snapshots()
-        .map(
-          (snapshot) => snapshot.docs.map((doc) {
+        .map((snapshot) {
+          final rides = snapshot.docs.map((doc) {
             final data = doc.data();
             data['id'] = doc.id;
+            // Normalize for UI
+            data['destination'] ??= data['dropoffLocation'] ?? 'Destination';
             return data;
-          }).toList(),
-        );
+          }).toList();
+
+          // Sort client-side
+          rides.sort((a, b) {
+            final aTime = a['createdAt'] as Timestamp?;
+            final bTime = b['createdAt'] as Timestamp?;
+            if (aTime == null || bTime == null) return 0;
+            return bTime.compareTo(aTime);
+          });
+
+          return rides;
+        });
   }
 
   /// Create a new booking
@@ -185,15 +197,25 @@ class UserService {
     String userId,
   ) {
     return _firestore
-        .collection('bookings')
+        .collection('ride_requests')
         .where('userId', isEqualTo: userId)
         .snapshots()
         .map((snapshot) {
-          return snapshot.docs.map((doc) {
+          final items = snapshot.docs.map((doc) {
             final data = doc.data();
             data['id'] = doc.id;
             return data;
           }).toList();
+
+          // Sort client-side
+          items.sort((a, b) {
+            final aTime = a['createdAt'] as Timestamp?;
+            final bTime = b['createdAt'] as Timestamp?;
+            if (aTime == null || bTime == null) return 0;
+            return bTime.compareTo(aTime);
+          });
+
+          return items;
         });
   }
 
