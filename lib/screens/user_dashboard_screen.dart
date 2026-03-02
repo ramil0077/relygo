@@ -1021,7 +1021,7 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                                 MaterialPageRoute(
                                   builder: (context) => DriverTrackingScreen(
                                     bookingId: activeBooking['id'] ?? '',
-                                    bookingData: activeBooking,
+                                    initialBookingData: activeBooking,
                                   ),
                                 ),
                               );
