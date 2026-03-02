@@ -227,7 +227,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   _buildHomeTab(),
                   _buildUsersAndDriversTab(),
                   _buildBookingsTab(),
-                  const AdminComplaintsScreen(),
+                  const AdminComplaintsScreen(isEmbedded: true),
                   _buildAnalyticsTab(),
                   const FeedbackScreen(isEmbedded: true),
                 ],
@@ -629,16 +629,30 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                         Icons.report,
                         Mycolors.red,
                         () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  const AdminComplaintsScreen(),
-                            ),
-                          );
+                          setState(() {
+                            _selectedIndex = 3;
+                          });
                         },
                       ),
                     ),
+                  ],
+                ),
+                const SizedBox(height: 15),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildActionCard(
+                        "Reviews & Feedback",
+                        Icons.star_half_rounded,
+                        Mycolors.basecolor,
+                        () {
+                          setState(() {
+                            _selectedIndex = 5;
+                          });
+                        },
+                      ),
+                    ),
+                    const Spacer(),
                   ],
                 ),
               ],
@@ -711,16 +725,30 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                         Icons.report,
                         Mycolors.red,
                         () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  const AdminComplaintsScreen(),
-                            ),
-                          );
+                          setState(() {
+                            _selectedIndex = 3;
+                          });
                         },
                       ),
                     ),
+                  ],
+                ),
+                const SizedBox(height: 15),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildActionCard(
+                        "Reviews & Feedback",
+                        Icons.star_half_rounded,
+                        Mycolors.basecolor,
+                        () {
+                          setState(() {
+                            _selectedIndex = 5;
+                          });
+                        },
+                      ),
+                    ),
+                    const Spacer(),
                   ],
                 ),
               ],
@@ -787,12 +815,27 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     Icons.report,
                     Mycolors.red,
                     () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const AdminComplaintsScreen(),
-                        ),
-                      );
+                      setState(() {
+                        _selectedIndex = 3;
+                      });
+                    },
+                  ),
+                ),
+                SizedBox(
+                  width: ResponsiveUtils.getResponsiveSpacing(
+                    context,
+                    mobile: 15,
+                  ),
+                ),
+                Expanded(
+                  child: _buildActionCard(
+                    "Feedback",
+                    Icons.star_half_rounded,
+                    Mycolors.basecolor,
+                    () {
+                      setState(() {
+                        _selectedIndex = 5;
+                      });
                     },
                   ),
                 ),
