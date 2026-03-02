@@ -229,6 +229,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   _buildBookingsTab(),
                   const AdminComplaintsScreen(),
                   _buildAnalyticsTab(),
+                  const FeedbackScreen(isEmbedded: true),
                 ],
               ),
             ),
@@ -2680,6 +2681,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             3,
           ),
           _buildSidebarItem(Icons.analytics_rounded, "Financial Stats", 4),
+          _buildSidebarItem(Icons.star_half_rounded, "Reviews & Feedback", 5),
           const Spacer(),
           // Logout at the bottom
           Divider(color: Colors.grey.shade300, height: 1),
