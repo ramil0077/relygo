@@ -14,6 +14,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:relygo/services/auth_service.dart';
 import 'package:relygo/screens/driver_notifications_screen.dart';
 import 'package:relygo/services/chat_service.dart';
+import 'package:relygo/screens/chat_detail_screen.dart';
 import 'package:relygo/screens/driver_chatbot_screen.dart';
 import 'package:relygo/services/driver_service.dart';
 import 'package:geolocator/geolocator.dart';

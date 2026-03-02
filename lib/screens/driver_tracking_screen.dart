@@ -7,12 +7,12 @@ import 'package:url_launcher/url_launcher.dart';
 
 class DriverTrackingScreen extends StatefulWidget {
   final String bookingId;
-  final Map<String, dynamic> bookingData;
+  final Map<String, dynamic> initialBookingData;
 
   const DriverTrackingScreen({
     super.key,
     required this.bookingId,
-    required this.bookingData,
+    required this.initialBookingData,
   });
 
   @override
@@ -22,56 +22,64 @@ class DriverTrackingScreen extends StatefulWidget {
 class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        title: Text(
-          'Track Your Driver',
-          style: GoogleFonts.poppins(
-            fontWeight: FontWeight.w600,
-            color: Colors.black,
+    return StreamBuilder<DocumentSnapshot>(
+      stream: FirebaseFirestore.instance.collection('bookings').doc(widget.bookingId).snapshots(),
+      builder: (context, snapshot) {
+        final bookingData = snapshot.hasData && snapshot.data!.exists 
+            ? snapshot.data!.data() as Map<String, dynamic> 
+            : widget.initialBookingData;
+
+        return Scaffold(
+          backgroundColor: Colors.white,
+          appBar: AppBar(
+            backgroundColor: Colors.white,
+            elevation: 0,
+            title: Text(
+              'Track Your Driver',
+              style: GoogleFonts.poppins(
+                fontWeight: FontWeight.w600,
+                color: Colors.black,
+              ),
+            ),
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back, color: Colors.black),
+              onPressed: () => Navigator.pop(context),
+            ),
           ),
-        ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Booking Status Card
-            _buildBookingStatusCard(),
-            const SizedBox(height: 20),
+          body: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Booking Status Card
+                _buildBookingStatusCard(bookingData),
+                const SizedBox(height: 20),
 
-            // Driver Information Card
-            _buildDriverInfoCard(),
-            const SizedBox(height: 20),
+                // Driver Information Card
+                _buildDriverInfoCard(bookingData),
+                const SizedBox(height: 20),
 
-            // Contact Actions
-            _buildContactActions(),
-            const SizedBox(height: 20),
+                // Contact Actions
+                _buildContactActions(bookingData),
+                const SizedBox(height: 20),
 
-            // Ride Details
-            _buildRideDetailsCard(),
-            const SizedBox(height: 20),
+                // Ride Details
+                _buildRideDetailsCard(bookingData),
+                const SizedBox(height: 20),
 
-            // Live Tracking (Simulated)
-            _buildLiveTrackingCard(),
-          ],
-        ),
-      ),
+                // Live Tracking (Simulated)
+                _buildLiveTrackingCard(bookingData),
+              ],
+            ),
+          ),
+        );
+      }
     );
   }
 
-  Widget _buildBookingStatusCard() {
-    final status = widget.bookingData['status'] ?? 'unknown';
-    final isPaid = widget.bookingData['isPaid'] ?? false;
-
+  Widget _buildBookingStatusCard(Map<String, dynamic> bookingData) {
+    final status = bookingData['status'] ?? 'unknown';
+    final isPaid = bookingData['isPaid'] ?? false;
     Color statusColor;
     IconData statusIcon;
     String statusText;
@@ -147,9 +155,9 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
     );
   }
 
-  Widget _buildDriverInfoCard() {
+  Widget _buildDriverInfoCard(Map<String, dynamic> bookingData) {
     final driverDetails =
-        widget.bookingData['driverDetails'] as Map<String, dynamic>?;
+        bookingData['driverDetails'] as Map<String, dynamic>?;
 
     if (driverDetails == null) {
       return Container(
@@ -258,10 +266,10 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
     );
   }
 
-  Widget _buildContactActions() {
+  Widget _buildContactActions(Map<String, dynamic> bookingData) {
     final driverDetails =
-        widget.bookingData['driverDetails'] as Map<String, dynamic>?;
-    final driverId = widget.bookingData['driverId'];
+        bookingData['driverDetails'] as Map<String, dynamic>?;
+    final driverId = bookingData['driverId'];
     final driverName = driverDetails?['name'] ?? 'Driver';
     final driverPhone = driverDetails?['phone'] ?? '';
 
@@ -310,7 +318,7 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
     );
   }
 
-  Widget _buildRideDetailsCard() {
+  Widget _buildRideDetailsCard(Map<String, dynamic> bookingData) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -353,7 +361,7 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
                       ),
                     ),
                     Text(
-                      widget.bookingData['pickupLocation'] ?? 'Unknown',
+                      bookingData['pickupLocation'] ?? 'Unknown',
                       style: GoogleFonts.poppins(
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
@@ -384,7 +392,7 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
                       ),
                     ),
                     Text(
-                      widget.bookingData['dropoffLocation'] ?? 'Unknown',
+                      bookingData['dropoffLocation'] ?? 'Unknown',
                       style: GoogleFonts.poppins(
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
@@ -399,13 +407,13 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
           const SizedBox(height: 16),
 
           // Fare
-          if (widget.bookingData['fare'] != null)
-            Row(
-              children: [
-                Icon(Icons.attach_money, color: Mycolors.orange, size: 20),
-                const SizedBox(width: 12),
-                Text(
-                  'Fare: ₹${widget.bookingData['fare']}',
+          if (bookingData['fare'] != null)
+              Row(
+                children: [
+                  Icon(Icons.attach_money, color: Mycolors.orange, size: 20),
+                  const SizedBox(width: 12),
+                  Text(
+                    'Fare: ₹${bookingData['fare']}',
                   style: GoogleFonts.poppins(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -419,9 +427,9 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
     );
   }
 
-  Widget _buildLiveTrackingCard() {
-    final status = widget.bookingData['status']?.toString().toLowerCase() ?? 'unknown';
-    final driverId = widget.bookingData['driverId'];
+  Widget _buildLiveTrackingCard(Map<String, dynamic> bookingData) {
+    final status = bookingData['status']?.toString().toLowerCase() ?? 'unknown';
+    final driverId = bookingData['driverId'];
 
     if (status != 'started' || driverId == null) {
       return Container(
@@ -610,11 +618,15 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
   }
 
   void _openChat(String driverId, String driverName) {
+    final String conversationId = ChatService.conversationIdWithPeer(driverId);
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) =>
-            ChatDetailScreen(peerName: driverName, peerId: driverId),
+        builder: (context) => ChatDetailScreen(
+          peerName: driverName,
+          conversationId: conversationId,
+          peerId: driverId,
+        ),
       ),
     );
   }

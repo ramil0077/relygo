@@ -13,6 +13,8 @@ import 'package:relygo/services/admin_service.dart';
 import 'package:relygo/services/auth_service.dart';
 import 'package:relygo/services/chat_service.dart';
 import 'package:relygo/screens/chat_detail_screen.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class UserDashboardScreen extends StatefulWidget {
   const UserDashboardScreen({super.key});
@@ -157,12 +159,18 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
               ListTile(
                 leading: const Icon(Icons.phone, color: Colors.blue),
                 title: const Text('Call Police (100)'),
-                onTap: () => Navigator.pop(context),
+                onTap: () {
+                  _launchCaller('100');
+                  Navigator.pop(context);
+                },
               ),
               ListTile(
                 leading: const Icon(Icons.medical_services, color: Colors.red),
                 title: const Text('Call Ambulance (102)'),
-                onTap: () => Navigator.pop(context),
+                onTap: () {
+                  _launchCaller('102');
+                  Navigator.pop(context);
+                },
               ),
             ],
           ),
@@ -175,14 +183,87 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
               ),
             ),
             ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: const Text('SOS Alert Sent! Help is on the way.'),
-                    backgroundColor: Mycolors.red,
+              onPressed: () async {
+                final nav = Navigator.of(context);
+                final messenger = ScaffoldMessenger.of(context);
+                nav.pop();
+
+                // Show loading
+                messenger.showSnackBar(
+                  const SnackBar(
+                    content: Text('Sending SOS... Please wait.'),
+                    duration: Duration(seconds: 2),
                   ),
                 );
+
+                try {
+                  // Get current position
+                  Position position = await Geolocator.getCurrentPosition(
+                    desiredAccuracy: LocationAccuracy.high,
+                  );
+
+                  final userId = AuthService.currentUserId;
+                  if (userId == null) return;
+
+                  final userDoc =
+                      await FirebaseFirestore.instance
+                          .collection('users')
+                          .doc(userId)
+                          .get();
+                  final userData = userDoc.data() ?? {};
+
+                  // Get active booking if any
+                  final bookingSnap =
+                      await FirebaseFirestore.instance
+                          .collection('ride_requests')
+                          .where('userId', isEqualTo: userId)
+                          .where(
+                            'status',
+                            whereIn: ['ongoing', 'started', 'accepted'],
+                          )
+                          .limit(1)
+                          .get();
+
+                  String? bookingId;
+                  if (bookingSnap.docs.isNotEmpty) {
+                    bookingId = bookingSnap.docs.first.id;
+                  }
+
+                  final result = await UserService.sendSOS(
+                    userId: userId,
+                    userName: userData['name'] ?? 'User',
+                    userPhone: userData['phone'] ?? 'N/A',
+                    latitude: position.latitude,
+                    longitude: position.longitude,
+                    bookingId: bookingId,
+                  );
+
+                  if (result['success']) {
+                    messenger.showSnackBar(
+                      SnackBar(
+                        content: const Text(
+                          'SOS Alert Sent! Help is on the way.',
+                        ),
+                        backgroundColor: Mycolors.red,
+                        duration: const Duration(seconds: 5),
+                      ),
+                    );
+                  } else {
+                    messenger.showSnackBar(
+                      SnackBar(
+                        content: Text('Failed to send SOS: ${result['error']}'),
+                        backgroundColor: Mycolors.red,
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  messenger.showSnackBar(
+                    SnackBar(
+                      content: Text('Error getting location: $e'),
+                      backgroundColor: Mycolors.red,
+                    ),
+                  );
+                }
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Mycolors.red,
@@ -194,6 +275,13 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
         );
       },
     );
+  }
+
+  void _launchCaller(String number) async {
+    final Uri url = Uri(scheme: 'tel', path: number);
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url);
+    }
   }
 
   @override
@@ -1149,36 +1237,91 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
             ],
           ),
 
-          // Action buttons for completed rides
-          if (status.toLowerCase() == 'completed' && driverDetails != null) ...[
+          // Action buttons for active or completed rides
+          if (driverDetails != null) ...[
             const SizedBox(height: 12),
             Row(
               children: [
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: () => _showFeedbackDialog(booking),
-                    icon: Icon(Icons.star, size: 16),
-                    label: Text('Rate & Review'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Mycolors.orange,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 8),
+                if (status.toLowerCase() == 'completed') ...[
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () => _showFeedbackDialog(booking),
+                      icon: const Icon(Icons.star, size: 16),
+                      label: const Text('Rate & Review'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Mycolors.orange,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () => _showComplaintDialog(booking),
-                    icon: Icon(Icons.report_problem, size: 16),
-                    label: Text('Complain'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Mycolors.red,
-                      side: BorderSide(color: Mycolors.red),
-                      padding: const EdgeInsets.symmetric(vertical: 8),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () => _showComplaintDialog(booking),
+                      icon: const Icon(Icons.report_problem, size: 16),
+                      label: const Text('Complain'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Mycolors.red,
+                        side: BorderSide(color: Mycolors.red),
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                      ),
                     ),
                   ),
-                ),
+                ] else if (status.toLowerCase() == 'ongoing' || status.toLowerCase() == 'started') ...[
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        final String? driverId = booking['driverId'];
+                        if (driverId != null) {
+                          final String conversationId = ChatService.conversationIdWithPeer(driverId);
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ChatDetailScreen(
+                                peerName: driverDetails['name'] ?? 'Driver',
+                                conversationId: conversationId,
+                                peerId: driverId,
+                              ),
+                            ),
+                          );
+                        }
+                      },
+                      icon: const Icon(Icons.chat, size: 16),
+                      label: const Text('Chat with Driver'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Mycolors.blue,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                      ),
+                    ),
+                  ),
+                  if (status.toLowerCase() == 'started') ...[
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => DriverTrackingScreen(
+                                bookingId: booking['id'],
+                                initialBookingData: booking,
+                              ),
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.map, size: 16),
+                        label: const Text('Track Driver'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Mycolors.green,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
               ],
             ),
           ],
@@ -1334,6 +1477,44 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
             ),
           ],
         ),
+        SizedBox(height: ResponsiveSpacing.getSmallSpacing(context)),
+        Row(
+          children: [
+            Expanded(
+              child: _buildServiceCard(
+                context,
+                "Support Chat",
+                Icons.support_agent,
+                Mycolors.blue,
+                () {
+                  final String conversationId = 'admin_${AuthService.currentUserId}';
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ChatDetailScreen(
+                        peerName: 'Admin Support',
+                        conversationId: conversationId,
+                        peerId: 'admin',
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+            SizedBox(width: ResponsiveSpacing.getSmallSpacing(context)),
+            Expanded(
+              child: _buildServiceCard(
+                context,
+                "Settings",
+                Icons.settings,
+                Colors.blueGrey,
+                () {
+                  setState(() => _selectedIndex = 3);
+                },
+              ),
+            ),
+          ],
+        ),
       ],
     );
   }
@@ -1397,6 +1578,44 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
             ),
           ],
         ),
+        SizedBox(height: ResponsiveSpacing.getMediumSpacing(context)),
+        Row(
+          children: [
+            Expanded(
+              child: _buildServiceCard(
+                context,
+                "Support Chat",
+                Icons.support_agent,
+                Mycolors.blue,
+                () {
+                  final String conversationId = 'admin_${AuthService.currentUserId}';
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ChatDetailScreen(
+                        peerName: 'Admin Support',
+                        conversationId: conversationId,
+                        peerId: 'admin',
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+            SizedBox(width: ResponsiveSpacing.getMediumSpacing(context)),
+            Expanded(
+              child: _buildServiceCard(
+                context,
+                "Settings",
+                Icons.settings,
+                Colors.blueGrey,
+                () {
+                  setState(() => _selectedIndex = 3);
+                },
+              ),
+            ),
+          ],
+        ),
       ],
     );
   }
@@ -1449,6 +1668,40 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
             Mycolors.green,
             () {
               setState(() => _selectedIndex = 2);
+            },
+          ),
+        ),
+        SizedBox(width: ResponsiveSpacing.getMediumSpacing(context)),
+        Expanded(
+          child: _buildServiceCard(
+            context,
+            "Support Chat",
+            Icons.support_agent,
+            Mycolors.blue,
+            () {
+              final String conversationId = 'admin_${AuthService.currentUserId}';
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ChatDetailScreen(
+                    peerName: 'Admin Support',
+                    conversationId: conversationId,
+                    peerId: 'admin',
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+        SizedBox(width: ResponsiveSpacing.getMediumSpacing(context)),
+        Expanded(
+          child: _buildServiceCard(
+            context,
+            "Settings",
+            Icons.settings,
+            Colors.blueGrey,
+            () {
+              setState(() => _selectedIndex = 3);
             },
           ),
         ),

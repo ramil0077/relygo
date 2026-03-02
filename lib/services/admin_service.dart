@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:relygo/services/email_service.dart';
 
 class AdminService {
   static final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -45,10 +46,32 @@ class AdminService {
   /// Approve a driver application
   static Future<Map<String, dynamic>> approveDriver(String driverId) async {
     try {
-      await _firestore.collection('users').doc(driverId).update({
+      final docRef = _firestore.collection('users').doc(driverId);
+      final doc = await docRef.get();
+      
+      if (!doc.exists) return {'success': false, 'error': 'Driver not found'};
+      final data = doc.data()!;
+
+      await docRef.update({
         'status': 'approved',
         'approvedAt': FieldValue.serverTimestamp(),
         'updatedAt': FieldValue.serverTimestamp(),
+      });
+
+      // Send Approval Email
+      await EmailService.sendDriverApprovalEmail(
+        driverName: data['name'] ?? 'Driver',
+        driverEmail: data['email'] ?? '',
+      );
+
+      // Send In-app Notification
+      await _firestore.collection('notifications').add({
+        'userId': driverId,
+        'title': 'Account Approved!',
+        'message': 'Welcome to RelyGo! Your driver account has been approved.',
+        'type': 'account_approval',
+        'createdAt': FieldValue.serverTimestamp(),
+        'read': false,
       });
 
       return {
@@ -66,11 +89,35 @@ class AdminService {
     String reason,
   ) async {
     try {
-      await _firestore.collection('users').doc(driverId).update({
+      final docRef = _firestore.collection('users').doc(driverId);
+      final doc = await docRef.get();
+      
+      if (!doc.exists) return {'success': false, 'error': 'Driver not found'};
+      final data = doc.data()!;
+
+      await docRef.update({
         'status': 'rejected',
         'rejectionReason': reason,
         'rejectedAt': FieldValue.serverTimestamp(),
         'updatedAt': FieldValue.serverTimestamp(),
+      });
+
+      // Send Rejection Email
+      await EmailService.sendDriverRejectionEmail(
+        driverName: data['name'] ?? 'Driver',
+        driverEmail: data['email'] ?? '',
+        reason: reason,
+      );
+
+      // Send In-app Notification
+      await _firestore.collection('notifications').add({
+        'userId': driverId,
+        'title': 'Application Rejected',
+        'message': 'Your driver application has been rejected. Reason: $reason',
+        'type': 'account_rejection',
+        'createdAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
+        'read': false,
       });
 
       return {
@@ -311,6 +358,46 @@ class AdminService {
     return _firestore
         .collection('messages')
         .where('driverId', isEqualTo: driverId)
+        .orderBy('createdAt', descending: false)
+        .snapshots()
+        .map((snapshot) {
+          return snapshot.docs.map((doc) {
+            final data = doc.data();
+            data['id'] = doc.id;
+            return data;
+          }).toList();
+        });
+  }
+
+  /// Send message to user
+  static Future<Map<String, dynamic>> sendMessageToUser(
+    String userId,
+    String message,
+  ) async {
+    try {
+      await _firestore.collection('user_messages').add({
+        'userId': userId,
+        'senderId': 'admin',
+        'senderType': 'admin',
+        'message': message,
+        'createdAt': FieldValue.serverTimestamp(),
+        'read': false,
+      });
+
+      return {'success': true, 'message': 'Message sent successfully'};
+    } catch (e) {
+      return {'success': false, 'error': 'Failed to send message: $e'};
+    }
+  }
+
+  /// Get chat messages with user
+  static Stream<List<Map<String, dynamic>>> getUserChatStream(
+    String userId,
+  ) {
+    return _firestore
+        .collection('user_messages')
+        .where('userId', isEqualTo: userId)
+        .orderBy('createdAt', descending: false)
         .snapshots()
         .map((snapshot) {
           return snapshot.docs.map((doc) {
@@ -379,6 +466,20 @@ class AdminService {
           final data = doc.data();
           data['id'] = doc.id;
           data['activityType'] = 'driver_registration';
+          activities.add(data);
+        }
+
+        // Get recent SOS alerts
+        final emergenciesSnapshot = await _firestore
+            .collection('emergencies')
+            .orderBy('timestamp', descending: true)
+            .limit(3)
+            .get();
+
+        for (var doc in emergenciesSnapshot.docs) {
+          final data = doc.data();
+          data['id'] = doc.id;
+          data['activityType'] = 'sos';
           activities.add(data);
         }
 

@@ -421,7 +421,7 @@ class UserService {
     }
   }
 
-  /// Submit feedback/review for a completed ride
+  /// Submit a feedback/review for a completed ride
   static Future<Map<String, dynamic>> submitFeedback({
     required String userId,
     required String driverId,
@@ -446,6 +446,50 @@ class UserService {
       return {'success': true, 'message': 'Feedback submitted successfully'};
     } catch (e) {
       return {'success': false, 'error': 'Failed to submit feedback: $e'};
+    }
+  }
+
+  /// Send SOS emergency alert
+  static Future<Map<String, dynamic>> sendSOS({
+    required String userId,
+    required String userName,
+    required String userPhone,
+    required double latitude,
+    required double longitude,
+    String? address,
+    String? bookingId,
+  }) async {
+    try {
+      final docRef = await _firestore.collection('emergencies').add({
+        'userId': userId,
+        'userName': userName,
+        'userPhone': userPhone,
+        'location': GeoPoint(latitude, longitude),
+        'address': address ?? 'Fetching address...',
+        'bookingId': bookingId,
+        'status': 'active',
+        'createdAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+
+      // Also create a notification for admins
+      await _firestore.collection('notifications').add({
+        'title': '🚨 SOS EMERGENCY ALERT',
+        'message': 'Emergency reported by $userName at $address',
+        'type': 'sos_emergency',
+        'referenceId': docRef.id,
+        'isAdmin': true,
+        'read': false,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+
+      return {
+        'success': true,
+        'message': 'SOS Alert sent to authorities and admin!',
+        'emergencyId': docRef.id,
+      };
+    } catch (e) {
+      return {'success': false, 'error': 'Failed to send SOS: $e'};
     }
   }
 

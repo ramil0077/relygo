@@ -11,6 +11,7 @@ import 'package:relygo/screens/admin_driver_approval_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:relygo/screens/admin_user_details_screen.dart';
 import 'package:relygo/screens/admin_driver_chat_screen.dart';
+import 'package:relygo/screens/admin_user_chat_screen.dart';
 import 'package:relygo/screens/admin_driver_details_screen.dart';
 import 'package:relygo/screens/admin_analytics_screen.dart';
 import 'package:relygo/services/admin_service.dart';
@@ -1846,6 +1847,13 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         icon = Icons.report;
         break;
 
+      case 'sos':
+        title = '🚨 SOS ALERT 🚨';
+        description = '${data['userName'] ?? "User"} sent an emergency signal';
+        color = Mycolors.red;
+        icon = Icons.emergency;
+        break;
+
       case 'feedback':
         title = 'New Feedback';
         final rating = data['rating'] ?? 0;
@@ -2028,7 +2036,27 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           user['email'] ?? '',
           style: GoogleFonts.poppins(fontSize: 12),
         ),
-        trailing: Icon(Icons.arrow_forward_ios, size: 16, color: Mycolors.gray),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => AdminUserChatScreen(user: user),
+                  ),
+                );
+              },
+              child: Container(
+                padding: const EdgeInsets.all(4),
+                child: Icon(Icons.chat, size: 20, color: Mycolors.basecolor),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Icon(Icons.arrow_forward_ios, size: 16, color: Mycolors.gray),
+          ],
+        ),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
           side: BorderSide(color: Colors.grey.shade300),
