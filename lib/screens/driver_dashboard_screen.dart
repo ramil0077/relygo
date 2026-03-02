@@ -38,6 +38,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
 
   // Ride and Location tracking
   StreamSubscription<Position>? _locationSubscription;
+  StreamSubscription<QuerySnapshot>? _reminderSubscription;
   String? _activeRideId;
   bool _isTracking = false;
 
@@ -45,11 +46,13 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
   void initState() {
     super.initState();
     _loadDriverInfo();
+    _setupReminderListener();
   }
 
   @override
   void dispose() {
     _stopLocationUpdates();
+    _reminderSubscription?.cancel();
     super.dispose();
   }
 
@@ -66,6 +69,85 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
         _driverName = (data['name'] ?? data['fullName'] ?? 'Driver').toString();
         _isOnline = (data['isOnline'] ?? false) as bool;
       });
+
+      // Resume tracking if there's a ride already 'started'
+      final startedSnapshot = await FirebaseFirestore.instance
+          .collection('ride_requests')
+          .where('driverId', isEqualTo: driverId)
+          .where('status', isEqualTo: 'started')
+          .limit(1)
+          .get();
+
+      if (startedSnapshot.docs.isNotEmpty) {
+        final rId = startedSnapshot.docs.first.id;
+        if (mounted) {
+          setState(() {
+            _activeRideId = rId;
+          });
+          _startLocationUpdates();
+        }
+      }
+    }
+  }
+
+  void _setupReminderListener() {
+    final driverId = AuthService.currentUserId;
+    if (driverId == null) return;
+
+    _reminderSubscription = FirebaseFirestore.instance
+        .collection('ride_requests')
+        .where('driverId', isEqualTo: driverId)
+        .where('status', isEqualTo: 'ongoing')
+        .snapshots()
+        .listen((snapshot) {
+      final now = DateTime.now();
+      for (final doc in snapshot.docs) {
+        final data = doc.data();
+        final scheduledDate = data['scheduledDate'] as Timestamp?;
+        if (scheduledDate == null) continue;
+
+        final diff = scheduledDate.toDate().difference(now).inMinutes;
+        // If within 15 mins and hasn't notified yet
+        if (diff <= 15 && diff > 0 && data['reminderSent'] != true) {
+          _sendReminderNotification(doc.id, data['userName'] ?? 'User');
+        }
+      }
+    });
+  }
+
+  Future<void> _sendReminderNotification(String rideId, String userName) async {
+    final driverId = AuthService.currentUserId;
+    if (driverId == null) return;
+
+    // Check if notification already exists to be safe
+    final existing = await FirebaseFirestore.instance
+        .collection('notifications')
+        .where('driverId', isEqualTo: driverId)
+        .where('bookingId', isEqualTo: rideId)
+        .where('type', isEqualTo: 'ride_reminder')
+        .limit(1)
+        .get();
+
+    if (existing.docs.isEmpty) {
+      await FirebaseFirestore.instance.collection('notifications').add({
+        'driverId': driverId,
+        'title': 'Upcoming Ride Reminder',
+        'message': 'You have a ride with $userName starting in less than 15 minutes.',
+        'type': 'ride_reminder',
+        'bookingId': rideId,
+        'read': false,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+
+      // Mark as notified in BOTH collections for consistency
+      await FirebaseFirestore.instance.collection('ride_requests').doc(rideId).update({
+        'reminderSent': true,
+      });
+      try {
+        await FirebaseFirestore.instance.collection('bookings').doc(rideId).update({
+          'reminderSent': true,
+        });
+      } catch (_) {}
     }
   }
 

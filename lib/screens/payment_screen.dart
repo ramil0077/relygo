@@ -351,6 +351,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
         // Let's do individual to avoid batch failure on non-existent doc.
       });
       
+      final rideRequestDoc = await rideRequestRef.get();
+      final driverId = rideRequestDoc.data()?['driverId'];
+      
       // To be safe, just do individual updates
       await rideRequestRef.update({
         'status': 'ongoing',
@@ -367,6 +370,19 @@ class _PaymentScreenState extends State<PaymentScreen> {
           'isPaid': true,
         });
       } catch (_) {}
+
+      // Notify driver about payment
+      if (driverId != null) {
+        await FirebaseFirestore.instance.collection('notifications').add({
+          'driverId': driverId,
+          'title': 'Payment Received',
+          'message': 'Payment has been received for ride with ${rideRequestDoc.data()?['userName'] ?? 'User'}.',
+          'type': 'payment_received',
+          'bookingId': widget.requestId,
+          'read': false,
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+      }
   }
 
   Future<void> _showSuccessDialog() async {
