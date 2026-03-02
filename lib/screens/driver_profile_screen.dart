@@ -16,6 +16,41 @@ class DriverProfileScreen extends StatefulWidget {
 class _DriverProfileScreenState extends State<DriverProfileScreen> {
   @override
   Widget build(BuildContext context) {
+    final String? uid = AuthService.currentUserId;
+
+    if (uid == null) {
+      return Scaffold(
+        backgroundColor: Colors.white,
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.person_off, size: 64, color: Mycolors.gray),
+              const SizedBox(height: 16),
+              Text(
+                'Please log in to view your profile',
+                style: GoogleFonts.poppins(fontSize: 16, color: Mycolors.gray),
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(builder: (_) => const SignInScreen()),
+                    (route) => false,
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Mycolors.basecolor,
+                  foregroundColor: Colors.white,
+                ),
+                child: Text("Sign In", style: GoogleFonts.poppins()),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: Mycolors.lightGray,
       appBar: AppBar(
@@ -37,20 +72,32 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
           ),
         ),
       ),
-      body: StreamBuilder<User?>(
-        stream: AuthService.authStateChanges,
-        builder: (context, authSnapshot) {
-          final String? userId =
-              authSnapshot.data?.uid ?? AuthService.currentUserId;
-          if (userId == null) {
+      body: StreamBuilder<Map<String, dynamic>?>(
+        stream: UserService.streamUserById(uid),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (snapshot.hasError) {
+            return Center(
+              child: Text(
+                'Error: ${snapshot.error}',
+                style: GoogleFonts.poppins(color: Mycolors.red),
+              ),
+            );
+          }
+
+          final data = snapshot.data;
+          if (data == null) {
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.person_off, size: 64, color: Mycolors.gray),
+                  Icon(Icons.error_outline, size: 64, color: Mycolors.red),
                   const SizedBox(height: 16),
                   Text(
-                    'Please log in to view your profile',
+                    'Driver profile not available',
                     style: GoogleFonts.poppins(
                       fontSize: 16,
                       color: Mycolors.gray,
@@ -61,63 +108,19 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
             );
           }
 
-          return StreamBuilder<Map<String, dynamic>?>(
-            stream: UserService.streamUserById(userId),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              }
-              if (snapshot.hasError) {
-                return Center(
-                  child: Text(
-                    "Error: ${snapshot.error}",
-                    style: GoogleFonts.poppins(color: Mycolors.red),
-                  ),
-                );
-              }
+          // Data extracted from Firestore
+          final name = (data['name'] ?? data['fullName'] ?? 'Driver').toString();
+          final email = (data['email'] ?? '').toString();
+          final phone = (data['phone'] ?? data['phoneNumber'] ?? '').toString();
+          final photoUrl = (data['photoUrl'] ?? '').toString();
+          final rating = (data['rating'] ?? 4.8).toString();
 
-              final data = snapshot.data;
-              if (data == null) {
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.error_outline, size: 64, color: Mycolors.gray),
-                      const SizedBox(height: 16),
-                      Text(
-                        "Driver profile not available",
-                        style: GoogleFonts.poppins(
-                          color: Mycolors.gray,
-                          fontSize: 16,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        "ID: $userId",
-                        style: GoogleFonts.poppins(
-                          color: Mycolors.gray,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              }
-
-              // Robust data extraction with safe type handling
-              final Map<String, dynamic> vehicle = (data['vehicle'] is Map)
-                  ? Map<String, dynamic>.from(data['vehicle'] as Map)
-                  : {};
-              final Map<String, dynamic> docs = (data['documents'] is Map)
-                  ? Map<String, dynamic>.from(data['documents'] as Map)
-                  : {};
-
-              final name = (data['name'] ?? data['fullName'] ?? 'Driver')
-                  .toString();
-              final email = (data['email'] ?? '').toString();
-              final phone = (data['phone'] ?? '').toString();
-              final photoUrl = (data['photoUrl'] ?? '').toString();
-              final rating = (data['rating'] ?? 4.8).toString();
+          final vehicle = (data['vehicle'] is Map)
+              ? Map<String, dynamic>.from(data['vehicle'] as Map)
+              : {};
+          final docs = (data['documents'] is Map)
+              ? Map<String, dynamic>.from(data['documents'] as Map)
+              : {};
 
               final vehicleType =
                   (vehicle['type'] ?? docs['vehicleType'] ?? 'Vehicle')
@@ -386,10 +389,8 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
                   ],
                 ),
               );
-            }, // closes inner StreamBuilder builder
-          ); // closes inner StreamBuilder widget
-        }, // closes outer authStateChanges builder
-      ),
+            },
+          ),
     );
   }
 
