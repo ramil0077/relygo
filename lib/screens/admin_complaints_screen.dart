@@ -5,7 +5,8 @@ import 'package:relygo/services/admin_service.dart';
 import 'package:intl/intl.dart';
 
 class AdminComplaintsScreen extends StatefulWidget {
-  const AdminComplaintsScreen({super.key});
+  final bool isEmbedded;
+  const AdminComplaintsScreen({super.key, this.isEmbedded = false});
 
   @override
   State<AdminComplaintsScreen> createState() => _AdminComplaintsScreenState();
@@ -18,20 +19,40 @@ class _AdminComplaintsScreenState extends State<AdminComplaintsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        title: Text(
-          'Complaints Management',
-          style: GoogleFonts.poppins(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Colors.black,
-          ),
-        ),
-      ),
+      appBar: widget.isEmbedded
+          ? null
+          : AppBar(
+              backgroundColor: Colors.white,
+              elevation: 0,
+              title: Text(
+                'Complaints Management',
+                style: GoogleFonts.poppins(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
+            ),
       body: Column(
         children: [
+          if (widget.isEmbedded) ...[
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+              child: Row(
+                children: [
+                  Text(
+                    "Complaints Management",
+                    style: GoogleFonts.poppins(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                  ),
+                  const Spacer(),
+                ],
+              ),
+            ),
+          ],
           // Filter Tabs
           Container(
             margin: const EdgeInsets.all(16),

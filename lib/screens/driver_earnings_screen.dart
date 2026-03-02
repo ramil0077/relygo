@@ -36,6 +36,15 @@ class _DriverEarningsScreenState extends State<DriverEarningsScreen> {
             color: Colors.black,
           ),
         ),
+<<<<<<< HEAD
+=======
+        leading: Navigator.of(context).canPop()
+            ? IconButton(
+                icon: const Icon(Icons.arrow_back, color: Colors.black),
+                onPressed: () => Navigator.pop(context),
+              )
+            : null,
+>>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
       ),
       body: SingleChildScrollView(
         padding: ResponsiveUtils.getResponsivePadding(context),

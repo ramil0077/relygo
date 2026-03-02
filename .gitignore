@@ -44,6 +44,9 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
+# Secret Keys
+lib/api_keys.dart
+
 # Android signing keys (NEVER commit these!)
 android/key.properties
 *.jks

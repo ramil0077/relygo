@@ -2,11 +2,19 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:relygo/firebase_options.dart';
+<<<<<<< HEAD
 import 'package:relygo/screens/landing_page.dart';
 import 'package:relygo/constants.dart';
 import 'package:relygo/services/background_service.dart';
 import 'package:relygo/utils/platform_utils.dart';
 import 'package:relygo/widgets/auth_wrapper.dart';
+=======
+import 'package:relygo/constants.dart';
+import 'package:relygo/services/background_service.dart';
+import 'package:relygo/widgets/auth_wrapper.dart';
+import 'package:flutter/foundation.dart'; // For kIsWeb
+import 'package:relygo/screens/admin_landing_page.dart';
+>>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -104,7 +112,11 @@ class MyApp extends StatelessWidget {
           theme: AppTheme.theme,
           darkTheme: AppTheme.darkTheme,
           themeMode: themeMode,
+<<<<<<< HEAD
           home: PlatformUtils.isWeb ? const LandingPage() : const AuthWrapper(),
+=======
+          home: kIsWeb ? const AdminLandingPage() : const AuthWrapper(),
+>>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
         );
       },
     );

@@ -2,7 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:relygo/constants.dart';
 import 'package:relygo/services/admin_service.dart';
+<<<<<<< HEAD
 import 'package:relygo/utils/phone_validation.dart';
+=======
+import 'package:relygo/screens/chat_detail_screen.dart';
+import 'package:relygo/services/chat_service.dart';
+>>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
 
 class DriverManagementScreen extends StatefulWidget {
   const DriverManagementScreen({super.key});
@@ -349,6 +354,16 @@ class _DriverManagementScreenState extends State<DriverManagementScreen> {
                           ),
                         ),
                       PopupMenuItem(
+                        value: "chat",
+                        child: Row(
+                          children: [
+                            Icon(Icons.chat, color: Mycolors.blue, size: 18),
+                            const SizedBox(width: 8),
+                            Text("Support Chat", style: GoogleFonts.poppins()),
+                          ],
+                        ),
+                      ),
+                      PopupMenuItem(
                         value: "delete",
                         child: Row(
                           children: [
@@ -462,6 +477,7 @@ class _DriverManagementScreenState extends State<DriverManagementScreen> {
     if (v == 'online') return 'Online';
     if (v == 'offline') return 'Offline';
     if (v == 'suspended') return 'Pending';
+    if (v == 'rejected') return 'Rejected';
     return 'Pending';
   }
 
@@ -479,10 +495,27 @@ class _DriverManagementScreenState extends State<DriverManagementScreen> {
       case "suspend":
         _suspendDriver(driverId, driverName);
         break;
+      case "chat":
+        _openSupportChat(driverId, driverName);
+        break;
       case "delete":
         _deleteDriver(driverId, driverName);
         break;
     }
+  }
+
+  void _openSupportChat(String driverId, String driverName) {
+    final String conversationId = ChatService.conversationIdWithPeer(driverId);
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ChatDetailScreen(
+          peerName: driverName,
+          conversationId: conversationId,
+          peerId: driverId,
+        )
+      )
+    );
   }
 
   void _showDriverDetailsDialog(String driverName) {

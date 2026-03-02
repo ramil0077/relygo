@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:relygo/constants.dart';
 import 'package:relygo/services/driver_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'package:relygo/utils/responsive_helper.dart';
 
@@ -398,8 +399,22 @@ class _DriverBookingRequestsScreenState
       try {
         final fare = double.parse(fareController.text);
 
-        // Get driver name from current user
-        final driverName = 'Driver'; // You should get this from user profile
+        // Get driver name from current user profile
+        String driverName = 'Driver';
+        final driverUid = _currentUserId;
+        if (driverUid.isNotEmpty) {
+          final driverDoc = await FirebaseFirestore.instance
+              .collection('users')
+              .doc(driverUid)
+              .get();
+          if (driverDoc.exists) {
+            driverName =
+                (driverDoc.data()?['name'] ??
+                        driverDoc.data()?['fullName'] ??
+                        'Driver')
+                    .toString();
+          }
+        }
 
         final result = await DriverService.acceptBooking(
           bookingId,

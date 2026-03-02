@@ -1,5 +1,9 @@
+<<<<<<< HEAD
 import 'dart:async';
 import 'dart:math' as math;
+=======
+import 'package:cloud_firestore/cloud_firestore.dart';
+>>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -7,19 +11,23 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:location/location.dart';
 import 'package:relygo/constants.dart';
 import 'package:relygo/screens/chat_detail_screen.dart';
+<<<<<<< HEAD
 import 'package:relygo/services/location_service.dart';
 import 'package:relygo/utils/platform_utils.dart';
 import 'package:relygo/utils/responsive.dart';
+=======
+import 'package:relygo/services/chat_service.dart';
+>>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
 import 'package:url_launcher/url_launcher.dart';
 
 class DriverTrackingScreen extends StatefulWidget {
   final String bookingId;
-  final Map<String, dynamic> bookingData;
+  final Map<String, dynamic> initialBookingData;
 
   const DriverTrackingScreen({
     super.key,
     required this.bookingId,
-    required this.bookingData,
+    required this.initialBookingData,
   });
 
   @override
@@ -218,6 +226,7 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
 
   @override
   Widget build(BuildContext context) {
+<<<<<<< HEAD
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -262,13 +271,66 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
           ],
         ),
       ),
+=======
+    return StreamBuilder<DocumentSnapshot>(
+      stream: FirebaseFirestore.instance.collection('bookings').doc(widget.bookingId).snapshots(),
+      builder: (context, snapshot) {
+        final bookingData = snapshot.hasData && snapshot.data!.exists 
+            ? snapshot.data!.data() as Map<String, dynamic> 
+            : widget.initialBookingData;
+
+        return Scaffold(
+          backgroundColor: Colors.white,
+          appBar: AppBar(
+            backgroundColor: Colors.white,
+            elevation: 0,
+            title: Text(
+              'Track Your Driver',
+              style: GoogleFonts.poppins(
+                fontWeight: FontWeight.w600,
+                color: Colors.black,
+              ),
+            ),
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back, color: Colors.black),
+              onPressed: () => Navigator.pop(context),
+            ),
+          ),
+          body: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Booking Status Card
+                _buildBookingStatusCard(bookingData),
+                const SizedBox(height: 20),
+
+                // Driver Information Card
+                _buildDriverInfoCard(bookingData),
+                const SizedBox(height: 20),
+
+                // Contact Actions
+                _buildContactActions(bookingData),
+                const SizedBox(height: 20),
+
+                // Ride Details
+                _buildRideDetailsCard(bookingData),
+                const SizedBox(height: 20),
+
+                // Live Tracking (Simulated)
+                _buildLiveTrackingCard(bookingData),
+              ],
+            ),
+          ),
+        );
+      }
+>>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
     );
   }
 
-  Widget _buildBookingStatusCard() {
-    final status = widget.bookingData['status'] ?? 'unknown';
-    final isPaid = widget.bookingData['isPaid'] ?? false;
-
+  Widget _buildBookingStatusCard(Map<String, dynamic> bookingData) {
+    final status = bookingData['status'] ?? 'unknown';
+    final isPaid = bookingData['isPaid'] ?? false;
     Color statusColor;
     IconData statusIcon;
     String statusText;
@@ -286,6 +348,11 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
         break;
       case 'ongoing':
         statusColor = Mycolors.basecolor;
+        statusIcon = Icons.payment;
+        statusText = 'Payment Confirmed';
+        break;
+      case 'started':
+        statusColor = Mycolors.green;
         statusIcon = Icons.local_taxi;
         statusText = 'Ride in Progress';
         break;
@@ -350,9 +417,9 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
     );
   }
 
-  Widget _buildDriverInfoCard() {
+  Widget _buildDriverInfoCard(Map<String, dynamic> bookingData) {
     final driverDetails =
-        widget.bookingData['driverDetails'] as Map<String, dynamic>?;
+        bookingData['driverDetails'] as Map<String, dynamic>?;
 
     if (driverDetails == null) {
       return Container(
@@ -473,10 +540,10 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
     );
   }
 
-  Widget _buildContactActions() {
+  Widget _buildContactActions(Map<String, dynamic> bookingData) {
     final driverDetails =
-        widget.bookingData['driverDetails'] as Map<String, dynamic>?;
-    final driverId = widget.bookingData['driverId'];
+        bookingData['driverDetails'] as Map<String, dynamic>?;
+    final driverId = bookingData['driverId'];
     final driverName = driverDetails?['name'] ?? 'Driver';
     final driverPhone = driverDetails?['phone'] ?? '';
 
@@ -540,7 +607,7 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
     );
   }
 
-  Widget _buildRideDetailsCard() {
+  Widget _buildRideDetailsCard(Map<String, dynamic> bookingData) {
     return Container(
       padding: ResponsiveUtils.getResponsivePadding(context),
       decoration: BoxDecoration(
@@ -589,7 +656,7 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
                       ),
                     ),
                     Text(
-                      widget.bookingData['pickupLocation'] ?? 'Unknown',
+                      bookingData['pickupLocation'] ?? 'Unknown',
                       style: GoogleFonts.poppins(
                         fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 16, tablet: 17, desktop: 18),
                         fontWeight: FontWeight.w500,
@@ -624,7 +691,7 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
                       ),
                     ),
                     Text(
-                      widget.bookingData['dropoffLocation'] ?? 'Unknown',
+                      bookingData['dropoffLocation'] ?? 'Unknown',
                       style: GoogleFonts.poppins(
                         fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 16, tablet: 17, desktop: 18),
                         fontWeight: FontWeight.w500,
@@ -639,6 +706,7 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
           SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 16, tablet: 18, desktop: 20)),
 
           // Fare
+<<<<<<< HEAD
           if (widget.bookingData['fare'] != null)
             Row(
               children: [
@@ -650,6 +718,15 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
                 SizedBox(width: ResponsiveUtils.getResponsiveSpacing(context, mobile: 12, tablet: 14, desktop: 16)),
                 Text(
                   'Fare: ₹${widget.bookingData['fare']}',
+=======
+          if (bookingData['fare'] != null)
+              Row(
+                children: [
+                  Icon(Icons.attach_money, color: Mycolors.orange, size: 20),
+                  const SizedBox(width: 12),
+                  Text(
+                    'Fare: ₹${bookingData['fare']}',
+>>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
                   style: GoogleFonts.poppins(
                     fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 16, tablet: 17, desktop: 18),
                     fontWeight: FontWeight.bold,
@@ -663,6 +740,7 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
     );
   }
 
+<<<<<<< HEAD
   Widget _buildLiveTrackingCard() {
     final status = widget.bookingData['status'] ?? 'unknown';
     final isPaid = widget.bookingData['isPaid'] ?? false;
@@ -674,6 +752,13 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
         (statusLower == 'completed' && isPaid);
 
     if (!isActive) {
+=======
+  Widget _buildLiveTrackingCard(Map<String, dynamic> bookingData) {
+    final status = bookingData['status']?.toString().toLowerCase() ?? 'unknown';
+    final driverId = bookingData['driverId'];
+
+    if (status != 'started' || driverId == null) {
+>>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
       return Container(
         padding: ResponsiveUtils.getResponsivePadding(context),
         decoration: BoxDecoration(
@@ -692,7 +777,13 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
             SizedBox(width: ResponsiveUtils.getResponsiveSpacing(context, mobile: 16, tablet: 18, desktop: 20)),
             Expanded(
               child: Text(
+<<<<<<< HEAD
                 'Live tracking will be available when driver accepts the ride',
+=======
+                status == 'ongoing' 
+                  ? 'Ride started! Tracking will appear soon.' 
+                  : 'Live tracking will be available once the driver starts the ride.',
+>>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
                 style: GoogleFonts.poppins(
                   fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 16, tablet: 17, desktop: 18),
                   color: Colors.grey[600],
@@ -704,6 +795,7 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
       );
     }
 
+<<<<<<< HEAD
     // Show map view if on mobile, otherwise show message
     if (PlatformUtils.isWeb) {
       return Container(
@@ -826,6 +918,34 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
                   fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 18, tablet: 20, desktop: 22),
                   fontWeight: FontWeight.bold,
                 ),
+=======
+    return StreamBuilder<DocumentSnapshot>(
+      stream: FirebaseFirestore.instance.collection('users').doc(driverId).snapshots(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData || !snapshot.data!.exists) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        final driverData = snapshot.data!.data() as Map<String, dynamic>;
+        final location = driverData['location'] as Map<String, dynamic>?;
+        
+        double? lat, lng;
+        if (location != null) {
+          lat = (location['latitude'] as num?)?.toDouble();
+          lng = (location['longitude'] as num?)?.toDouble();
+        }
+
+        return Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.1),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+>>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
               ),
               const Spacer(),
               if (_driverPosition != null)
@@ -840,6 +960,7 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
                 ),
             ],
           ),
+<<<<<<< HEAD
           SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 16, tablet: 18, desktop: 20)),
 
           // Real map view
@@ -898,12 +1019,31 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
                           ],
                         ),
                       ),
+=======
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    Icons.location_searching,
+                    color: Mycolors.green,
+                    size: 24,
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    'Live Tracking ON',
+                    style: GoogleFonts.poppins(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Mycolors.green,
+>>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
                     ),
                 ],
               ),
-            ),
-          ),
+              const SizedBox(height: 16),
 
+<<<<<<< HEAD
           SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 16, tablet: 18, desktop: 20)),
 
           // Distance and ETA info
@@ -1002,12 +1142,81 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
                       ),
                     ],
                   ),
+=======
+              // Tracking Stats
+              if (lat != null && lng != null) ...[
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _buildTrackingStat('Latitude', lat.toStringAsFixed(4)),
+                    _buildTrackingStat('Longitude', lng.toStringAsFixed(4)),
+                  ],
+>>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
                 ),
+                const SizedBox(height: 16),
+              ],
+
+              // Map Placeholder with coordinates
+              Container(
+                height: 200,
+                decoration: BoxDecoration(
+                  color: Colors.grey[200],
+                  borderRadius: BorderRadius.circular(8),
+                  image: lat != null ? const DecorationImage(
+                    image: AssetImage('assets/logooo.png'), // Using logo as a placeholder icon
+                    scale: 5,
+                  ) : null,
+                ),
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.map, size: 48, color: Mycolors.basecolor.withOpacity(0.5)),
+                      const SizedBox(height: 8),
+                      Text(
+                        lat != null ? 'Driver is currently at ($lat, $lng)' : 'Waiting for GPS signal...',
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.grey[700],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              // Estimated arrival
+              Row(
+                children: [
+                  Icon(Icons.access_time, color: Mycolors.orange, size: 20),
+                  const SizedBox(width: 12),
+                  Text(
+                    'Driver is on the way!',
+                    style: GoogleFonts.poppins(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
-        ],
-      ),
+        );
+      }
+    );
+  }
+
+  Widget _buildTrackingStat(String label, String value) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey)),
+        Text(value, style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.bold)),
+      ],
     );
   }
 
@@ -1099,11 +1308,15 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
   }
 
   void _openChat(String driverId, String driverName) {
+    final String conversationId = ChatService.conversationIdWithPeer(driverId);
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) =>
-            ChatDetailScreen(peerName: driverName, peerId: driverId),
+        builder: (context) => ChatDetailScreen(
+          peerName: driverName,
+          conversationId: conversationId,
+          peerId: driverId,
+        ),
       ),
     );
   }

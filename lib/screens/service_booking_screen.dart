@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:relygo/constants.dart';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:relygo/services/auth_service.dart';
+<<<<<<< HEAD
 
 /// Base fare by vehicle type (used when no distance calculation)
 int _baseFareForVehicle(String vehicle) {
@@ -18,6 +18,10 @@ int _baseFareForVehicle(String vehicle) {
   }
 }
 // Map integration removed
+=======
+import 'package:geolocator/geolocator.dart';
+import 'package:geocoding/geocoding.dart';
+>>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
 
 class ServiceBookingScreen extends StatefulWidget {
   const ServiceBookingScreen({super.key});
@@ -27,8 +31,12 @@ class ServiceBookingScreen extends StatefulWidget {
 }
 
 class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
+<<<<<<< HEAD
   final _formKey = GlobalKey<FormState>();
   String _selectedService = "Ride";
+=======
+  String _selectedService = "driver_with_vehicle";
+>>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
   String _selectedVehicle = "Car";
   DateTime? _selectedDate;
   TimeOfDay? _selectedTime;
@@ -37,6 +45,7 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
   String? _driverId;
   String? _driverName;
   int? _estimatedPrice;
+  bool _detectingLocation = false;
 
   @override
   void initState() {
@@ -62,13 +71,17 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
 
   @override
   void dispose() {
+<<<<<<< HEAD
     _pickupController.removeListener(_updateEstimatedPrice);
     _destinationController.removeListener(_updateEstimatedPrice);
+=======
+>>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
     _pickupController.dispose();
     _destinationController.dispose();
     super.dispose();
   }
 
+<<<<<<< HEAD
   void _updateEstimatedPrice() {
     final pickup = _pickupController.text.trim();
     final dest = _destinationController.text.trim();
@@ -78,6 +91,134 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
     }
     if (mounted && _estimatedPrice != estimate) {
       setState(() => _estimatedPrice = estimate);
+=======
+  /// Auto-detect current location and fill pickup field
+  Future<void> _detectCurrentLocation() async {
+    setState(() => _detectingLocation = true);
+    try {
+      // Check if location services are enabled
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Location services are disabled. Please enable GPS.',
+                style: GoogleFonts.poppins(),
+              ),
+              backgroundColor: Mycolors.orange,
+              action: SnackBarAction(
+                label: 'Settings',
+                textColor: Colors.white,
+                onPressed: () => Geolocator.openLocationSettings(),
+              ),
+            ),
+          );
+        }
+        return;
+      }
+
+      // Request permission
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  'Location permission denied.',
+                  style: GoogleFonts.poppins(),
+                ),
+                backgroundColor: Mycolors.red,
+              ),
+            );
+          }
+          return;
+        }
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Location permission permanently denied. Enable it in app settings.',
+                style: GoogleFonts.poppins(),
+              ),
+              backgroundColor: Mycolors.red,
+              action: SnackBarAction(
+                label: 'Settings',
+                textColor: Colors.white,
+                onPressed: () => Geolocator.openAppSettings(),
+              ),
+            ),
+          );
+        }
+        return;
+      }
+
+      // Get current position
+      final Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+
+      // Reverse geocode to get address
+      List<Placemark> placemarks = await placemarkFromCoordinates(
+        position.latitude,
+        position.longitude,
+      );
+
+      if (placemarks.isNotEmpty) {
+        final Placemark place = placemarks.first;
+        final parts = <String>[];
+        if ((place.name ?? '').isNotEmpty &&
+            place.name != place.street &&
+            place.name != place.thoroughfare) {
+          parts.add(place.name!);
+        }
+        if ((place.street ?? '').isNotEmpty) parts.add(place.street!);
+        if ((place.subLocality ?? '').isNotEmpty) parts.add(place.subLocality!);
+        if ((place.locality ?? '').isNotEmpty) parts.add(place.locality!);
+        if ((place.administrativeArea ?? '').isNotEmpty) {
+          parts.add(place.administrativeArea!);
+        }
+
+        final address = parts.isNotEmpty
+            ? parts.join(', ')
+            : '${position.latitude.toStringAsFixed(5)}, ${position.longitude.toStringAsFixed(5)}';
+
+        setState(() {
+          _pickupController.text = address;
+        });
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Location detected!',
+                style: GoogleFonts.poppins(),
+              ),
+              backgroundColor: Mycolors.green,
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Could not get location. Please enter manually.',
+              style: GoogleFonts.poppins(),
+            ),
+            backgroundColor: Mycolors.orange,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _detectingLocation = false);
+>>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
     }
   }
 
@@ -125,17 +266,17 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
                 children: [
                   Expanded(
                     child: _buildServiceTypeCard(
-                      "Ride",
-                      'assets/logooo.png',
-                      "Ride",
+                      "Driver\nOnly",
+                      Icons.person,
+                      "driver_only",
                     ),
                   ),
                   const SizedBox(width: 10),
                   Expanded(
                     child: _buildServiceTypeCard(
-                      "Delivery",
-                      Icons.local_shipping,
-                      "Delivery",
+                      "Driver +\nVehicle",
+                      Icons.directions_car,
+                      "driver_with_vehicle",
                     ),
                   ),
                 ],
@@ -158,7 +299,7 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
                     Expanded(
                       child: _buildVehicleCard(
                         "Car",
-                        'assets/logooo.png',
+                        Icons.directions_car,
                         "Car",
                       ),
                     ),
@@ -237,7 +378,7 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
                 const SizedBox(height: 20),
               ],
 
-              // Pickup Location
+              // ── Pickup Location ──────────────────────────────────────────
               Text(
                 "Pickup Location",
                 style: GoogleFonts.poppins(
@@ -246,6 +387,7 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
                   color: Colors.black,
                 ),
               ),
+<<<<<<< HEAD
               const SizedBox(height: 15),
               TextFormField(
                 controller: _pickupController,
@@ -254,10 +396,76 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
                   prefixIcon: Icon(
                     Icons.location_on,
                     color: Mycolors.basecolor,
+=======
+              const SizedBox(height: 10),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _pickupController,
+                      decoration: InputDecoration(
+                        hintText: "Enter pickup location",
+                        prefixIcon: Icon(
+                          Icons.location_on,
+                          color: Mycolors.basecolor,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 14,
+                        ),
+                      ),
+                    ),
+>>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
                   ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
+                  const SizedBox(width: 10),
+                  // 📍 Auto-Location Button
+                  Tooltip(
+                    message: 'Use my current location',
+                    child: InkWell(
+                      onTap: _detectingLocation ? null : _detectCurrentLocation,
+                      borderRadius: BorderRadius.circular(12),
+                      child: Container(
+                        width: 50,
+                        height: 54,
+                        decoration: BoxDecoration(
+                          color: Mycolors.basecolor,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Mycolors.basecolor.withOpacity(0.3),
+                              blurRadius: 6,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                        child: _detectingLocation
+                            ? const Padding(
+                                padding: EdgeInsets.all(14),
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2.5,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : const Icon(
+                                Icons.my_location,
+                                color: Colors.white,
+                                size: 24,
+                              ),
+                      ),
+                    ),
                   ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'Tap 📍 to auto-detect your current location',
+                style: GoogleFonts.poppins(
+                  fontSize: 12,
+                  color: Mycolors.gray,
                 ),
                 validator: (v) {
                   if (v == null || v.trim().isEmpty) return 'Please enter pickup location';
@@ -266,7 +474,7 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
               ),
               const SizedBox(height: 20),
 
-              // Destination Location
+              // ── Destination ──────────────────────────────────────────────
               Text(
                 "Destination",
                 style: GoogleFonts.poppins(
@@ -483,7 +691,7 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
         });
       },
       child: Container(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 10),
         decoration: BoxDecoration(
           color: isSelected ? Mycolors.basecolor : Colors.white,
           borderRadius: BorderRadius.circular(12),
@@ -494,18 +702,17 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
         ),
         child: Column(
           children: [
-            icon is String
-                ? Image.asset(icon, width: 30, height: 30)
-                : Icon(
-                    icon,
-                    color: isSelected ? Colors.white : Mycolors.basecolor,
-                    size: 30,
-                  ),
+            Icon(
+              icon,
+              color: isSelected ? Colors.white : Mycolors.basecolor,
+              size: 30,
+            ),
             const SizedBox(height: 10),
             Text(
               title,
+              textAlign: TextAlign.center,
               style: GoogleFonts.poppins(
-                fontSize: 14,
+                fontSize: 13,
                 fontWeight: FontWeight.w600,
                 color: isSelected ? Colors.white : Colors.black,
               ),
@@ -537,13 +744,11 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
         ),
         child: Column(
           children: [
-            icon is String
-                ? Image.asset(icon, width: 24, height: 24)
-                : Icon(
-                    icon,
-                    color: isSelected ? Colors.white : Mycolors.basecolor,
-                    size: 24,
-                  ),
+            Icon(
+              icon,
+              color: isSelected ? Colors.white : Mycolors.basecolor,
+              size: 24,
+            ),
             const SizedBox(height: 8),
             Text(
               title,
@@ -611,18 +816,47 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
       return;
     }
 
+    if (_pickupController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Please enter a pickup location',
+            style: GoogleFonts.poppins(),
+          ),
+          backgroundColor: Mycolors.orange,
+        ),
+      );
+      return;
+    }
+
+    if (_destinationController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Please enter a destination',
+            style: GoogleFonts.poppins(),
+          ),
+          backgroundColor: Mycolors.orange,
+        ),
+      );
+      return;
+    }
+
     try {
       final now = DateTime.now();
       final fare = _estimatedPrice ?? _baseFareForVehicle(_selectedVehicle);
       final data = {
         'userId': userId,
-        'driverId': _driverId, // can be null for open request
+        'driverId': _driverId,
         'driverName': _driverName,
         'service': _selectedService,
         'vehicle': _selectedVehicle,
         'pickup': _pickupController.text.trim(),
         'destination': _destinationController.text.trim(),
+<<<<<<< HEAD
         'fare': fare,
+=======
+>>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
         'status': 'pending',
         'createdAt': Timestamp.fromDate(now),
         'scheduledDate': _selectedDate != null
@@ -640,35 +874,19 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
 
       await FirebaseFirestore.instance.collection('ride_requests').add(data);
 
-      // Optional: show confirmation screen
       if (!mounted) return;
-      // Navigator.push(
-      //   context,
-      //   MaterialPageRoute(
-      //     builder: (context) => BookingConfirmationScreen(
-      //       service: _selectedService,
-      //       vehicle: _selectedVehicle,
-      //       date: _selectedDate != null
-      //           ? "${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}"
-      //           : null,
-      //       time: _selectedTime?.format(context),
-      //     ),
-      //   ),
-      // );
-
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const Text('Request sent to driver'),
           backgroundColor: Mycolors.green,
         ),
       );
+      Navigator.maybePop(context);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Booking failed: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Booking failed: $e')),
+      );
     }
   }
-
-  // Map-related code removed per requirements
 }

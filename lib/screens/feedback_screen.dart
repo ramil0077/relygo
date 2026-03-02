@@ -5,7 +5,8 @@ import 'package:relygo/services/admin_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class FeedbackScreen extends StatefulWidget {
-  const FeedbackScreen({super.key});
+  final bool isEmbedded;
+  const FeedbackScreen({super.key, this.isEmbedded = false});
 
   @override
   State<FeedbackScreen> createState() => _FeedbackScreenState();
@@ -19,32 +20,58 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text(
-          "Feedback & Reviews",
-          style: GoogleFonts.poppins(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Colors.black,
-          ),
-        ),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.refresh, color: Mycolors.basecolor),
-            onPressed: () {
-              setState(() {});
-            },
-          ),
-        ],
-      ),
+      appBar: widget.isEmbedded
+          ? null
+          : AppBar(
+              backgroundColor: Colors.white,
+              elevation: 0,
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back, color: Colors.black),
+                onPressed: () => Navigator.pop(context),
+              ),
+              title: Text(
+                "Feedback & Reviews",
+                style: GoogleFonts.poppins(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
+              actions: [
+                IconButton(
+                  icon: Icon(Icons.refresh, color: Mycolors.basecolor),
+                  onPressed: () {
+                    setState(() {});
+                  },
+                ),
+              ],
+            ),
       body: Column(
         children: [
+          if (widget.isEmbedded) ...[
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+              child: Row(
+                children: [
+                  Text(
+                    "Feedback & Reviews",
+                    style: GoogleFonts.poppins(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    icon: Icon(Icons.refresh, color: Mycolors.basecolor),
+                    onPressed: () {
+                      setState(() {});
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ],
           // Search and Filter Section
           Container(
             padding: const EdgeInsets.all(20),

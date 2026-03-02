@@ -1,9 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+<<<<<<< HEAD
 import 'package:relygo/screens/signin_screen.dart';
 import 'package:relygo/screens/responsive_user_dashboard_screen.dart';
 import 'package:relygo/screens/responsive_driver_dashboard_screen.dart';
 import 'package:relygo/screens/admin_web_dashboard_screen.dart';
+=======
+import 'package:flutter/foundation.dart' show kIsWeb;
+
+import 'package:relygo/screens/splash.dart';
+import 'package:relygo/screens/user_dashboard_screen.dart';
+import 'package:relygo/screens/driver_dashboard_screen.dart';
+import 'package:relygo/screens/admin_dashboard_screen.dart';
+>>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
 import 'package:relygo/services/auth_service.dart';
 import 'package:relygo/utils/platform_utils.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -29,6 +38,7 @@ class AuthWrapper extends StatelessWidget {
           );
         }
 
+<<<<<<< HEAD
         // Show error if stream encounters an error
         if (snapshot.hasError) {
           print('AuthWrapper error: ${snapshot.error}');
@@ -45,6 +55,11 @@ class AuthWrapper extends StatelessWidget {
               ),
             ),
           );
+=======
+        // If user is not logged in, show splash screen
+        if (snapshot.data == null) {
+          return const Splashscreen();
+>>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
         }
 
         // Check if Firebase user is logged in
@@ -114,20 +129,39 @@ class AuthWrapper extends StatelessWidget {
             }
 
             final userData = userSnapshot.data;
-            final userType = userData?['userType'] ?? 'user';
+            final userTypeStr = (userData?['userType'] ?? 'user')
+                .toString()
+                .toLowerCase();
             final status = userData?['status'] ?? 'approved';
 
+            // Enforce platform restrictions
+            if (userTypeStr == 'admin' && !kIsWeb) {
+              return _buildPlatformRestrictionScreen(
+                context,
+                'Admin access is only available on the web application. Please log in using a web browser.',
+                Icons.web,
+              );
+            }
+
+            if ((userTypeStr == 'user' || userTypeStr == 'driver') && kIsWeb) {
+              return _buildPlatformRestrictionScreen(
+                context,
+                'User and Driver dashboards are only available on the mobile app. Please use your smartphone.',
+                Icons.phone_android,
+              );
+            }
+
             // Show appropriate dashboard based on user type and status
-            switch (userType.toLowerCase()) {
+            switch (userTypeStr) {
               case 'user':
-                return const ResponsiveUserDashboardScreen();
+                return const UserDashboardScreen();
               case 'driver':
                 if (status == 'pending') {
                   return _buildPendingApprovalScreen(context, 'Driver');
                 } else if (status == 'rejected') {
                   return _buildRejectedScreen(context, 'Driver');
                 } else if (status == 'approved') {
-                  return const ResponsiveDriverDashboardScreen();
+                  return const DriverDashboardScreen();
                 } else {
                   return _buildPendingApprovalScreen(context, 'Driver');
                 }
@@ -139,7 +173,7 @@ class AuthWrapper extends StatelessWidget {
                   return _buildAdminMobileRestrictionScreen(context);
                 }
               default:
-                return const ResponsiveUserDashboardScreen();
+                return const UserDashboardScreen();
             }
           },
         );
@@ -290,7 +324,15 @@ class AuthWrapper extends StatelessWidget {
     );
   }
 
+<<<<<<< HEAD
   Widget _buildAdminMobileRestrictionScreen(BuildContext context) {
+=======
+  Widget _buildPlatformRestrictionScreen(
+    BuildContext context,
+    String message,
+    IconData icon,
+  ) {
+>>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -303,6 +345,7 @@ class AuthWrapper extends StatelessWidget {
                 width: 120,
                 height: 120,
                 decoration: BoxDecoration(
+<<<<<<< HEAD
                   color: Mycolors.basecolor.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(60),
                 ),
@@ -347,6 +390,45 @@ class AuthWrapper extends StatelessWidget {
                 child: Text(
                   'Sign Out',
                   style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+=======
+                  color: Colors.red.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(60),
+                ),
+                child: Icon(icon, size: 60, color: Colors.blue),
+              ),
+              const SizedBox(height: 32),
+              Text(
+                'Platform Restricted',
+                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                message,
+                textAlign: TextAlign.center,
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyLarge?.copyWith(color: Colors.grey[600]),
+              ),
+              const SizedBox(height: 40),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () async {
+                    await AuthService.signOut();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text('Sign Out'),
+>>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
                 ),
               ),
             ],

@@ -24,6 +24,13 @@ class _RideHistoryScreenState extends State<RideHistoryScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
+        automaticallyImplyLeading: false,
+        leading: Navigator.of(context).canPop()
+            ? IconButton(
+                icon: const Icon(Icons.arrow_back, color: Colors.black),
+                onPressed: () => Navigator.pop(context),
+              )
+            : null,
         title: Text(
           "Ride History",
           style: GoogleFonts.poppins(
@@ -68,10 +75,19 @@ class _RideHistoryScreenState extends State<RideHistoryScreen> {
 
           // Rides List - Firestore
           Expanded(
+<<<<<<< HEAD
             child: FutureBuilder<Map<String, dynamic>?>(
               future: AuthService.getUserData(AuthService.currentUserId ?? ''),
               builder: (context, userSnapshot) {
                 if (userSnapshot.connectionState == ConnectionState.waiting) {
+=======
+            child: StreamBuilder<List<Map<String, dynamic>>>(
+              stream: UserService.getUserBookingHistoryStream(
+                AuthService.currentUserId ?? '',
+              ),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+>>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
                   return const Center(child: CircularProgressIndicator());
                 }
                 if (userSnapshot.hasError) {
@@ -82,6 +98,7 @@ class _RideHistoryScreenState extends State<RideHistoryScreen> {
                     ),
                   );
                 }
+<<<<<<< HEAD
 
                 final userData = userSnapshot.data;
                 final isDriver =
@@ -196,6 +213,67 @@ class _RideHistoryScreenState extends State<RideHistoryScreen> {
                           ),
                         );
                       },
+=======
+                final allRides = snapshot.data ?? [];
+                final rides = _getFilteredRides(allRides);
+
+                if (rides.isEmpty) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.history, size: 64, color: Colors.grey[200]),
+                        const SizedBox(height: 16),
+                        Text(
+                          _selectedFilter == "All"
+                              ? 'No rides found'
+                              : 'No rides found for this period',
+                          style: GoogleFonts.poppins(color: Mycolors.gray),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+                return ListView.builder(
+                  padding: const EdgeInsets.all(20),
+                  itemCount: rides.length,
+                  itemBuilder: (context, index) {
+                    final booking = rides[index];
+                    final destination =
+                        booking['destination'] ??
+                        booking['dropoffLocation'] ??
+                        'Destination';
+                    final driverName = booking['driverName'] ?? 'Driver';
+                    final distance = booking['distance'] ?? 'N/A';
+                    final fare = booking['fare'];
+                    final price = fare != null ? '₹$fare' : '₹0';
+                    final status = _statusString(booking['status'] ?? '');
+                    final statusColor = _statusColor(status);
+                    final time = _formatDate(booking['createdAt']);
+                    final rating = (booking['rating'] is num)
+                        ? (booking['rating'] as num).toStringAsFixed(1)
+                        : '0.0';
+                    final icon = status == 'Cancelled'
+                        ? Icons.cancel
+                        : Icons.directions_car;
+                    final bookingId = booking['id'] ?? '';
+                    final driverId = booking['driverId'] ?? '';
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 15),
+                      child: _buildRideCard(
+                        destination,
+                        driverName,
+                        distance,
+                        price,
+                        status,
+                        statusColor,
+                        time,
+                        rating,
+                        icon,
+                        bookingId,
+                        driverId,
+                      ),
+>>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
                     );
                   },
                 );
@@ -691,5 +769,29 @@ class _RideHistoryScreenState extends State<RideHistoryScreen> {
         );
       },
     );
+  }
+
+  List<Map<String, dynamic>> _getFilteredRides(
+    List<Map<String, dynamic>> allRides,
+  ) {
+    if (_selectedFilter == "All") return allRides;
+
+    final now = DateTime.now();
+    final startOfToday = DateTime(now.year, now.month, now.day);
+
+    return allRides.where((ride) {
+      final createdAt = ride['createdAt'];
+      if (createdAt is! Timestamp) return false;
+      final date = createdAt.toDate();
+
+      if (_selectedFilter == "Today") {
+        return date.isAfter(startOfToday);
+      } else if (_selectedFilter == "Week") {
+        return date.isAfter(now.subtract(const Duration(days: 7)));
+      } else if (_selectedFilter == "Month") {
+        return date.isAfter(DateTime(now.year, now.month, 1));
+      }
+      return true;
+    }).toList();
   }
 }

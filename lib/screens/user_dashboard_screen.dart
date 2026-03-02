@@ -15,6 +15,8 @@ import 'package:relygo/services/admin_service.dart';
 import 'package:relygo/services/auth_service.dart';
 import 'package:relygo/services/chat_service.dart';
 import 'package:relygo/screens/chat_detail_screen.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class UserDashboardScreen extends StatefulWidget {
   const UserDashboardScreen({super.key});
@@ -168,6 +170,163 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
         );
       },
     );
+  }
+
+  void _showEmergencyDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Row(
+            children: [
+              Icon(Icons.report_problem, color: Mycolors.red),
+              const SizedBox(width: 8),
+              Text(
+                'Emergency SOS',
+                style: GoogleFonts.poppins(
+                  fontWeight: FontWeight.bold,
+                  color: Mycolors.red,
+                ),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Are you in danger? Pressing the button below will alert our security team and share your live location.',
+                style: GoogleFonts.poppins(),
+              ),
+              const SizedBox(height: 16),
+              ListTile(
+                leading: const Icon(Icons.phone, color: Colors.blue),
+                title: const Text('Call Police (100)'),
+                onTap: () {
+                  _launchCaller('100');
+                  Navigator.pop(context);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.medical_services, color: Colors.red),
+                title: const Text('Call Ambulance (102)'),
+                onTap: () {
+                  _launchCaller('102');
+                  Navigator.pop(context);
+                },
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                'Cancel',
+                style: GoogleFonts.poppins(color: Colors.grey),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final nav = Navigator.of(context);
+                final messenger = ScaffoldMessenger.of(context);
+                nav.pop();
+
+                // Show loading
+                messenger.showSnackBar(
+                  const SnackBar(
+                    content: Text('Sending SOS... Please wait.'),
+                    duration: Duration(seconds: 2),
+                  ),
+                );
+
+                try {
+                  // Get current position
+                  Position position = await Geolocator.getCurrentPosition(
+                    desiredAccuracy: LocationAccuracy.high,
+                  );
+
+                  final userId = AuthService.currentUserId;
+                  if (userId == null) return;
+
+                  final userDoc =
+                      await FirebaseFirestore.instance
+                          .collection('users')
+                          .doc(userId)
+                          .get();
+                  final userData = userDoc.data() ?? {};
+
+                  // Get active booking if any
+                  final bookingSnap =
+                      await FirebaseFirestore.instance
+                          .collection('ride_requests')
+                          .where('userId', isEqualTo: userId)
+                          .where(
+                            'status',
+                            whereIn: ['ongoing', 'started', 'accepted'],
+                          )
+                          .limit(1)
+                          .get();
+
+                  String? bookingId;
+                  if (bookingSnap.docs.isNotEmpty) {
+                    bookingId = bookingSnap.docs.first.id;
+                  }
+
+                  final result = await UserService.sendSOS(
+                    userId: userId,
+                    userName: userData['name'] ?? 'User',
+                    userPhone: userData['phone'] ?? 'N/A',
+                    latitude: position.latitude,
+                    longitude: position.longitude,
+                    bookingId: bookingId,
+                  );
+
+                  if (result['success']) {
+                    messenger.showSnackBar(
+                      SnackBar(
+                        content: const Text(
+                          'SOS Alert Sent! Help is on the way.',
+                        ),
+                        backgroundColor: Mycolors.red,
+                        duration: const Duration(seconds: 5),
+                      ),
+                    );
+                  } else {
+                    messenger.showSnackBar(
+                      SnackBar(
+                        content: Text('Failed to send SOS: ${result['error']}'),
+                        backgroundColor: Mycolors.red,
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  messenger.showSnackBar(
+                    SnackBar(
+                      content: Text('Error getting location: $e'),
+                      backgroundColor: Mycolors.red,
+                    ),
+                  );
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Mycolors.red,
+                foregroundColor: Colors.white,
+              ),
+              child: Text('SEND SOS', style: GoogleFonts.poppins()),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _launchCaller(String number) async {
+    final Uri url = Uri(scheme: 'tel', path: number);
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url);
+    }
   }
 
   @override
@@ -849,91 +1008,20 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
     required String driverName,
     String? vehicleType,
   }) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          title: Text(
-            'Book ride',
-            style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('How would you like to book?', style: GoogleFonts.poppins()),
-              const SizedBox(height: 12),
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: Icon(Icons.person, color: Mycolors.basecolor),
-                title: Text('This driver', style: GoogleFonts.poppins()),
-                onTap: () {
-                  Navigator.of(context).pop();
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const ServiceBookingScreen(),
-                      settings: RouteSettings(
-                        arguments: {
-                          'driverId': driverId,
-                          'driverName': driverName,
-                          if (vehicleType != null && vehicleType.isNotEmpty)
-                            'vehicle': vehicleType,
-                        },
-                      ),
-                    ),
-                  );
-                },
-              ),
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: Image.asset(
-                  'assets/logooo.png',
-                  width: 24,
-                  height: 24,
-                ),
-                title: Text('By vehicle only', style: GoogleFonts.poppins()),
-                subtitle: vehicleType != null && vehicleType.isNotEmpty
-                    ? Text(
-                        vehicleType,
-                        style: GoogleFonts.poppins(
-                          fontSize: 12,
-                          color: Mycolors.gray,
-                        ),
-                      )
-                    : null,
-                onTap: () {
-                  Navigator.of(context).pop();
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const ServiceBookingScreen(),
-                      settings: RouteSettings(
-                        arguments: {
-                          if (vehicleType != null && vehicleType.isNotEmpty)
-                            'vehicle': vehicleType,
-                        },
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text(
-                'Close',
-                style: GoogleFonts.poppins(color: Colors.grey),
-              ),
-            ),
-          ],
-        );
-      },
+    // Directly book with this driver - no dialog needed
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const ServiceBookingScreen(),
+        settings: RouteSettings(
+          arguments: {
+            'driverId': driverId,
+            'driverName': driverName,
+            if (vehicleType != null && vehicleType.isNotEmpty)
+              'vehicle': vehicleType,
+          },
+        ),
+      ),
     );
   }
 
@@ -1226,13 +1314,16 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
             builder: (context, snapshot) {
               if (snapshot.hasData && snapshot.data != null) {
                 final activeBooking = snapshot.data!;
+                final status = activeBooking['status']?.toString().toLowerCase() ?? 'unknown';
+                final isStarted = status == 'started';
+                
                 return Container(
                   margin: const EdgeInsets.only(bottom: 20),
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Mycolors.green.withOpacity(0.1),
+                    color: isStarted ? Mycolors.green.withOpacity(0.1) : Mycolors.orange.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Mycolors.green.withOpacity(0.3)),
+                    border: Border.all(color: isStarted ? Mycolors.green.withOpacity(0.3) : Mycolors.orange.withOpacity(0.3)),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -1240,24 +1331,24 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                       Row(
                         children: [
                           Icon(
-                            Icons.local_taxi,
-                            color: Mycolors.green,
+                            isStarted ? Icons.local_taxi : Icons.schedule,
+                            color: isStarted ? Mycolors.green : Mycolors.orange,
                             size: 24,
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            'Active Ride',
+                            isStarted ? 'Ride in Progress' : 'Upcoming Ride',
                             style: GoogleFonts.poppins(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
-                              color: Mycolors.green,
+                              color: isStarted ? Mycolors.green : Mycolors.orange,
                             ),
                           ),
                         ],
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        'Status: ${activeBooking['status']?.toString().toUpperCase() ?? 'UNKNOWN'}',
+                        'Status: ${status.toUpperCase()}',
                         style: GoogleFonts.poppins(fontSize: 14),
                       ),
                       if (activeBooking['driverDetails'] != null) ...[
@@ -1267,25 +1358,39 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                           style: GoogleFonts.poppins(fontSize: 14),
                         ),
                       ],
-                      const SizedBox(height: 12),
-                      ElevatedButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => DriverTrackingScreen(
-                                bookingId: activeBooking['id'] ?? '',
-                                bookingData: activeBooking,
-                              ),
-                            ),
-                          );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Mycolors.green,
-                          foregroundColor: Colors.white,
+                      if (!isStarted && status == 'accepted') ...[
+                        const SizedBox(height: 8),
+                        Text(
+                          'Please pay to confirm and enable tracking.',
+                          style: GoogleFonts.poppins(fontSize: 12, color: Mycolors.red, fontWeight: FontWeight.w500),
                         ),
-                        child: Text('Track Driver'),
-                      ),
+                      ],
+                      if (isStarted) ...[
+                        const SizedBox(height: 12),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton.icon(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => DriverTrackingScreen(
+                                    bookingId: activeBooking['id'] ?? '',
+                                    initialBookingData: activeBooking,
+                                  ),
+                                ),
+                              );
+                            },
+                            icon: const Icon(Icons.location_searching),
+                            label: const Text('Track Driver Live'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Mycolors.green,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                            ),
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 );
@@ -1487,36 +1592,91 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
             ],
           ),
 
-          // Action buttons for completed rides
-          if (status.toLowerCase() == 'completed' && driverDetails != null) ...[
+          // Action buttons for active or completed rides
+          if (driverDetails != null) ...[
             const SizedBox(height: 12),
             Row(
               children: [
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: () => _showFeedbackDialog(booking),
-                    icon: Icon(Icons.star, size: 16),
-                    label: Text('Rate & Review'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Mycolors.orange,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 8),
+                if (status.toLowerCase() == 'completed') ...[
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () => _showFeedbackDialog(booking),
+                      icon: const Icon(Icons.star, size: 16),
+                      label: const Text('Rate & Review'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Mycolors.orange,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () => _showComplaintDialog(booking),
-                    icon: Icon(Icons.report_problem, size: 16),
-                    label: Text('Complain'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Mycolors.red,
-                      side: BorderSide(color: Mycolors.red),
-                      padding: const EdgeInsets.symmetric(vertical: 8),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () => _showComplaintDialog(booking),
+                      icon: const Icon(Icons.report_problem, size: 16),
+                      label: const Text('Complain'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Mycolors.red,
+                        side: BorderSide(color: Mycolors.red),
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                      ),
                     ),
                   ),
-                ),
+                ] else if (status.toLowerCase() == 'ongoing' || status.toLowerCase() == 'started') ...[
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        final String? driverId = booking['driverId'];
+                        if (driverId != null) {
+                          final String conversationId = ChatService.conversationIdWithPeer(driverId);
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ChatDetailScreen(
+                                peerName: driverDetails['name'] ?? 'Driver',
+                                conversationId: conversationId,
+                                peerId: driverId,
+                              ),
+                            ),
+                          );
+                        }
+                      },
+                      icon: const Icon(Icons.chat, size: 16),
+                      label: const Text('Chat with Driver'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Mycolors.blue,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                      ),
+                    ),
+                  ),
+                  if (status.toLowerCase() == 'started') ...[
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => DriverTrackingScreen(
+                                bookingId: booking['id'],
+                                initialBookingData: booking,
+                              ),
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.map, size: 16),
+                        label: const Text('Track Driver'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Mycolors.green,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
               ],
             ),
           ],
@@ -1559,14 +1719,10 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                     ),
                   );
                 }
-                final String? myId = AuthService.currentUserId;
                 return ListView.builder(
                   itemCount: conversations.length,
                   itemBuilder: (context, index) {
                     final c = conversations[index];
-                    final List participants = (c['participants'] is List)
-                        ? (c['participants'] as List)
-                        : [];
                     final String conversationId = (c['id'] ?? '').toString();
                     final String lastMessage = (c['lastMessage'] ?? '')
                         .toString();
@@ -1574,19 +1730,13 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                     final String timeText = updatedAt != null
                         ? _formatDate(updatedAt)
                         : '';
-                    // pick a peerId (the other participant)
-                    String peerId = '';
-                    if (myId != null && participants.isNotEmpty) {
-                      for (final p in participants) {
-                        if (p != myId) {
-                          peerId = p.toString();
-                          break;
-                        }
-                      }
-                    }
-                    final String title = peerId.isNotEmpty
-                        ? 'Chat with $peerId'
-                        : 'Conversation';
+                    // Use enriched peerName from ChatService stream
+                    final String peerId = (c['peerId'] ?? '').toString();
+                    final String title =
+                        (c['peerName'] != null &&
+                            (c['peerName'] as String).isNotEmpty)
+                        ? c['peerName'] as String
+                        : (peerId.isNotEmpty ? 'User' : 'Conversation');
 
                     return GestureDetector(
                       onTap: () {
@@ -1632,11 +1782,15 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
             Expanded(
               child: _buildServiceCard(
                 context,
-                "Book a Ride",
-                Icons.directions_car,
+                "Search Drivers",
+                Icons.search,
                 Mycolors.basecolor,
                 () {
+<<<<<<< HEAD
                   _promptHomeBooking();
+=======
+                  setState(() => _selectedIndex = 1);
+>>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
                 },
               ),
             ),
@@ -1648,12 +1802,16 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                 Icons.history,
                 Mycolors.orange,
                 () {
+<<<<<<< HEAD
                   Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (context) => RideHistoryScreen(),
                     ),
                   );
+=======
+                  setState(() => _selectedIndex = 1);
+>>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
                 },
               ),
             ),
@@ -1669,7 +1827,11 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                 Icons.emergency,
                 Mycolors.red,
                 () {
+<<<<<<< HEAD
                   _showEmergencySheet();
+=======
+                  _showEmergencyDialog();
+>>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
                 },
               ),
             ),
@@ -1677,10 +1839,57 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
             Expanded(
               child: _buildServiceCard(
                 context,
+<<<<<<< HEAD
                 "Track Driver",
                 Icons.my_location,
                 Mycolors.green,
                 () => _handleTrackDriver(),
+=======
+                "Ride History",
+                Icons.history,
+                Mycolors.green,
+                () {
+                  setState(() => _selectedIndex = 2);
+                },
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: ResponsiveSpacing.getSmallSpacing(context)),
+        Row(
+          children: [
+            Expanded(
+              child: _buildServiceCard(
+                context,
+                "Support Chat",
+                Icons.support_agent,
+                Mycolors.blue,
+                () {
+                  final String conversationId = 'admin_${AuthService.currentUserId}';
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ChatDetailScreen(
+                        peerName: 'Admin Support',
+                        conversationId: conversationId,
+                        peerId: 'admin',
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+            SizedBox(width: ResponsiveSpacing.getSmallSpacing(context)),
+            Expanded(
+              child: _buildServiceCard(
+                context,
+                "Settings",
+                Icons.settings,
+                Colors.blueGrey,
+                () {
+                  setState(() => _selectedIndex = 3);
+                },
+>>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
               ),
             ),
           ],
@@ -1698,11 +1907,15 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
             Expanded(
               child: _buildServiceCard(
                 context,
-                "Book a Ride",
-                Icons.directions_car,
+                "Search Drivers",
+                Icons.search,
                 Mycolors.basecolor,
                 () {
+<<<<<<< HEAD
                   _promptHomeBooking();
+=======
+                  setState(() => _selectedIndex = 1);
+>>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
                 },
               ),
             ),
@@ -1714,12 +1927,16 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                 Icons.history,
                 Mycolors.orange,
                 () {
+<<<<<<< HEAD
                   Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (context) => RideHistoryScreen(),
                     ),
                   );
+=======
+                  setState(() => _selectedIndex = 1);
+>>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
                 },
               ),
             ),
@@ -1735,7 +1952,11 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                 Icons.emergency,
                 Mycolors.red,
                 () {
+<<<<<<< HEAD
                   _showEmergencySheet();
+=======
+                  _showEmergencyDialog();
+>>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
                 },
               ),
             ),
@@ -1743,10 +1964,57 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
             Expanded(
               child: _buildServiceCard(
                 context,
+<<<<<<< HEAD
                 "Track Driver",
                 Icons.my_location,
                 Mycolors.green,
                 () => _handleTrackDriver(),
+=======
+                "Ride History",
+                Icons.history,
+                Mycolors.green,
+                () {
+                  setState(() => _selectedIndex = 2);
+                },
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: ResponsiveSpacing.getMediumSpacing(context)),
+        Row(
+          children: [
+            Expanded(
+              child: _buildServiceCard(
+                context,
+                "Support Chat",
+                Icons.support_agent,
+                Mycolors.blue,
+                () {
+                  final String conversationId = 'admin_${AuthService.currentUserId}';
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ChatDetailScreen(
+                        peerName: 'Admin Support',
+                        conversationId: conversationId,
+                        peerId: 'admin',
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+            SizedBox(width: ResponsiveSpacing.getMediumSpacing(context)),
+            Expanded(
+              child: _buildServiceCard(
+                context,
+                "Settings",
+                Icons.settings,
+                Colors.blueGrey,
+                () {
+                  setState(() => _selectedIndex = 3);
+                },
+>>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
               ),
             ),
           ],
@@ -1762,16 +2030,11 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
         Expanded(
           child: _buildServiceCard(
             context,
-            "Book a Ride",
-            Icons.directions_car,
+            "Search Drivers",
+            Icons.search,
             Mycolors.basecolor,
             () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const ServiceBookingScreen(),
-                ),
-              );
+              setState(() => _selectedIndex = 1);
             },
           ),
         ),
@@ -1783,10 +2046,14 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
             Icons.history,
             Mycolors.orange,
             () {
+<<<<<<< HEAD
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => RideHistoryScreen()),
               );
+=======
+              setState(() => _selectedIndex = 1);
+>>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
             },
           ),
         ),
@@ -1798,7 +2065,11 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
             Icons.emergency,
             Mycolors.red,
             () {
+<<<<<<< HEAD
               _showEmergencySheet();
+=======
+              _showEmergencyDialog();
+>>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
             },
           ),
         ),
@@ -1806,6 +2077,7 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
         Expanded(
           child: _buildServiceCard(
             context,
+<<<<<<< HEAD
             "Track Driver",
             Icons.my_location,
             Mycolors.green,
@@ -1816,6 +2088,47 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                   backgroundColor: Mycolors.basecolor,
                 ),
               );
+=======
+            "Ride History",
+            Icons.history,
+            Mycolors.green,
+            () {
+              setState(() => _selectedIndex = 2);
+            },
+          ),
+        ),
+        SizedBox(width: ResponsiveSpacing.getMediumSpacing(context)),
+        Expanded(
+          child: _buildServiceCard(
+            context,
+            "Support Chat",
+            Icons.support_agent,
+            Mycolors.blue,
+            () {
+              final String conversationId = 'admin_${AuthService.currentUserId}';
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ChatDetailScreen(
+                    peerName: 'Admin Support',
+                    conversationId: conversationId,
+                    peerId: 'admin',
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+        SizedBox(width: ResponsiveSpacing.getMediumSpacing(context)),
+        Expanded(
+          child: _buildServiceCard(
+            context,
+            "Settings",
+            Icons.settings,
+            Colors.blueGrey,
+            () {
+              setState(() => _selectedIndex = 3);
+>>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
             },
           ),
         ),
@@ -2275,151 +2588,143 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
     String time,
     String unreadCount,
   ) {
-    return GestureDetector(
-      onTap: () {
-        // Navigator.push(
-        //   context,
-        //   MaterialPageRoute(
-        //     builder: (context) => ChatDetailScreen(peerName: name),
-        //   ),
-        // );
-      },
-      child: Container(
-        margin: EdgeInsets.only(
-          bottom: ResponsiveSpacing.getSmallSpacing(context),
+    return Container(
+      margin: EdgeInsets.only(
+        bottom: ResponsiveSpacing.getSmallSpacing(context),
+      ),
+      padding: ResponsiveUtils.getResponsivePadding(context),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(
+          ResponsiveUtils.getResponsiveBorderRadius(
+            context,
+            mobile: 12,
+            tablet: 14,
+            desktop: 16,
+          ),
         ),
-        padding: ResponsiveUtils.getResponsivePadding(context),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(
-            ResponsiveUtils.getResponsiveBorderRadius(
+        border: Border.all(color: Colors.grey.shade300),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            blurRadius: ResponsiveUtils.getResponsiveElevation(
               context,
-              mobile: 12,
-              tablet: 14,
-              desktop: 16,
+              mobile: 5,
+              tablet: 6,
+              desktop: 8,
+            ),
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: ResponsiveUtils.getResponsiveSpacing(
+              context,
+              mobile: 20,
+              tablet: 22,
+              desktop: 24,
+            ),
+            backgroundColor: Mycolors.basecolor.withOpacity(0.1),
+            child: Text(
+              name.isNotEmpty ? name[0] : '?',
+              style: GoogleFonts.poppins(
+                fontSize: ResponsiveUtils.getResponsiveFontSize(
+                  context,
+                  mobile: 16,
+                  tablet: 18,
+                  desktop: 20,
+                ),
+                fontWeight: FontWeight.bold,
+                color: Mycolors.basecolor,
+              ),
             ),
           ),
-          border: Border.all(color: Colors.grey.shade300),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.1),
-              blurRadius: ResponsiveUtils.getResponsiveElevation(
-                context,
-                mobile: 5,
-                tablet: 6,
-                desktop: 8,
-              ),
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            CircleAvatar(
-              radius: ResponsiveUtils.getResponsiveSpacing(
-                context,
-                mobile: 20,
-                tablet: 22,
-                desktop: 24,
-              ),
-              backgroundColor: Mycolors.basecolor.withOpacity(0.1),
-              child: Text(
-                name[0],
-                style: GoogleFonts.poppins(
-                  fontSize: ResponsiveUtils.getResponsiveFontSize(
-                    context,
-                    mobile: 16,
-                    tablet: 18,
-                    desktop: 20,
-                  ),
-                  fontWeight: FontWeight.bold,
-                  color: Mycolors.basecolor,
-                ),
-              ),
-            ),
-            SizedBox(width: ResponsiveSpacing.getMediumSpacing(context)),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    name,
-                    style: GoogleFonts.poppins(
-                      fontSize: ResponsiveUtils.getResponsiveFontSize(
-                        context,
-                        mobile: 16,
-                        tablet: 18,
-                        desktop: 20,
-                      ),
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black,
-                    ),
-                  ),
-                  Text(
-                    message,
-                    style: GoogleFonts.poppins(
-                      fontSize: ResponsiveUtils.getResponsiveFontSize(
-                        context,
-                        mobile: 14,
-                        tablet: 15,
-                        desktop: 16,
-                      ),
-                      color: Mycolors.gray,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
+          SizedBox(width: ResponsiveSpacing.getMediumSpacing(context)),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  time,
+                  name,
                   style: GoogleFonts.poppins(
                     fontSize: ResponsiveUtils.getResponsiveFontSize(
                       context,
-                      mobile: 12,
-                      tablet: 13,
-                      desktop: 14,
+                      mobile: 16,
+                      tablet: 18,
+                      desktop: 20,
+                    ),
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black,
+                  ),
+                ),
+                Text(
+                  message,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.poppins(
+                    fontSize: ResponsiveUtils.getResponsiveFontSize(
+                      context,
+                      mobile: 14,
+                      tablet: 15,
+                      desktop: 16,
                     ),
                     color: Mycolors.gray,
                   ),
                 ),
-                if (unreadCount.isNotEmpty)
-                  Container(
-                    margin: EdgeInsets.only(
-                      top: ResponsiveSpacing.getSmallSpacing(context) / 2,
-                    ),
-                    padding: EdgeInsets.all(
-                      ResponsiveUtils.getResponsiveSpacing(
-                        context,
-                        mobile: 6,
-                        tablet: 7,
-                        desktop: 8,
-                      ),
-                    ),
-                    decoration: BoxDecoration(
-                      color: Mycolors.basecolor,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Text(
-                      unreadCount,
-                      style: GoogleFonts.poppins(
-                        fontSize: ResponsiveUtils.getResponsiveFontSize(
-                          context,
-                          mobile: 10,
-                          tablet: 11,
-                          desktop: 12,
-                        ),
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
               ],
             ),
-          ],
-        ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                time,
+                style: GoogleFonts.poppins(
+                  fontSize: ResponsiveUtils.getResponsiveFontSize(
+                    context,
+                    mobile: 12,
+                    tablet: 13,
+                    desktop: 14,
+                  ),
+                  color: Mycolors.gray,
+                ),
+              ),
+              if (unreadCount.isNotEmpty)
+                Container(
+                  margin: EdgeInsets.only(
+                    top: ResponsiveSpacing.getSmallSpacing(context) / 2,
+                  ),
+                  padding: EdgeInsets.all(
+                    ResponsiveUtils.getResponsiveSpacing(
+                      context,
+                      mobile: 6,
+                      tablet: 7,
+                      desktop: 8,
+                    ),
+                  ),
+                  decoration: BoxDecoration(
+                    color: Mycolors.basecolor,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Text(
+                    unreadCount,
+                    style: GoogleFonts.poppins(
+                      fontSize: ResponsiveUtils.getResponsiveFontSize(
+                        context,
+                        mobile: 10,
+                        tablet: 11,
+                        desktop: 12,
+                      ),
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ],
       ),
     );
   }

@@ -423,6 +423,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
   }
 
   Future<void> _markPaid({required String method}) async {
+<<<<<<< HEAD
     // Update ride_requests collection
     await FirebaseFirestore.instance
         .collection('ride_requests')
@@ -430,9 +431,53 @@ class _PaymentScreenState extends State<PaymentScreen> {
         .update({
           'status': 'ongoing',
           'isPaid': true,
+=======
+      final batch = FirebaseFirestore.instance.batch();
+      
+      // Update ride_requests
+      final rideRequestRef = FirebaseFirestore.instance.collection('ride_requests').doc(widget.requestId);
+      batch.update(rideRequestRef, {
+        'status': 'ongoing',
+        'paymentMethod': method,
+        'paidAt': FieldValue.serverTimestamp(),
+        'isPaid': true,
+      });
+
+      // Update bookings if it exists
+      final bookingRef = FirebaseFirestore.instance.collection('bookings').doc(widget.requestId);
+      batch.update(bookingRef, {
+        'status': 'ongoing',
+        'paymentMethod': method,
+        'paidAt': FieldValue.serverTimestamp(),
+        'isPaid': true,
+      });
+
+      await batch.commit().catchError((e) {
+        // If bookings doesn't exist, the batch might fail if we don't handle it.
+        // But since they use same ID, it's safer to do individual updates or check existence.
+        // Let's do individual to avoid batch failure on non-existent doc.
+      });
+      
+      final rideRequestDoc = await rideRequestRef.get();
+      final driverId = rideRequestDoc.data()?['driverId'];
+      
+      // To be safe, just do individual updates
+      await rideRequestRef.update({
+        'status': 'ongoing',
+        'paymentMethod': method,
+        'paidAt': FieldValue.serverTimestamp(),
+        'isPaid': true,
+      });
+      
+      try {
+        await bookingRef.update({
+          'status': 'ongoing',
+>>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
           'paymentMethod': method,
-          'paidAt': Timestamp.now(),
+          'paidAt': FieldValue.serverTimestamp(),
+          'isPaid': true,
         });
+<<<<<<< HEAD
     
     // Also update bookings collection if it exists
     try {
@@ -455,6 +500,22 @@ class _PaymentScreenState extends State<PaymentScreen> {
       // Ignore if bookings collection doesn't have this document
       print('Bookings collection update skipped: $e');
     }
+=======
+      } catch (_) {}
+
+      // Notify driver about payment
+      if (driverId != null) {
+        await FirebaseFirestore.instance.collection('notifications').add({
+          'driverId': driverId,
+          'title': 'Payment Received',
+          'message': 'Payment has been received for ride with ${rideRequestDoc.data()?['userName'] ?? 'User'}.',
+          'type': 'payment_received',
+          'bookingId': widget.requestId,
+          'read': false,
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+      }
+>>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
   }
 
   Future<void> _showSuccessDialog() async {

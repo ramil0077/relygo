@@ -22,6 +22,23 @@ class ChatDetailScreen extends StatefulWidget {
 
 class _ChatDetailScreenState extends State<ChatDetailScreen> {
   final TextEditingController _messageController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+
+  /// Derive the peer id: use the explicit peerId first,
+  /// or fall back to extracting it from the conversationId.
+  String? get _effectivePeerId {
+    if (widget.peerId != null && widget.peerId!.isNotEmpty) {
+      return widget.peerId;
+    }
+    // conversationId is "uidA_uidB" — extract the peer's uid
+    final convId = widget.conversationId ?? '';
+    final parts = convId.split('_');
+    if (parts.length == 2) {
+      final myId = AuthService.currentUserId ?? '';
+      return parts.firstWhere((p) => p != myId, orElse: () => '');
+    }
+    return null;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -83,7 +100,26 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                   );
                 }
                 final messages = snapshot.data ?? [];
+                if (messages.isEmpty) {
+                  return Center(
+                    child: Text(
+                      'No messages yet. Say hello! 👋',
+                      style: GoogleFonts.poppins(color: Mycolors.gray),
+                    ),
+                  );
+                }
+                // Auto-scroll to bottom
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (_scrollController.hasClients) {
+                    _scrollController.animateTo(
+                      _scrollController.position.maxScrollExtent,
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeOut,
+                    );
+                  }
+                });
                 return ListView.builder(
+                  controller: _scrollController,
                   padding: const EdgeInsets.all(16),
                   itemCount: messages.length,
                   itemBuilder: (context, index) {
@@ -181,8 +217,29 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     final text = _messageController.text.trim();
     if (text.isEmpty) return;
     _messageController.clear();
-    final String? peer = widget.peerId;
-    if (peer == null || peer.isEmpty) return;
+    final String? peer = _effectivePeerId;
+    if (peer == null || peer.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Cannot send message: recipient not found',
+            style: GoogleFonts.poppins(),
+          ),
+          backgroundColor: Mycolors.red,
+        ),
+      );
+      return;
+    }
     await ChatService.sendMessage(peerId: peer, text: text);
+    // Scroll to bottom after sending
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
+    });
   }
 }
