@@ -14,8 +14,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:relygo/services/auth_service.dart';
 import 'package:relygo/screens/driver_notifications_screen.dart';
 import 'package:relygo/services/chat_service.dart';
-import 'package:relygo/screens/chat_detail_screen.dart';
 import 'package:relygo/screens/driver_chatbot_screen.dart';
+import 'package:relygo/services/driver_service.dart';
+import 'package:geolocator/geolocator.dart';
 import 'dart:async';
 
 class DriverDashboardScreen extends StatefulWidget {
@@ -35,6 +36,11 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
   double _todayEarnings = 0;
   double _avgRating = 0;
 
+  // Ride and Location tracking
+  StreamSubscription<Position>? _locationSubscription;
+  String? _activeRideId;
+  bool _isTracking = false;
+
   @override
   void initState() {
     super.initState();
@@ -43,6 +49,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
 
   @override
   void dispose() {
+    _stopLocationUpdates();
     super.dispose();
   }
 
@@ -79,39 +86,134 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
     }
   }
 
-  Future<void> _handleStartRide() async {
+  Future<void> _handleStartRide({String? specificRideId}) async {
     final driverId = AuthService.currentUserId;
     if (driverId == null) return;
 
-    // Check for any paid ride requests for this driver
-    final snapshot = await FirebaseFirestore.instance
-        .collection('ride_requests')
-        .where('driverId', isEqualTo: driverId)
-        .where('status', isEqualTo: 'paid')
-        .limit(1)
-        .get();
+    String? rideId = specificRideId;
+    Map<String, dynamic>? rideData;
 
-    if (snapshot.docs.isNotEmpty) {
-      if (mounted) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const DriverNotificationsScreen(),
-          ),
-        );
+    if (rideId == null) {
+      // Check for any paid (ongoing) ride requests for this driver that haven't started yet
+      final snapshot = await FirebaseFirestore.instance
+          .collection('ride_requests')
+          .where('driverId', isEqualTo: driverId)
+          .where('status', isEqualTo: 'ongoing')
+          .limit(1)
+          .get();
+      
+      if (snapshot.docs.isNotEmpty) {
+        rideId = snapshot.docs.first.id;
+        rideData = snapshot.docs.first.data();
       }
     } else {
-      if (mounted) {
+      final doc = await FirebaseFirestore.instance.collection('ride_requests').doc(rideId).get();
+      if (doc.exists) {
+        rideData = doc.data();
+      }
+    }
+
+    if (rideId != null && rideData != null) {
+      final String userName = rideData['userName'] ?? 'User';
+      
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text('Start Ride', style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
+          content: Text('Are you sure you want to start the ride for $userName?'),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+            ElevatedButton(
+              onPressed: () async {
+                Navigator.pop(context);
+                final res = await DriverService.startRide(rideId!);
+                if (res['success']) {
+                  setState(() {
+                    _activeRideId = rideId;
+                  });
+                  _startLocationUpdates();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Ride started! Live tracking enabled.'))
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error: ${res['error']}'))
+                  );
+                }
+              },
+              style: ElevatedButton.styleFrom(backgroundColor: Mycolors.green),
+              child: const Text('Start'),
+            ),
+          ],
+        ),
+      );
+    } else {
+      // Also check for already started rides to resume tracking
+      final startedSnapshot = await FirebaseFirestore.instance
+          .collection('ride_requests')
+          .where('driverId', isEqualTo: driverId)
+          .where('status', isEqualTo: 'started')
+          .limit(1)
+          .get();
+
+      if (startedSnapshot.docs.isNotEmpty) {
+        final rId = startedSnapshot.docs.first.id;
+        setState(() {
+          _activeRideId = rId;
+        });
+        _startLocationUpdates();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Resuming live tracking for active ride.'))
+        );
+      } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text(
-              'No active paid rides to start. Please check notifications.',
-            ),
-            duration: Duration(seconds: 2),
+            content: Text('No ongoing paid rides to start. Please wait for user payment.'),
           ),
         );
       }
     }
+  }
+
+  Future<void> _startLocationUpdates() async {
+    if (_isTracking) return;
+
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) return;
+
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) return;
+    }
+
+    if (permission == LocationPermission.deniedForever) return;
+
+    setState(() => _isTracking = true);
+
+    _locationSubscription = Geolocator.getPositionStream(
+      locationSettings: const LocationSettings(
+        accuracy: LocationAccuracy.high,
+        distanceFilter: 10,
+      ),
+    ).listen((Position position) {
+      final driverId = AuthService.currentUserId;
+      if (driverId != null) {
+        DriverService.updateLocation(driverId, position.latitude, position.longitude);
+      }
+    });
+  }
+
+  void _stopLocationUpdates() {
+    _locationSubscription?.cancel();
+    _locationSubscription = null;
+    setState(() {
+      _isTracking = false;
+      _activeRideId = null;
+    });
   }
 
   void _showEmergencyDialog() {
@@ -376,6 +478,143 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                 ],
               ),
               SizedBox(height: ResponsiveSpacing.getLargeSpacing(context)),
+
+              // Upcoming Ride Reminders (Paid rides within 15 minutes)
+              StreamBuilder<QuerySnapshot>(
+                stream: FirebaseFirestore.instance
+                    .collection('ride_requests')
+                    .where('driverId', isEqualTo: AuthService.currentUserId)
+                    .where('status', isEqualTo: 'ongoing') // Paid but not started
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                    return const SizedBox.shrink();
+                  }
+
+                  final now = DateTime.now();
+                  final reminders = snapshot.data!.docs.where((doc) {
+                    final data = doc.data() as Map<String, dynamic>;
+                    final scheduledDate = data['scheduledDate'] as Timestamp?;
+                    if (scheduledDate == null) return false;
+                    
+                    final diff = scheduledDate.toDate().difference(now).inMinutes;
+                    return diff <= 15 && diff > -60; // Reminder 15 mins before or within an hour after
+                  }).toList();
+
+                  if (reminders.isEmpty) return const SizedBox.shrink();
+
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Upcoming Ride Reminders",
+                        style: ResponsiveTextStyles.getSubtitleStyle(context).copyWith(
+                          color: Mycolors.red,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(height: ResponsiveSpacing.getSmallSpacing(context)),
+                      ...reminders.map((doc) {
+                        final data = doc.data() as Map<String, dynamic>;
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 12),
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Mycolors.red.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Mycolors.red.withOpacity(0.3)),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.alarm, color: Colors.red),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "Ride with ${data['userName'] ?? 'User'}",
+                                      style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+                                    ),
+                                    Text(
+                                      "Pickup: ${data['pickup'] ?? 'Location'}",
+                                      style: GoogleFonts.poppins(fontSize: 12),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              ElevatedButton(
+                                onPressed: () => _handleStartRide(specificRideId: doc.id),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Mycolors.green,
+                                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                                ),
+                                child: const Text("Start Now"),
+                              ),
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                      SizedBox(height: ResponsiveSpacing.getMediumSpacing(context)),
+                    ],
+                  );
+                },
+              ),
+
+              // Active Ride Status
+              if (_activeRideId != null) ...[
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Mycolors.green.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Mycolors.green.withOpacity(0.3)),
+                  ),
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.local_taxi, color: Colors.green),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              "Ride in Progress - Tracking active",
+                              style: GoogleFonts.poppins(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.green[800],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: ElevatedButton(
+                              onPressed: () async {
+                                final res = await DriverService.completeBooking(_activeRideId!);
+                                if (res['success']) {
+                                  _stopLocationUpdates();
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Ride completed!'))
+                                  );
+                                }
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Mycolors.green,
+                                foregroundColor: Colors.white,
+                              ),
+                              child: const Text("Complete Ride"),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(height: ResponsiveSpacing.getLargeSpacing(context)),
+              ],
 
               // Today's Stats
               StreamBuilder<Map<String, dynamic>>(

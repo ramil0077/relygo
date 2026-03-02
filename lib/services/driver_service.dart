@@ -209,15 +209,101 @@ class DriverService {
   /// Mark booking as completed
   static Future<Map<String, dynamic>> completeBooking(String bookingId) async {
     try {
-      await _firestore.collection('bookings').doc(bookingId).update({
-        'status': 'completed',
-        'completedAt': FieldValue.serverTimestamp(),
-        'updatedAt': FieldValue.serverTimestamp(),
-      });
+      // Check both collections as they are used interchangeably in the app
+      final bookingRef = _firestore.collection('bookings').doc(bookingId);
+      final rideRequestRef = _firestore.collection('ride_requests').doc(bookingId);
+
+      final bookingDoc = await bookingRef.get();
+      if (bookingDoc.exists) {
+        await bookingRef.update({
+          'status': 'completed',
+          'completedAt': FieldValue.serverTimestamp(),
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+      }
+
+      final rideRequestDoc = await rideRequestRef.get();
+      if (rideRequestDoc.exists) {
+        await rideRequestRef.update({
+          'status': 'completed',
+          'completedAt': FieldValue.serverTimestamp(),
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+      }
 
       return {'success': true, 'message': 'Booking completed'};
     } catch (e) {
       return {'success': false, 'error': 'Failed to complete booking: $e'};
+    }
+  }
+
+  /// Start a ride
+  static Future<Map<String, dynamic>> startRide(String bookingId) async {
+    try {
+      final rideRequestRef = _firestore.collection('ride_requests').doc(bookingId);
+      final rideRequestDoc = await rideRequestRef.get();
+
+      if (!rideRequestDoc.exists) {
+        return {'success': false, 'error': 'Ride request not found'};
+      }
+
+      final data = rideRequestDoc.data()!;
+      final userId = data['userId'];
+      final driverName = data['driverName'] ?? 'Your driver';
+
+      // Update status to started
+      await rideRequestRef.update({
+        'status': 'started',
+        'startedAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+
+      // Also update in bookings collection if it exists
+      final bookingRef = _firestore.collection('bookings').doc(bookingId);
+      final bookingDoc = await bookingRef.get();
+      if (bookingDoc.exists) {
+        await bookingRef.update({
+          'status': 'started',
+          'startedAt': FieldValue.serverTimestamp(),
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+      }
+
+      // Send notification to user
+      if (userId != null) {
+        await _firestore.collection('notifications').add({
+          'userId': userId,
+          'title': 'Ride Started!',
+          'message': '$driverName has started your ride. You can now track them in real-time.',
+          'type': 'ride_started',
+          'bookingId': bookingId,
+          'read': false,
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+      }
+
+      return {'success': true, 'message': 'Ride started successfully'};
+    } catch (e) {
+      return {'success': false, 'error': 'Failed to start ride: $e'};
+    }
+  }
+
+  /// Update driver's live location
+  static Future<void> updateLocation(
+    String driverId,
+    double latitude,
+    double longitude,
+  ) async {
+    try {
+      await _firestore.collection('users').doc(driverId).update({
+        'location': {
+          'latitude': latitude,
+          'longitude': longitude,
+        },
+        'lastLocationUpdate': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      print('Failed to update location: $e');
     }
   }
 

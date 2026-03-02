@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:relygo/constants.dart';
@@ -88,6 +89,11 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
         break;
       case 'ongoing':
         statusColor = Mycolors.basecolor;
+        statusIcon = Icons.payment;
+        statusText = 'Payment Confirmed';
+        break;
+      case 'started':
+        statusColor = Mycolors.green;
         statusIcon = Icons.local_taxi;
         statusText = 'Ride in Progress';
         break;
@@ -414,9 +420,10 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
   }
 
   Widget _buildLiveTrackingCard() {
-    final status = widget.bookingData['status'] ?? 'unknown';
+    final status = widget.bookingData['status']?.toString().toLowerCase() ?? 'unknown';
+    final driverId = widget.bookingData['driverId'];
 
-    if (status.toLowerCase() != 'ongoing') {
+    if (status != 'started' || driverId == null) {
       return Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
@@ -429,7 +436,9 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
             const SizedBox(width: 16),
             Expanded(
               child: Text(
-                'Live tracking will be available when ride starts',
+                status == 'ongoing' 
+                  ? 'Ride started! Tracking will appear soon.' 
+                  : 'Live tracking will be available once the driver starts the ride.',
                 style: GoogleFonts.poppins(
                   fontSize: 16,
                   color: Colors.grey[600],
@@ -441,92 +450,131 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
       );
     }
 
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(
-                Icons.location_searching,
-                color: Mycolors.basecolor,
-                size: 24,
-              ),
-              const SizedBox(width: 12),
-              Text(
-                'Live Tracking',
-                style: GoogleFonts.poppins(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
+    return StreamBuilder<DocumentSnapshot>(
+      stream: FirebaseFirestore.instance.collection('users').doc(driverId).snapshots(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData || !snapshot.data!.exists) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        final driverData = snapshot.data!.data() as Map<String, dynamic>;
+        final location = driverData['location'] as Map<String, dynamic>?;
+        
+        double? lat, lng;
+        if (location != null) {
+          lat = (location['latitude'] as num?)?.toDouble();
+          lng = (location['longitude'] as num?)?.toDouble();
+        }
+
+        return Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.1),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
               ),
             ],
           ),
-          const SizedBox(height: 16),
-
-          // Simulated map view
-          Container(
-            height: 200,
-            decoration: BoxDecoration(
-              color: Colors.grey[200],
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
                 children: [
-                  Icon(Icons.map, size: 48, color: Colors.grey[400]),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Map View',
-                    style: GoogleFonts.poppins(
-                      fontSize: 16,
-                      color: Colors.grey[600],
-                    ),
+                  Icon(
+                    Icons.location_searching,
+                    color: Mycolors.green,
+                    size: 24,
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(width: 12),
                   Text(
-                    'Driver location will be shown here',
+                    'Live Tracking ON',
                     style: GoogleFonts.poppins(
-                      fontSize: 12,
-                      color: Colors.grey[500],
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Mycolors.green,
                     ),
                   ),
                 ],
               ),
-            ),
-          ),
+              const SizedBox(height: 16),
 
-          const SizedBox(height: 16),
-
-          // Estimated arrival
-          Row(
-            children: [
-              Icon(Icons.access_time, color: Mycolors.orange, size: 20),
-              const SizedBox(width: 12),
-              Text(
-                'Estimated arrival: 5-10 minutes',
-                style: GoogleFonts.poppins(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
+              // Tracking Stats
+              if (lat != null && lng != null) ...[
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _buildTrackingStat('Latitude', lat.toStringAsFixed(4)),
+                    _buildTrackingStat('Longitude', lng.toStringAsFixed(4)),
+                  ],
                 ),
+                const SizedBox(height: 16),
+              ],
+
+              // Map Placeholder with coordinates
+              Container(
+                height: 200,
+                decoration: BoxDecoration(
+                  color: Colors.grey[200],
+                  borderRadius: BorderRadius.circular(8),
+                  image: lat != null ? const DecorationImage(
+                    image: AssetImage('assets/logooo.png'), // Using logo as a placeholder icon
+                    scale: 5,
+                  ) : null,
+                ),
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.map, size: 48, color: Mycolors.basecolor.withOpacity(0.5)),
+                      const SizedBox(height: 8),
+                      Text(
+                        lat != null ? 'Driver is currently at ($lat, $lng)' : 'Waiting for GPS signal...',
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.grey[700],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              // Estimated arrival
+              Row(
+                children: [
+                  Icon(Icons.access_time, color: Mycolors.orange, size: 20),
+                  const SizedBox(width: 12),
+                  Text(
+                    'Driver is on the way!',
+                    style: GoogleFonts.poppins(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
-        ],
-      ),
+        );
+      }
+    );
+  }
+
+  Widget _buildTrackingStat(String label, String value) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey)),
+        Text(value, style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.bold)),
+      ],
     );
   }
 

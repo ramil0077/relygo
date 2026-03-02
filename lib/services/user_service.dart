@@ -591,7 +591,7 @@ class UserService {
     return _firestore
         .collection('ride_requests')
         .where('userId', isEqualTo: userId)
-        .where('status', whereIn: ['pending', 'accepted', 'ongoing'])
+        .where('status', whereIn: ['pending', 'accepted', 'ongoing', 'started'])
         .limit(1)
         .snapshots()
         .asyncMap((snapshot) async {

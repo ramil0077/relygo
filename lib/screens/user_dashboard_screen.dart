@@ -871,13 +871,16 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
             builder: (context, snapshot) {
               if (snapshot.hasData && snapshot.data != null) {
                 final activeBooking = snapshot.data!;
+                final status = activeBooking['status']?.toString().toLowerCase() ?? 'unknown';
+                final isStarted = status == 'started';
+                
                 return Container(
                   margin: const EdgeInsets.only(bottom: 20),
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Mycolors.green.withOpacity(0.1),
+                    color: isStarted ? Mycolors.green.withOpacity(0.1) : Mycolors.orange.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Mycolors.green.withOpacity(0.3)),
+                    border: Border.all(color: isStarted ? Mycolors.green.withOpacity(0.3) : Mycolors.orange.withOpacity(0.3)),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -885,24 +888,24 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                       Row(
                         children: [
                           Icon(
-                            Icons.local_taxi,
-                            color: Mycolors.green,
+                            isStarted ? Icons.local_taxi : Icons.schedule,
+                            color: isStarted ? Mycolors.green : Mycolors.orange,
                             size: 24,
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            'Active Ride',
+                            isStarted ? 'Ride in Progress' : 'Upcoming Ride',
                             style: GoogleFonts.poppins(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
-                              color: Mycolors.green,
+                              color: isStarted ? Mycolors.green : Mycolors.orange,
                             ),
                           ),
                         ],
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        'Status: ${activeBooking['status']?.toString().toUpperCase() ?? 'UNKNOWN'}',
+                        'Status: ${status.toUpperCase()}',
                         style: GoogleFonts.poppins(fontSize: 14),
                       ),
                       if (activeBooking['driverDetails'] != null) ...[
@@ -912,25 +915,39 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                           style: GoogleFonts.poppins(fontSize: 14),
                         ),
                       ],
-                      const SizedBox(height: 12),
-                      ElevatedButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => DriverTrackingScreen(
-                                bookingId: activeBooking['id'] ?? '',
-                                bookingData: activeBooking,
-                              ),
-                            ),
-                          );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Mycolors.green,
-                          foregroundColor: Colors.white,
+                      if (!isStarted && status == 'accepted') ...[
+                        const SizedBox(height: 8),
+                        Text(
+                          'Please pay to confirm and enable tracking.',
+                          style: GoogleFonts.poppins(fontSize: 12, color: Mycolors.red, fontWeight: FontWeight.w500),
                         ),
-                        child: Text('Track Driver'),
-                      ),
+                      ],
+                      if (isStarted) ...[
+                        const SizedBox(height: 12),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton.icon(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => DriverTrackingScreen(
+                                    bookingId: activeBooking['id'] ?? '',
+                                    bookingData: activeBooking,
+                                  ),
+                                ),
+                              );
+                            },
+                            icon: const Icon(Icons.location_searching),
+                            label: const Text('Track Driver Live'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Mycolors.green,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                            ),
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 );

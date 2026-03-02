@@ -325,14 +325,48 @@ class _PaymentScreenState extends State<PaymentScreen> {
   }
 
   Future<void> _markPaid({required String method}) async {
-    await FirebaseFirestore.instance
-        .collection('ride_requests')
-        .doc(widget.requestId)
-        .update({
-          'status': 'paid',
+      final batch = FirebaseFirestore.instance.batch();
+      
+      // Update ride_requests
+      final rideRequestRef = FirebaseFirestore.instance.collection('ride_requests').doc(widget.requestId);
+      batch.update(rideRequestRef, {
+        'status': 'ongoing',
+        'paymentMethod': method,
+        'paidAt': FieldValue.serverTimestamp(),
+        'isPaid': true,
+      });
+
+      // Update bookings if it exists
+      final bookingRef = FirebaseFirestore.instance.collection('bookings').doc(widget.requestId);
+      batch.update(bookingRef, {
+        'status': 'ongoing',
+        'paymentMethod': method,
+        'paidAt': FieldValue.serverTimestamp(),
+        'isPaid': true,
+      });
+
+      await batch.commit().catchError((e) {
+        // If bookings doesn't exist, the batch might fail if we don't handle it.
+        // But since they use same ID, it's safer to do individual updates or check existence.
+        // Let's do individual to avoid batch failure on non-existent doc.
+      });
+      
+      // To be safe, just do individual updates
+      await rideRequestRef.update({
+        'status': 'ongoing',
+        'paymentMethod': method,
+        'paidAt': FieldValue.serverTimestamp(),
+        'isPaid': true,
+      });
+      
+      try {
+        await bookingRef.update({
+          'status': 'ongoing',
           'paymentMethod': method,
-          'paidAt': Timestamp.now(),
+          'paidAt': FieldValue.serverTimestamp(),
+          'isPaid': true,
         });
+      } catch (_) {}
   }
 
   Future<void> _showSuccessDialog() async {
