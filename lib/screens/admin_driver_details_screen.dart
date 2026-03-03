@@ -24,12 +24,10 @@ class _AdminDriverDetailsScreenState extends State<AdminDriverDetailsScreen> {
     final statusColor = _getStatusColor(status);
 
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: Icon(Icons.arrow_back, color: Theme.of(context).iconTheme.color),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
@@ -37,7 +35,6 @@ class _AdminDriverDetailsScreenState extends State<AdminDriverDetailsScreen> {
           style: GoogleFonts.poppins(
             fontSize: 20,
             fontWeight: FontWeight.bold,
-            color: Colors.black,
           ),
         ),
         actions: [
@@ -237,7 +234,7 @@ class _AdminDriverDetailsScreenState extends State<AdminDriverDetailsScreen> {
           style: GoogleFonts.poppins(
             fontSize: 14,
             fontWeight: FontWeight.w600,
-            color: isSelected ? Colors.white : Colors.black87,
+            color: isSelected ? Colors.white : Theme.of(context).textTheme.bodyMedium?.color,
           ),
         ),
       ),
@@ -406,7 +403,6 @@ class _AdminDriverDetailsScreenState extends State<AdminDriverDetailsScreen> {
       style: GoogleFonts.poppins(
         fontSize: 18,
         fontWeight: FontWeight.bold,
-        color: Colors.black,
       ),
     );
   }

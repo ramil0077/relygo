@@ -22,12 +22,10 @@ class _AdminUserDetailsScreenState extends State<AdminUserDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: Icon(Icons.arrow_back, color: Theme.of(context).iconTheme.color),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
@@ -35,7 +33,6 @@ class _AdminUserDetailsScreenState extends State<AdminUserDetailsScreen> {
           style: GoogleFonts.poppins(
             fontSize: 20,
             fontWeight: FontWeight.bold,
-            color: Colors.black,
           ),
         ),
       ),
@@ -170,7 +167,7 @@ class _AdminUserDetailsScreenState extends State<AdminUserDetailsScreen> {
           style: GoogleFonts.poppins(
             fontSize: 14,
             fontWeight: FontWeight.w600,
-            color: isSelected ? Colors.white : Colors.black87,
+            color: isSelected ? Colors.white : Theme.of(context).textTheme.bodyMedium?.color,
           ),
         ),
       ),

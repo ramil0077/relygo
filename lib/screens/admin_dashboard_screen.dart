@@ -213,7 +213,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       body: SafeArea(
         child: Row(
           children: [
@@ -265,7 +264,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                           desktop: 32,
                         ),
                         fontWeight: FontWeight.bold,
-                        color: Colors.black,
                       ),
                     ),
                     Text(
@@ -553,7 +551,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 desktop: 28,
               ),
               fontWeight: FontWeight.bold,
-              color: Colors.black,
             ),
           ),
           SizedBox(
@@ -860,7 +857,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     desktop: 28,
                   ),
                   fontWeight: FontWeight.bold,
-                  color: Colors.black,
                 ),
               ),
               TextButton(
@@ -974,7 +970,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 desktop: 32,
               ),
               fontWeight: FontWeight.bold,
-              color: Colors.black,
             ),
           ),
           SizedBox(
@@ -1254,7 +1249,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               desktop: 32,
             ),
             fontWeight: FontWeight.bold,
-            color: Colors.black,
           ),
         ),
         SizedBox(
@@ -1611,7 +1605,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 desktop: 32,
               ),
               fontWeight: FontWeight.bold,
-              color: Colors.black,
             ),
           ),
           SizedBox(
@@ -2681,9 +2674,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     return Container(
       width: 250, // Fixed width for sidebar
       decoration: BoxDecoration(
-        color: Colors.white, // Light premium sidebar
+        color: Theme.of(context).cardColor,
         border: Border(
-          right: BorderSide(color: Colors.grey.shade300, width: 1),
+          right: BorderSide(color: Theme.of(context).dividerColor, width: 1),
         ),
       ),
       child: Column(
@@ -2704,7 +2697,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 Text(
                   "RelyGO",
                   style: GoogleFonts.poppins(
-                    color: Colors.black,
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                   ),
@@ -2778,7 +2770,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               child: Text(
                 title,
                 style: GoogleFonts.poppins(
-                  color: isSelected ? Mycolors.basecolor : Colors.black87,
                   fontSize: 14,
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                 ),

@@ -23,7 +23,6 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
 
     if (uid == null) {
       return Scaffold(
-        backgroundColor: Colors.white,
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -55,25 +54,15 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
     }
 
     return Scaffold(
-      backgroundColor: Mycolors.lightGray,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
         automaticallyImplyLeading: false,
         leading: Navigator.of(context).canPop()
             ? IconButton(
-                icon: const Icon(Icons.arrow_back, color: Colors.black),
+                icon: const Icon(Icons.arrow_back),
                 onPressed: () => Navigator.pop(context),
               )
             : null,
-        title: Text(
-          "Profile",
-          style: GoogleFonts.poppins(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Colors.black,
-          ),
-        ),
+        title: const Text("Profile"),
       ),
       body: StreamBuilder<Map<String, dynamic>?>(
         stream: UserService.streamUserById(uid),
@@ -455,7 +444,7 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
         ),
         trailing: Icon(Icons.arrow_forward_ios, color: Mycolors.gray, size: 16),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        tileColor: Colors.white,
+        tileColor: Theme.of(context).cardColor,
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       ),
     );
@@ -959,7 +948,9 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.grey.shade100,
+        color: Theme.of(context).brightness == Brightness.dark 
+            ? Colors.grey.shade900 
+            : Colors.grey.shade100,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(

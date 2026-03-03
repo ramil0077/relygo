@@ -287,7 +287,6 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       body: SafeArea(
         child: IndexedStack(
           index: _selectedIndex,
@@ -503,7 +502,7 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                 ),
               ),
               filled: true,
-              fillColor: Colors.grey.shade100,
+              fillColor: Theme.of(context).cardColor,
               contentPadding: ResponsiveUtils.getResponsivePadding(context),
             ),
           ),
@@ -901,7 +900,7 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
               onPressed: () => Navigator.of(context).pop(),
               child: Text(
                 'Close',
-                style: GoogleFonts.poppins(color: Colors.grey),
+                style: GoogleFonts.poppins(),
               ),
             ),
           ],
@@ -948,7 +947,6 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
             style: GoogleFonts.poppins(
               fontSize: 24,
               fontWeight: FontWeight.bold,
-              color: Colors.black,
             ),
           ),
           SizedBox(height: ResponsiveSpacing.getMediumSpacing(context)),
@@ -1138,11 +1136,14 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Theme.of(context).dividerColor,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -1176,7 +1177,7 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                 formattedDate,
                 style: GoogleFonts.poppins(
                   fontSize: 12,
-                  color: Colors.grey[600],
+                  color: Theme.of(context).hintColor,
                 ),
               ),
             ],
@@ -1216,7 +1217,7 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
           // Driver and Fare
           Row(
             children: [
-              Icon(Icons.person, color: Colors.grey[600], size: 16),
+              Icon(Icons.person, color: Theme.of(context).hintColor, size: 16),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
@@ -1776,7 +1777,7 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
     return Container(
       padding: ResponsiveUtils.getResponsivePadding(context),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(
           ResponsiveUtils.getResponsiveBorderRadius(
             context,
@@ -1785,7 +1786,9 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
             desktop: 16,
           ),
         ),
-        border: Border.all(color: Colors.grey.shade300),
+        border: Border.all(
+          color: Theme.of(context).dividerColor,
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.grey.withOpacity(0.1),
@@ -1878,7 +1881,6 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                     desktop: 20,
                   ),
                   fontWeight: FontWeight.bold,
-                  color: Colors.black,
                 ),
               ),
               Text(
@@ -1950,7 +1952,7 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
       ),
       padding: ResponsiveUtils.getResponsivePadding(context),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(
           ResponsiveUtils.getResponsiveBorderRadius(
             context,
@@ -1959,7 +1961,9 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
             desktop: 16,
           ),
         ),
-        border: Border.all(color: Colors.grey.shade300),
+        border: Border.all(
+          color: Theme.of(context).dividerColor,
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.grey.withOpacity(0.1),
@@ -2167,7 +2171,7 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
       ),
       padding: ResponsiveUtils.getResponsivePadding(context),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(
           ResponsiveUtils.getResponsiveBorderRadius(
             context,
@@ -2176,7 +2180,9 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
             desktop: 16,
           ),
         ),
-        border: Border.all(color: Colors.grey.shade300),
+        border: Border.all(
+          color: Theme.of(context).dividerColor,
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.grey.withOpacity(0.1),
@@ -2229,7 +2235,6 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                       desktop: 20,
                     ),
                     fontWeight: FontWeight.w600,
-                    color: Colors.black,
                   ),
                 ),
                 Text(

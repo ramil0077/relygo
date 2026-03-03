@@ -45,6 +45,19 @@ class AppTheme {
           ),
         ),
       ),
+      dialogTheme: DialogTheme(
+        backgroundColor: Colors.white,
+        titleTextStyle: GoogleFonts.poppins(
+          color: Colors.black,
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+        ),
+        contentTextStyle: GoogleFonts.poppins(
+          color: Colors.black87,
+          fontSize: 16,
+        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      ),
       inputDecorationTheme: InputDecorationTheme(
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
@@ -84,6 +97,19 @@ class AppTheme {
             fontWeight: FontWeight.w600,
           ),
         ),
+      ),
+      dialogTheme: DialogTheme(
+        backgroundColor: Color(0xFF1E1E1E),
+        titleTextStyle: GoogleFonts.poppins(
+          color: Colors.white,
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+        ),
+        contentTextStyle: GoogleFonts.poppins(
+          color: Colors.white70,
+          fontSize: 16,
+        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
     );
   }

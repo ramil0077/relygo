@@ -31,13 +31,11 @@ class _SignInScreenState extends State<SignInScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
+        automaticallyImplyLeading: false,
         leading: Navigator.of(context).canPop()
             ? IconButton(
-                icon: const Icon(Icons.arrow_back, color: Colors.black),
+                icon: const Icon(Icons.arrow_back),
                 onPressed: () => Navigator.pop(context),
               )
             : null,
@@ -61,7 +59,6 @@ class _SignInScreenState extends State<SignInScreen> {
                       style: GoogleFonts.poppins(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
-                        color: Colors.black,
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -90,7 +87,6 @@ class _SignInScreenState extends State<SignInScreen> {
                       style: GoogleFonts.poppins(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        color: Colors.black,
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -132,7 +128,6 @@ class _SignInScreenState extends State<SignInScreen> {
                       style: GoogleFonts.poppins(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        color: Colors.black,
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -314,7 +309,6 @@ class _SignInScreenState extends State<SignInScreen> {
             style: GoogleFonts.poppins(
               fontSize: 20,
               fontWeight: FontWeight.bold,
-              color: Colors.black,
             ),
           ),
           content: Column(
@@ -394,9 +388,13 @@ class _SignInScreenState extends State<SignInScreen> {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Mycolors.lightGray,
+          color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey.shade300),
+          border: Border.all(
+            color: Theme.of(context).brightness == Brightness.dark
+                ? Colors.grey.shade800
+                : Colors.grey.shade300,
+          ),
         ),
         child: Column(
           children: [
@@ -409,7 +407,6 @@ class _SignInScreenState extends State<SignInScreen> {
               style: GoogleFonts.poppins(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: Colors.black,
               ),
             ),
             const SizedBox(height: 4),

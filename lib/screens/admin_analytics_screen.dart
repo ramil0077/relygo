@@ -32,16 +32,13 @@ class _AdminAnalyticsScreenState extends State<AdminAnalyticsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
         elevation: 0,
         title: Text(
           "Service Report",
           style: GoogleFonts.poppins(
             fontSize: 20,
             fontWeight: FontWeight.bold,
-            color: Colors.black,
           ),
         ),
         actions: [
@@ -71,7 +68,6 @@ class _AdminAnalyticsScreenState extends State<AdminAnalyticsScreen> {
                         style: GoogleFonts.poppins(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
-                          color: Colors.black,
                         ),
                       ),
                       const SizedBox(height: 15),
@@ -104,7 +100,6 @@ class _AdminAnalyticsScreenState extends State<AdminAnalyticsScreen> {
                         style: GoogleFonts.poppins(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
-                          color: Colors.black,
                         ),
                       ),
                       const SizedBox(height: 15),
@@ -138,7 +133,6 @@ class _AdminAnalyticsScreenState extends State<AdminAnalyticsScreen> {
                         style: GoogleFonts.poppins(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
-                          color: Colors.black,
                         ),
                       ),
                       const SizedBox(height: 15),
@@ -168,7 +162,6 @@ class _AdminAnalyticsScreenState extends State<AdminAnalyticsScreen> {
                         style: GoogleFonts.poppins(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
-                          color: Colors.black,
                         ),
                       ),
                       const SizedBox(height: 15),
@@ -291,7 +284,7 @@ class _AdminAnalyticsScreenState extends State<AdminAnalyticsScreen> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: Colors.grey.shade300),
         boxShadow: [
@@ -368,7 +361,7 @@ class _AdminAnalyticsScreenState extends State<AdminAnalyticsScreen> {
             style: GoogleFonts.poppins(
               fontSize: 14,
               fontWeight: FontWeight.w600,
-              color: Colors.black87,
+              color: Theme.of(context).textTheme.bodyMedium?.color,
             ),
           ),
         ],

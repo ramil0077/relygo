@@ -30,7 +30,6 @@ class _AdminDriverChatScreenState extends State<AdminDriverChatScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Mycolors.basecolor,
         elevation: 0,
@@ -158,7 +157,7 @@ class _AdminDriverChatScreenState extends State<AdminDriverChatScreen> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: Theme.of(context).cardColor,
               boxShadow: [
                 BoxShadow(
                   color: Colors.grey.withOpacity(0.2),
@@ -231,7 +230,7 @@ class _AdminDriverChatScreenState extends State<AdminDriverChatScreen> {
           maxWidth: MediaQuery.of(context).size.width * 0.75,
         ),
         decoration: BoxDecoration(
-          color: isAdmin ? Mycolors.basecolor : Colors.grey.shade200,
+          color: isAdmin ? Mycolors.basecolor : Theme.of(context).disabledColor.withOpacity(0.1),
           borderRadius: BorderRadius.only(
             topLeft: const Radius.circular(16),
             topRight: const Radius.circular(16),
@@ -246,7 +245,7 @@ class _AdminDriverChatScreenState extends State<AdminDriverChatScreen> {
               message['message'] ?? '',
               style: GoogleFonts.poppins(
                 fontSize: 14,
-                color: isAdmin ? Colors.white : Colors.black87,
+                color: isAdmin ? Colors.white : Theme.of(context).textTheme.bodyMedium?.color,
               ),
             ),
             const SizedBox(height: 4),

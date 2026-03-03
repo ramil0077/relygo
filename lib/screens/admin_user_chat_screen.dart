@@ -30,7 +30,6 @@ class _AdminUserChatScreenState extends State<AdminUserChatScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Mycolors.basecolor,
         elevation: 0,
@@ -158,7 +157,7 @@ class _AdminUserChatScreenState extends State<AdminUserChatScreen> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: Theme.of(context).cardColor,
               boxShadow: [
                 BoxShadow(
                   color: Colors.grey.withOpacity(0.2),
@@ -231,13 +230,24 @@ class _AdminUserChatScreenState extends State<AdminUserChatScreen> {
           maxWidth: MediaQuery.of(context).size.width * 0.75,
         ),
         decoration: BoxDecoration(
-          color: isAdmin ? Mycolors.basecolor : Colors.grey.shade200,
+          color: isAdmin
+              ? Mycolors.basecolor
+              : (Theme.of(context).brightness == Brightness.dark
+                  ? Colors.grey.shade900
+                  : Colors.grey.shade200),
           borderRadius: BorderRadius.only(
             topLeft: const Radius.circular(16),
             topRight: const Radius.circular(16),
             bottomLeft: isAdmin ? const Radius.circular(16) : Radius.zero,
             bottomRight: isAdmin ? Radius.zero : const Radius.circular(16),
           ),
+          border: isAdmin
+              ? null
+              : Border.all(
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.grey.shade800
+                      : Colors.grey.shade300,
+                ),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -246,7 +256,7 @@ class _AdminUserChatScreenState extends State<AdminUserChatScreen> {
               message['message'] ?? '',
               style: GoogleFonts.poppins(
                 fontSize: 14,
-                color: isAdmin ? Colors.white : Colors.black87,
+                color: isAdmin ? Colors.white : null,
               ),
             ),
             const SizedBox(height: 4),

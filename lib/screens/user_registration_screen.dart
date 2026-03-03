@@ -36,24 +36,14 @@ class _UserRegistrationScreenState extends State<UserRegistrationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () async {
             await Navigator.maybePop(context);
           },
         ),
-        title: Text(
-          "Driver Registration",
-          style: GoogleFonts.poppins(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Colors.black,
-          ),
-        ),
+        title: const Text("User Registration"),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -88,7 +78,6 @@ class _UserRegistrationScreenState extends State<UserRegistrationScreen> {
                         style: GoogleFonts.poppins(
                           fontSize: 28,
                           fontWeight: FontWeight.bold,
-                          color: Colors.black,
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -111,7 +100,6 @@ class _UserRegistrationScreenState extends State<UserRegistrationScreen> {
                   style: GoogleFonts.poppins(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: Colors.black,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -146,7 +134,6 @@ class _UserRegistrationScreenState extends State<UserRegistrationScreen> {
                   style: GoogleFonts.poppins(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: Colors.black,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -185,7 +172,6 @@ class _UserRegistrationScreenState extends State<UserRegistrationScreen> {
                   style: GoogleFonts.poppins(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: Colors.black,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -224,7 +210,6 @@ class _UserRegistrationScreenState extends State<UserRegistrationScreen> {
                   style: GoogleFonts.poppins(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: Colors.black,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -276,7 +261,6 @@ class _UserRegistrationScreenState extends State<UserRegistrationScreen> {
                   style: GoogleFonts.poppins(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: Colors.black,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -339,7 +323,6 @@ class _UserRegistrationScreenState extends State<UserRegistrationScreen> {
                         "I agree to the Terms and Conditions",
                         style: GoogleFonts.poppins(
                           fontSize: 14,
-                          color: Colors.black87,
                         ),
                       ),
                     ),

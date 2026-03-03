@@ -10,7 +10,6 @@ class WelcomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       body: SafeArea(
         child: ResponsiveLayoutBuilder(
           builder: (context, constraints) {
@@ -325,7 +324,7 @@ class WelcomeScreen extends StatelessWidget {
     return Container(
       padding: ResponsiveUtils.getResponsiveVerticalPadding(context),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         boxShadow: [
           BoxShadow(
             color: Colors.grey.withOpacity(0.2),

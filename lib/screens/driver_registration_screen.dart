@@ -58,22 +58,12 @@ class _DriverRegistrationScreenState extends State<DriverRegistrationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text(
-          "Driver Registration",
-          style: GoogleFonts.poppins(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Colors.black,
-          ),
-        ),
+        title: const Text("Driver Registration"),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -108,7 +98,6 @@ class _DriverRegistrationScreenState extends State<DriverRegistrationScreen> {
                         style: GoogleFonts.poppins(
                           fontSize: 28,
                           fontWeight: FontWeight.bold,
-                          color: Colors.black,
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -131,7 +120,6 @@ class _DriverRegistrationScreenState extends State<DriverRegistrationScreen> {
                   style: GoogleFonts.poppins(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black,
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -142,7 +130,6 @@ class _DriverRegistrationScreenState extends State<DriverRegistrationScreen> {
                   style: GoogleFonts.poppins(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: Colors.black,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -177,7 +164,6 @@ class _DriverRegistrationScreenState extends State<DriverRegistrationScreen> {
                   style: GoogleFonts.poppins(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: Colors.black,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -216,7 +202,6 @@ class _DriverRegistrationScreenState extends State<DriverRegistrationScreen> {
                   style: GoogleFonts.poppins(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: Colors.black,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -255,7 +240,6 @@ class _DriverRegistrationScreenState extends State<DriverRegistrationScreen> {
                   style: GoogleFonts.poppins(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: Colors.black,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -307,7 +291,6 @@ class _DriverRegistrationScreenState extends State<DriverRegistrationScreen> {
                   style: GoogleFonts.poppins(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: Colors.black,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -359,7 +342,6 @@ class _DriverRegistrationScreenState extends State<DriverRegistrationScreen> {
                   style: GoogleFonts.poppins(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black,
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -370,7 +352,6 @@ class _DriverRegistrationScreenState extends State<DriverRegistrationScreen> {
                   style: GoogleFonts.poppins(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: Colors.black,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -405,7 +386,6 @@ class _DriverRegistrationScreenState extends State<DriverRegistrationScreen> {
                   style: GoogleFonts.poppins(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: Colors.black,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -447,7 +427,6 @@ class _DriverRegistrationScreenState extends State<DriverRegistrationScreen> {
                   style: GoogleFonts.poppins(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: Colors.black,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -485,7 +464,6 @@ class _DriverRegistrationScreenState extends State<DriverRegistrationScreen> {
                   style: GoogleFonts.poppins(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black,
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -541,7 +519,6 @@ class _DriverRegistrationScreenState extends State<DriverRegistrationScreen> {
                         "I agree to the Terms and Conditions and understand that my application will be reviewed by admin",
                         style: GoogleFonts.poppins(
                           fontSize: 14,
-                          color: Colors.black87,
                         ),
                       ),
                     ),

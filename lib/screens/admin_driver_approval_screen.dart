@@ -31,20 +31,17 @@ class _AdminDriverApprovalScreenState extends State<AdminDriverApprovalScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
         elevation: 0,
         title: Text(
           "Driver Applications",
           style: GoogleFonts.poppins(
             fontSize: 20,
             fontWeight: FontWeight.bold,
-            color: Colors.black,
           ),
         ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: Icon(Icons.arrow_back, color: Theme.of(context).iconTheme.color),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -163,7 +160,7 @@ class _AdminDriverApprovalScreenState extends State<AdminDriverApprovalScreen> {
           style: GoogleFonts.poppins(
             fontSize: 14,
             fontWeight: FontWeight.w600,
-            color: isSelected ? Colors.white : Colors.black87,
+            color: isSelected ? Colors.white : Theme.of(context).textTheme.bodyMedium?.color,
           ),
         ),
       ),
@@ -236,7 +233,7 @@ class _AdminDriverApprovalScreenState extends State<AdminDriverApprovalScreen> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.grey.shade300),
         boxShadow: [
@@ -273,7 +270,6 @@ class _AdminDriverApprovalScreenState extends State<AdminDriverApprovalScreen> {
                       style: GoogleFonts.poppins(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: Colors.black,
                       ),
                     ),
                     Text(

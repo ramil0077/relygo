@@ -70,22 +70,12 @@ class _PaymentScreenState extends State<PaymentScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: Text(
-          "Payment",
-          style: GoogleFonts.poppins(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Colors.black,
-          ),
-        ),
+        title: const Text("Payment"),
       ),
       body: SafeArea(
         child: Padding(
@@ -97,7 +87,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Mycolors.lightGray,
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.grey.shade900
+                      : Mycolors.lightGray,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Column(
@@ -246,10 +238,14 @@ class _PaymentScreenState extends State<PaymentScreen> {
         decoration: BoxDecoration(
           color: isSelected
               ? Mycolors.basecolor.withOpacity(0.1)
-              : Colors.white,
+              : Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isSelected ? Mycolors.basecolor : Colors.grey.shade300,
+            color: isSelected
+                ? Mycolors.basecolor
+                : (Theme.of(context).brightness == Brightness.dark
+                    ? Colors.grey.shade800
+                    : Colors.grey.shade300),
             width: isSelected ? 2 : 1,
           ),
         ),
@@ -270,7 +266,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                     style: GoogleFonts.poppins(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: isSelected ? Mycolors.basecolor : Colors.black,
+                      color: isSelected ? Mycolors.basecolor : null,
                     ),
                   ),
                   Text(
@@ -398,7 +394,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
             padding: const EdgeInsets.all(30),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(20),
-              color: Colors.white,
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -425,7 +420,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
                   style: GoogleFonts.poppins(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black,
                   ),
                   textAlign: TextAlign.center,
                 ),

@@ -32,7 +32,6 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
@@ -64,7 +63,6 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                       style: GoogleFonts.poppins(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
-                        color: Colors.black,
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -93,7 +91,6 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                       style: GoogleFonts.poppins(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        color: Colors.black,
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -135,7 +132,6 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                       style: GoogleFonts.poppins(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        color: Colors.black,
                       ),
                     ),
                     const SizedBox(height: 8),

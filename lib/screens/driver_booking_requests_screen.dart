@@ -23,13 +23,10 @@ class _DriverBookingRequestsScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        title: Text('Booking Requests', style: titleStyle(context)),
+        title: const Text('Booking Requests'),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -104,12 +101,16 @@ class _DriverBookingRequestsScreenState
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Mycolors.basecolor.withOpacity(0.3)),
+        border: Border.all(
+          color: Theme.of(context).brightness == Brightness.dark
+              ? Colors.grey.shade800
+              : Mycolors.basecolor.withOpacity(0.3),
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -149,7 +150,6 @@ class _DriverBookingRequestsScreenState
                         style: GoogleFonts.poppins(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          color: Colors.black,
                         ),
                       ),
                       Text(
@@ -235,7 +235,6 @@ class _DriverBookingRequestsScreenState
                           style: GoogleFonts.poppins(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
-                            color: Colors.black87,
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -329,7 +328,7 @@ class _DriverBookingRequestsScreenState
               ),
               Text(
                 location,
-                style: GoogleFonts.poppins(fontSize: 14, color: Colors.black87),
+                style: GoogleFonts.poppins(fontSize: 14),
               ),
             ],
           ),

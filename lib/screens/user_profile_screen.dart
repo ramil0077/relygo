@@ -21,25 +21,15 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
         automaticallyImplyLeading: false,
         leading: Navigator.of(context).canPop()
             ? IconButton(
-                icon: const Icon(Icons.arrow_back, color: Colors.black),
+                icon: const Icon(Icons.arrow_back),
                 onPressed: () => Navigator.pop(context),
               )
             : null,
-        title: Text(
-          "Profile",
-          style: GoogleFonts.poppins(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Colors.black,
-          ),
-        ),
+        title: const Text("Profile"),
       ),
       body: StreamBuilder<User?>(
         stream: AuthService.authStateChanges,
@@ -260,7 +250,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                           style: GoogleFonts.poppins(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
-                            color: Colors.black,
                           ),
                         ),
                       ),
@@ -313,7 +302,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           style: GoogleFonts.poppins(
             fontSize: 16,
             fontWeight: FontWeight.w600,
-            color: Colors.black,
           ),
         ),
         subtitle: Text(
@@ -322,7 +310,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         ),
         trailing: Icon(Icons.arrow_forward_ios, color: Mycolors.gray, size: 16),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        tileColor: Colors.white,
+        tileColor: Theme.of(context).cardColor,
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       ),
     );
@@ -695,7 +683,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         style: GoogleFonts.poppins(
           fontSize: 14,
           fontWeight: FontWeight.w600,
-          color: Colors.black,
         ),
       ),
       children: [
