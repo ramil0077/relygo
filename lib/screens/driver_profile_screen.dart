@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:relygo/constants.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:relygo/services/auth_service.dart';
 import 'package:relygo/services/user_service.dart';
 import 'package:relygo/screens/signin_screen.dart';
@@ -284,7 +287,7 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
                           currentName: name,
                           currentEmail: email,
                           currentPhone: phone,
-                          currentLicense: (data['licenseNumber'] ?? '')
+                          currentLicense: (docs['licenseNumber'] ?? data['licenseNumber'] ?? '')
                               .toString(),
                         );
                       },
@@ -298,7 +301,6 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
                           currentType: vehicleType,
                           currentModel: vehicleModel,
                           currentReg: vehicleReg,
-                          currentYear: (vehicle['year'] ?? '').toString(),
                         );
                       },
                     ),
@@ -334,14 +336,7 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
                         _showBankDetailsDialog();
                       },
                     ),
-                    _buildProfileOption(
-                      "Notifications",
-                      "Manage notification preferences",
-                      Icons.notifications,
-                      () {
-                        _showNotificationsDialog();
-                      },
-                    ),
+
                     _buildProfileOption(
                       "Help & Support",
                       "Get help and contact support",
@@ -577,7 +572,6 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
     required String currentType,
     required String currentModel,
     required String currentReg,
-    required String currentYear,
   }) {
     showDialog(
       context: context,
@@ -585,7 +579,6 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
         final typeCtrl = TextEditingController(text: currentType);
         final modelCtrl = TextEditingController(text: currentModel);
         final regCtrl = TextEditingController(text: currentReg);
-        final yearCtrl = TextEditingController(text: currentYear);
         return AlertDialog(
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
@@ -626,15 +619,6 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
                 ),
                 controller: regCtrl,
               ),
-              const SizedBox(height: 15),
-              TextField(
-                decoration: InputDecoration(
-                  labelText: "Year of Manufacture",
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                controller: yearCtrl,
               ),
             ],
           ),
@@ -655,7 +639,6 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
                     vehicleType: typeCtrl.text.trim(),
                     vehicleModel: modelCtrl.text.trim(),
                     registrationNumber: regCtrl.text.trim(),
-                    yearOfManufacture: yearCtrl.text.trim(),
                   );
                 }
                 if (mounted) {
@@ -795,51 +778,71 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
   }
 
   void _showEarningsDialog() {
+    final uid = AuthService.currentUserId;
+    if (uid == null) return;
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          title: Text(
-            "Earnings Summary",
-            style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _buildEarningsItem("Today", "₹1,250", Mycolors.green),
-              _buildEarningsItem("This Week", "₹8,750", Mycolors.orange),
-              _buildEarningsItem("This Month", "₹35,000", Mycolors.basecolor),
-              _buildEarningsItem("Total", "₹1,25,000", Mycolors.green),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text(
-                "Close",
-                style: GoogleFonts.poppins(color: Colors.grey),
+        return StreamBuilder<Map<String, double>>(
+          stream: UserService.streamDriverEarningsSummary(uid),
+          builder: (context, snapshot) {
+            final data = snapshot.data ??
+                {'today': 0, 'week': 0, 'month': 0, 'total': 0};
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
               ),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Withdrawal request submitted!'),
-                    backgroundColor: Mycolors.green,
+              title: Text(
+                "Earnings Summary",
+                style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+              ),
+              content: snapshot.connectionState == ConnectionState.waiting
+                  ? const SizedBox(
+                      height: 100,
+                      child: Center(child: CircularProgressIndicator()))
+                  : Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _buildEarningsItem("Today",
+                            "₹${data['today']?.toStringAsFixed(2)}", Mycolors.green),
+                        _buildEarningsItem("This Week",
+                            "₹${data['week']?.toStringAsFixed(2)}", Mycolors.orange),
+                        _buildEarningsItem("This Month",
+                            "₹${data['month']?.toStringAsFixed(2)}", Mycolors.basecolor),
+                        _buildEarningsItem("Total",
+                            "₹${data['total']?.toStringAsFixed(2)}", Mycolors.green),
+                      ],
+                    ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text(
+                    "Close",
+                    style: GoogleFonts.poppins(color: Colors.grey),
                   ),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Mycolors.basecolor,
-                foregroundColor: Colors.white,
-              ),
-              child: Text("Withdraw", style: GoogleFonts.poppins()),
-            ),
-          ],
+                ),
+                ElevatedButton(
+                  onPressed: (data['total'] ?? 0) > 0
+                      ? () {
+                          Navigator.of(context).pop();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Withdrawal request submitted!'),
+                              backgroundColor: Mycolors.green,
+                            ),
+                          );
+                        }
+                      : null,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Mycolors.basecolor,
+                    foregroundColor: Colors.white,
+                  ),
+                  child: Text("Withdraw", style: GoogleFonts.poppins()),
+                ),
+              ],
+            );
+          },
         );
       },
     );
@@ -870,6 +873,9 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
   }
 
   void _showRideHistoryDialog() {
+    final uid = AuthService.currentUserId;
+    if (uid == null) return;
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -881,28 +887,53 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
             "Recent Rides",
             style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
           ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _buildRideItem(
-                "Airport to Downtown",
-                "₹180",
-                "2 hours ago",
-                "Completed",
-              ),
-              _buildRideItem(
-                "Mall to Station",
-                "₹120",
-                "Yesterday",
-                "Completed",
-              ),
-              _buildRideItem(
-                "Hospital Pickup",
-                "₹200",
-                "2 days ago",
-                "Completed",
-              ),
-            ],
+          content: SizedBox(
+            width: double.maxFinite,
+            child: StreamBuilder<List<Map<String, dynamic>>>(
+              stream: UserService.getDriverRideHistoryStream(uid),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const SizedBox(
+                      height: 100,
+                      child: Center(child: CircularProgressIndicator()));
+                }
+
+                final rides = snapshot.data ?? [];
+                if (rides.isEmpty) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 20),
+                    child: Text(
+                      "No rides found",
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.poppins(color: Mycolors.gray),
+                    ),
+                  );
+                }
+
+                return ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: rides.length > 5 ? 5 : rides.length,
+                  itemBuilder: (context, index) {
+                    final ride = rides[index];
+                    final pickup = ride['pickup'] ?? 'Unknown location';
+                    final dropoff = ride['destination'] ?? 'Unknown location';
+                    final fare = ride['fare']?.toString() ?? '0';
+                    final time = ride['createdAt'] is Timestamp
+                        ? DateFormat('dd MMM, hh:mm a')
+                            .format((ride['createdAt'] as Timestamp).toDate())
+                        : 'Unknown time';
+                    final status = ride['status'] ?? 'Completed';
+
+                    return _buildRideItem(
+                      "$pickup to $dropoff",
+                      "₹$fare",
+                      time,
+                      status,
+                    );
+                  },
+                );
+              },
+            ),
           ),
           actions: [
             TextButton(
@@ -1131,7 +1162,6 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
               _buildSupportOption("FAQ", Icons.help_outline),
               _buildSupportOption("Contact Support", Icons.phone),
               _buildSupportOption("Report Issue", Icons.report),
-              _buildSupportOption("Live Chat", Icons.chat),
             ],
           ),
           actions: [
@@ -1152,14 +1182,28 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
     return ListTile(
       leading: Icon(icon, color: Mycolors.basecolor),
       title: Text(title, style: GoogleFonts.poppins()),
-      onTap: () {
-        Navigator.of(context).pop();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Opening $title...'),
-            backgroundColor: Mycolors.basecolor,
-          ),
-        );
+      onTap: () async {
+        if (title == "Contact Support") {
+          final Uri telLaunchUri = Uri(
+            scheme: 'tel',
+            path: '+919876543210', // Example support number
+          );
+          if (await canLaunchUrl(telLaunchUri)) {
+            await launchUrl(telLaunchUri);
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Could not launch dialer')),
+            );
+          }
+        } else {
+          Navigator.of(context).pop();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Opening $title...'),
+              backgroundColor: Mycolors.basecolor,
+            ),
+          );
+        }
       },
     );
   }
@@ -1168,55 +1212,69 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          title: Text(
-            "Settings",
-            style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: Icon(Icons.language, color: Mycolors.basecolor),
-                title: Text("Language", style: GoogleFonts.poppins()),
-                trailing: Text(
-                  "English",
-                  style: GoogleFonts.poppins(color: Mycolors.gray),
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            final isDark =
+                AppSettings.themeMode.value == ThemeMode.dark;
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              title: Text(
+                "Settings",
+                style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Dark Mode toggle
+                  SwitchListTile(
+                    secondary: Icon(
+                      isDark ? Icons.dark_mode : Icons.light_mode,
+                      color: Mycolors.basecolor,
+                    ),
+                    title: Text("Dark Mode", style: GoogleFonts.poppins()),
+                    subtitle: Text(
+                      isDark ? "Dark theme enabled" : "Light theme enabled",
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        color: Mycolors.gray,
+                      ),
+                    ),
+                    value: isDark,
+                    activeTrackColor: Mycolors.basecolor,
+                    onChanged: (value) {
+                      setDialogState(() {
+                        AppSettings.themeMode.value =
+                            value ? ThemeMode.dark : ThemeMode.light;
+                      });
+                    },
+                  ),
+                  // Location Services toggle
+                  ListTile(
+                    leading:
+                        Icon(Icons.location_on, color: Mycolors.basecolor),
+                    title:
+                        Text("Location Services", style: GoogleFonts.poppins()),
+                    trailing: Switch(
+                      value: true,
+                      onChanged: (value) {},
+                      activeTrackColor: Mycolors.basecolor,
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text(
+                    "Close",
+                    style: GoogleFonts.poppins(color: Colors.grey),
+                  ),
                 ),
-                onTap: () {},
-              ),
-              ListTile(
-                leading: Icon(Icons.dark_mode, color: Mycolors.basecolor),
-                title: Text("Theme", style: GoogleFonts.poppins()),
-                trailing: Text(
-                  "Light",
-                  style: GoogleFonts.poppins(color: Mycolors.gray),
-                ),
-                onTap: () {},
-              ),
-              ListTile(
-                leading: Icon(Icons.location_on, color: Mycolors.basecolor),
-                title: Text("Location Services", style: GoogleFonts.poppins()),
-                trailing: Switch(
-                  value: true,
-                  onChanged: (value) {},
-                  activeTrackColor: Mycolors.basecolor,
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text(
-                "Close",
-                style: GoogleFonts.poppins(color: Colors.grey),
-              ),
-            ),
-          ],
+              ],
+            );
+          },
         );
       },
     );
