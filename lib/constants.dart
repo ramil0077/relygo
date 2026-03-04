@@ -45,7 +45,7 @@ class AppTheme {
           ),
         ),
       ),
-      dialogTheme: DialogTheme(
+      dialogTheme: DialogThemeData(
         backgroundColor: Colors.white,
         titleTextStyle: GoogleFonts.poppins(
           color: Colors.black,
@@ -98,7 +98,7 @@ class AppTheme {
           ),
         ),
       ),
-      dialogTheme: DialogTheme(
+      dialogTheme: DialogThemeData(
         backgroundColor: Color(0xFF1E1E1E),
         titleTextStyle: GoogleFonts.poppins(
           color: Colors.white,

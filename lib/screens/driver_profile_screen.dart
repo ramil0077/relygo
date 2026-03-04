@@ -101,7 +101,8 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
           }
 
           // Data extracted from Firestore
-          final name = (data['name'] ?? data['fullName'] ?? 'Driver').toString();
+          final name = (data['name'] ?? data['fullName'] ?? 'Driver')
+              .toString();
           final email = (data['email'] ?? '').toString();
           final phone = (data['phone'] ?? data['phoneNumber'] ?? '').toString();
           final photoUrl = (data['photoUrl'] ?? '').toString();
@@ -114,267 +115,267 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
               ? Map<String, dynamic>.from(data['documents'] as Map)
               : {};
 
-              final vehicleType =
-                  (vehicle['type'] ?? docs['vehicleType'] ?? 'Vehicle')
-                      .toString();
-              final vehicleModel = (vehicle['model'] ?? 'Standard').toString();
-              final vehicleReg =
-                  (vehicle['registrationNumber'] ?? docs['vehicleNumber'] ?? '')
-                      .toString();
+          final vehicleType =
+              (vehicle['type'] ?? docs['vehicleType'] ?? 'Vehicle').toString();
+          final vehicleModel = (vehicle['model'] ?? 'Standard').toString();
+          final vehicleReg =
+              (vehicle['registrationNumber'] ?? docs['vehicleNumber'] ?? '')
+                  .toString();
 
-              // Dynamic stats from user data
-              final totalRides = (data['totalRides'] ?? '0').toString();
-              final totalEarnings = (data['totalEarnings'] ?? '0').toString();
-              final hoursToday = (data['hoursToday'] ?? '0').toString();
+          // Dynamic stats from user data
+          final totalRides = (data['totalRides'] ?? '0').toString();
+          final totalEarnings = (data['totalEarnings'] ?? '0').toString();
+          final hoursToday = (data['hoursToday'] ?? '0').toString();
 
-              return SingleChildScrollView(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  children: [
-                    // Profile Header
-                    Container(
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            Mycolors.basecolor,
-                            Mycolors.basecolor.withOpacity(0.8),
-                          ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Mycolors.basecolor.withOpacity(0.3),
-                            blurRadius: 10,
-                            offset: const Offset(0, 5),
-                          ),
-                        ],
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              children: [
+                // Profile Header
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Mycolors.basecolor,
+                        Mycolors.basecolor.withOpacity(0.8),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Mycolors.basecolor.withOpacity(0.3),
+                        blurRadius: 10,
+                        offset: const Offset(0, 5),
                       ),
-                      child: Column(
+                    ],
+                  ),
+                  child: Column(
+                    children: [
+                      CircleAvatar(
+                        radius: 50,
+                        backgroundColor: Colors.white.withOpacity(0.2),
+                        backgroundImage: photoUrl.isNotEmpty
+                            ? NetworkImage(photoUrl)
+                            : null,
+                        child: photoUrl.isEmpty
+                            ? Image.asset(
+                                'assets/logooo.png',
+                                width: 50,
+                                height: 50,
+                              )
+                            : null,
+                      ),
+                      const SizedBox(height: 15),
+                      Text(
+                        name,
+                        style: GoogleFonts.poppins(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      Text(
+                        email.isNotEmpty ? email : phone,
+                        style: GoogleFonts.poppins(
+                          fontSize: 16,
+                          color: Colors.white.withOpacity(0.9),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          CircleAvatar(
-                            radius: 50,
-                            backgroundColor: Colors.white.withOpacity(0.2),
-                            backgroundImage: photoUrl.isNotEmpty
-                                ? NetworkImage(photoUrl)
-                                : null,
-                            child: photoUrl.isEmpty
-                                ? Image.asset(
-                                    'assets/logooo.png',
-                                    width: 50,
-                                    height: 50,
-                                  )
-                                : null,
-                          ),
-                          const SizedBox(height: 15),
+                          Icon(Icons.star, color: Colors.white, size: 20),
+                          const SizedBox(width: 5),
                           Text(
-                            name,
-                            style: GoogleFonts.poppins(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
-                          Text(
-                            email.isNotEmpty ? email : phone,
+                            "$rating Rating",
                             style: GoogleFonts.poppins(
                               fontSize: 16,
-                              color: Colors.white.withOpacity(0.9),
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.star, color: Colors.white, size: 20),
-                              const SizedBox(width: 5),
-                              Text(
-                                "$rating Rating",
-                                style: GoogleFonts.poppins(
-                                  fontSize: 16,
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 10),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 6,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Text(
-                              (data['isOnline'] ?? true) ? "Online" : "Offline",
-                              style: GoogleFonts.poppins(
-                                fontSize: 14,
-                                color: Colors.white,
-                                fontWeight: FontWeight.w600,
-                              ),
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ],
                       ),
-                    ),
-                    const SizedBox(height: 30),
-
-                    // Driver Stats
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildStatCard(
-                            totalRides,
-                            "Total Rides",
-                            Icons.directions_car,
-                          ),
+                      const SizedBox(height: 10),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
                         ),
-                        const SizedBox(width: 15),
-                        Expanded(
-                          child: _buildStatCard(
-                            "₹$totalEarnings",
-                            "Total Earnings",
-                            Icons.attach_money,
-                          ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(20),
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 15),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildStatCard(
-                            hoursToday,
-                            "Hours Today",
-                            Icons.access_time,
-                          ),
-                        ),
-                        const SizedBox(width: 15),
-                        Expanded(
-                          child: _buildStatCard(
-                            vehicleType,
-                            "Vehicle",
-                            Icons.directions_car,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 30),
-
-                    // Profile Options
-                    _buildProfileOption(
-                      "Personal Information",
-                      "Update your personal details",
-                      Icons.person_outline,
-                      () {
-                        _showPersonalInfoDialog(
-                          currentName: name,
-                          currentEmail: email,
-                          currentPhone: phone,
-                          currentLicense: (docs['licenseNumber'] ?? data['licenseNumber'] ?? '')
-                              .toString(),
-                        );
-                      },
-                    ),
-                    _buildProfileOption(
-                      "Vehicle Information",
-                      "Manage your vehicle details",
-                      Icons.directions_car,
-                      () {
-                        _showVehicleInfoDialog(
-                          currentType: vehicleType,
-                          currentModel: vehicleModel,
-                          currentReg: vehicleReg,
-                        );
-                      },
-                    ),
-                    _buildProfileOption(
-                      "Documents",
-                      "Upload and manage documents",
-                      Icons.description,
-                      () {
-                        _showDocumentsDialog();
-                      },
-                    ),
-                    _buildProfileOption(
-                      "Earnings",
-                      "View your earnings history",
-                      Icons.attach_money,
-                      () {
-                        _showEarningsDialog();
-                      },
-                    ),
-                    _buildProfileOption(
-                      "Ride History",
-                      "View your ride history",
-                      Icons.history,
-                      () {
-                        _showRideHistoryDialog();
-                      },
-                    ),
-                    _buildProfileOption(
-                      "Bank Details",
-                      "Manage your bank account",
-                      Icons.account_balance,
-                      () {
-                        _showBankDetailsDialog();
-                      },
-                    ),
-
-                    _buildProfileOption(
-                      "Help & Support",
-                      "Get help and contact support",
-                      Icons.help,
-                      () {
-                        _showHelpSupportDialog();
-                      },
-                    ),
-                    _buildProfileOption(
-                      "Settings",
-                      "App settings and preferences",
-                      Icons.settings,
-                      () {
-                        _showSettingsDialog();
-                      },
-                    ),
-                    const SizedBox(height: 20),
-
-                    // Logout Button
-                    SizedBox(
-                      width: double.infinity,
-                      height: 50,
-                      child: OutlinedButton.icon(
-                        onPressed: () {
-                          _showLogoutDialog();
-                        },
-                        icon: Icon(Icons.logout, color: Mycolors.red),
-                        label: Text(
-                          "Logout",
+                        child: Text(
+                          (data['isOnline'] ?? true) ? "Online" : "Offline",
                           style: GoogleFonts.poppins(
-                            fontSize: 16,
-                            color: Mycolors.red,
+                            fontSize: 14,
+                            color: Colors.white,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
-                        style: OutlinedButton.styleFrom(
-                          side: BorderSide(color: Mycolors.red),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 30),
+
+                // Driver Stats
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildStatCard(
+                        totalRides,
+                        "Total Rides",
+                        Icons.directions_car,
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(width: 15),
+                    Expanded(
+                      child: _buildStatCard(
+                        "₹$totalEarnings",
+                        "Total Earnings",
+                        Icons.attach_money,
+                      ),
+                    ),
                   ],
                 ),
-              );
-            },
-          ),
+                const SizedBox(height: 15),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildStatCard(
+                        hoursToday,
+                        "Hours Today",
+                        Icons.access_time,
+                      ),
+                    ),
+                    const SizedBox(width: 15),
+                    Expanded(
+                      child: _buildStatCard(
+                        vehicleType,
+                        "Vehicle",
+                        Icons.directions_car,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 30),
+
+                // Profile Options
+                _buildProfileOption(
+                  "Personal Information",
+                  "Update your personal details",
+                  Icons.person_outline,
+                  () {
+                    _showPersonalInfoDialog(
+                      currentName: name,
+                      currentEmail: email,
+                      currentPhone: phone,
+                      currentLicense:
+                          (docs['licenseNumber'] ?? data['licenseNumber'] ?? '')
+                              .toString(),
+                    );
+                  },
+                ),
+                _buildProfileOption(
+                  "Vehicle Information",
+                  "Manage your vehicle details",
+                  Icons.directions_car,
+                  () {
+                    _showVehicleInfoDialog(
+                      currentType: vehicleType,
+                      currentModel: vehicleModel,
+                      currentReg: vehicleReg,
+                    );
+                  },
+                ),
+                _buildProfileOption(
+                  "Documents",
+                  "Upload and manage documents",
+                  Icons.description,
+                  () {
+                    _showDocumentsDialog();
+                  },
+                ),
+                _buildProfileOption(
+                  "Earnings",
+                  "View your earnings history",
+                  Icons.attach_money,
+                  () {
+                    _showEarningsDialog();
+                  },
+                ),
+                _buildProfileOption(
+                  "Ride History",
+                  "View your ride history",
+                  Icons.history,
+                  () {
+                    _showRideHistoryDialog();
+                  },
+                ),
+                _buildProfileOption(
+                  "Bank Details",
+                  "Manage your bank account",
+                  Icons.account_balance,
+                  () {
+                    _showBankDetailsDialog();
+                  },
+                ),
+
+                _buildProfileOption(
+                  "Help & Support",
+                  "Get help and contact support",
+                  Icons.help,
+                  () {
+                    _showHelpSupportDialog();
+                  },
+                ),
+                _buildProfileOption(
+                  "Settings",
+                  "App settings and preferences",
+                  Icons.settings,
+                  () {
+                    _showSettingsDialog();
+                  },
+                ),
+                const SizedBox(height: 20),
+
+                // Logout Button
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      _showLogoutDialog();
+                    },
+                    icon: Icon(Icons.logout, color: Mycolors.red),
+                    label: Text(
+                      "Logout",
+                      style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        color: Mycolors.red,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      side: BorderSide(color: Mycolors.red),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+              ],
+            ),
+          );
+        },
+      ),
     );
   }
 
@@ -608,7 +609,6 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
                 ),
                 controller: regCtrl,
               ),
-              ),
             ],
           ),
           actions: [
@@ -776,7 +776,8 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
         return StreamBuilder<Map<String, double>>(
           stream: UserService.streamDriverEarningsSummary(uid),
           builder: (context, snapshot) {
-            final data = snapshot.data ??
+            final data =
+                snapshot.data ??
                 {'today': 0, 'week': 0, 'month': 0, 'total': 0};
             return AlertDialog(
               shape: RoundedRectangleBorder(
@@ -789,18 +790,31 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
               content: snapshot.connectionState == ConnectionState.waiting
                   ? const SizedBox(
                       height: 100,
-                      child: Center(child: CircularProgressIndicator()))
+                      child: Center(child: CircularProgressIndicator()),
+                    )
                   : Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        _buildEarningsItem("Today",
-                            "₹${data['today']?.toStringAsFixed(2)}", Mycolors.green),
-                        _buildEarningsItem("This Week",
-                            "₹${data['week']?.toStringAsFixed(2)}", Mycolors.orange),
-                        _buildEarningsItem("This Month",
-                            "₹${data['month']?.toStringAsFixed(2)}", Mycolors.basecolor),
-                        _buildEarningsItem("Total",
-                            "₹${data['total']?.toStringAsFixed(2)}", Mycolors.green),
+                        _buildEarningsItem(
+                          "Today",
+                          "₹${data['today']?.toStringAsFixed(2)}",
+                          Mycolors.green,
+                        ),
+                        _buildEarningsItem(
+                          "This Week",
+                          "₹${data['week']?.toStringAsFixed(2)}",
+                          Mycolors.orange,
+                        ),
+                        _buildEarningsItem(
+                          "This Month",
+                          "₹${data['month']?.toStringAsFixed(2)}",
+                          Mycolors.basecolor,
+                        ),
+                        _buildEarningsItem(
+                          "Total",
+                          "₹${data['total']?.toStringAsFixed(2)}",
+                          Mycolors.green,
+                        ),
                       ],
                     ),
               actions: [
@@ -883,8 +897,9 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const SizedBox(
-                      height: 100,
-                      child: Center(child: CircularProgressIndicator()));
+                    height: 100,
+                    child: Center(child: CircularProgressIndicator()),
+                  );
                 }
 
                 final rides = snapshot.data ?? [];
@@ -908,8 +923,9 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
                     final dropoff = ride['destination'] ?? 'Unknown location';
                     final fare = ride['fare']?.toString() ?? '0';
                     final time = ride['createdAt'] is Timestamp
-                        ? DateFormat('dd MMM, hh:mm a')
-                            .format((ride['createdAt'] as Timestamp).toDate())
+                        ? DateFormat(
+                            'dd MMM, hh:mm a',
+                          ).format((ride['createdAt'] as Timestamp).toDate())
                         : 'Unknown time';
                     final status = ride['status'] ?? 'Completed';
 
@@ -948,8 +964,8 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Theme.of(context).brightness == Brightness.dark 
-            ? Colors.grey.shade900 
+        color: Theme.of(context).brightness == Brightness.dark
+            ? Colors.grey.shade900
             : Colors.grey.shade100,
         borderRadius: BorderRadius.circular(8),
       ),
@@ -1205,8 +1221,7 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
       builder: (BuildContext context) {
         return StatefulBuilder(
           builder: (context, setDialogState) {
-            final isDark =
-                AppSettings.themeMode.value == ThemeMode.dark;
+            final isDark = AppSettings.themeMode.value == ThemeMode.dark;
             return AlertDialog(
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
@@ -1236,17 +1251,19 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
                     activeTrackColor: Mycolors.basecolor,
                     onChanged: (value) {
                       setDialogState(() {
-                        AppSettings.themeMode.value =
-                            value ? ThemeMode.dark : ThemeMode.light;
+                        AppSettings.themeMode.value = value
+                            ? ThemeMode.dark
+                            : ThemeMode.light;
                       });
                     },
                   ),
                   // Location Services toggle
                   ListTile(
-                    leading:
-                        Icon(Icons.location_on, color: Mycolors.basecolor),
-                    title:
-                        Text("Location Services", style: GoogleFonts.poppins()),
+                    leading: Icon(Icons.location_on, color: Mycolors.basecolor),
+                    title: Text(
+                      "Location Services",
+                      style: GoogleFonts.poppins(),
+                    ),
                     trailing: Switch(
                       value: true,
                       onChanged: (value) {},
