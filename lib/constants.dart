@@ -34,6 +34,7 @@ class AppTheme {
           fontWeight: FontWeight.w600,
         ),
       ),
+      dividerColor: Colors.grey.shade300,
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: Mycolors.basecolor,

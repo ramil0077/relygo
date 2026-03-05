@@ -548,7 +548,9 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.black.withOpacity(0.3)
+                      : Colors.black.withOpacity(0.05),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),
@@ -1966,7 +1968,6 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                       desktop: 20,
                     ),
                     fontWeight: FontWeight.w600,
-                    color: Colors.black,
                   ),
                 ),
                 Text(
@@ -2132,7 +2133,7 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                       desktop: 20,
                     ),
                     fontWeight: FontWeight.w600,
-                    color: Colors.black,
+                    color: Theme.of(context).textTheme.bodyLarge?.color,
                   ),
                 ),
                 Text(
