@@ -5,6 +5,11 @@ import 'package:relygo/constants.dart';
 import 'package:relygo/screens/chat_detail_screen.dart';
 import 'package:relygo/services/chat_service.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:geocoding/geocoding.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 
 class DriverTrackingScreen extends StatefulWidget {
   final String bookingId;
@@ -21,6 +26,70 @@ class DriverTrackingScreen extends StatefulWidget {
 }
 
 class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
+  List<LatLng> _routePoints = [];
+  bool _isLoadingRoute = false;
+  LatLng? _pickupLatLng;
+
+  Future<void> _fetchRoute(LatLng driverLocation, String pickupAddress) async {
+    if (_routePoints.isNotEmpty || _isLoadingRoute) return;
+
+    setState(() {
+      _isLoadingRoute = true;
+    });
+
+    try {
+      // 1. Geocode the pickup address
+      if (_pickupLatLng == null && pickupAddress.isNotEmpty) {
+        List<Location> locations = await locationFromAddress(pickupAddress);
+        if (locations.isNotEmpty) {
+          _pickupLatLng = LatLng(locations.first.latitude, locations.first.longitude);
+        }
+      }
+
+      if (_pickupLatLng == null) {
+        setState(() => _isLoadingRoute = false);
+        return;
+      }
+
+      // 2. Fetch Route from OSRM
+      final url = 'https://router.project-osrm.org/route/v1/driving/'
+          '${driverLocation.longitude},${driverLocation.latitude};'
+          '${_pickupLatLng!.longitude},${_pickupLatLng!.latitude}'
+          '?overview=full&geometries=geojson';
+
+      final response = await http.get(Uri.parse(url));
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final routes = data['routes'] as List?;
+        if (routes != null && routes.isNotEmpty) {
+          final geometry = routes.first['geometry'];
+          final coordinates = geometry['coordinates'] as List;
+
+          final points = coordinates.map((coord) {
+            return LatLng(coord[1].toDouble(), coord[0].toDouble());
+          }).toList();
+
+          if (mounted) {
+            setState(() {
+              _routePoints = points;
+              _isLoadingRoute = false;
+            });
+          }
+          return;
+        }
+      }
+    } catch (e) {
+      print('Error fetching route: $e');
+    }
+
+    if (mounted) {
+      setState(() {
+        _isLoadingRoute = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<DocumentSnapshot>(
@@ -475,6 +544,17 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
           lng = (location['longitude'] as num?)?.toDouble();
         }
 
+        if (lat != null && lng != null) {
+          final driverLatLng = LatLng(lat, lng);
+          final pickupAddress = bookingData['pickupLocation'] ?? '';
+          
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+             if (_routePoints.isEmpty && !_isLoadingRoute && mounted) {
+               _fetchRoute(driverLatLng, pickupAddress);
+             }
+          });
+        }
+
         return Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
@@ -523,36 +603,105 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
                 const SizedBox(height: 16),
               ],
 
-              // Map Placeholder with coordinates
-              Container(
-                height: 200,
-                decoration: BoxDecoration(
-                  color: Colors.grey[200],
-                  borderRadius: BorderRadius.circular(8),
-                  image: lat != null ? const DecorationImage(
-                    image: AssetImage('assets/logooo.png'), // Using logo as a placeholder icon
-                    scale: 5,
-                  ) : null,
-                ),
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.map, size: 48, color: Mycolors.basecolor.withOpacity(0.5)),
-                      const SizedBox(height: 8),
-                      Text(
-                        lat != null ? 'Driver is currently at ($lat, $lng)' : 'Waiting for GPS signal...',
-                        textAlign: TextAlign.center,
-                        style: GoogleFonts.poppins(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.grey[700],
-                        ),
+              // Map View with live coordinates
+              if (lat != null && lng != null)
+                Container(
+                  height: 300,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.grey.shade300),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: FlutterMap(
+                      options: MapOptions(
+                        initialCenter: LatLng(lat, lng),
+                        initialZoom: 15.0,
                       ),
-                    ],
+                      children: [
+                        TileLayer(
+                          urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                          userAgentPackageName: 'com.example.relygo',
+                        ),
+                        PolylineLayer(
+                          polylines: [
+                            if (_routePoints.isNotEmpty)
+                              Polyline(
+                                points: _routePoints,
+                                color: Mycolors.basecolor,
+                                strokeWidth: 4.0,
+                              ),
+                          ],
+                        ),
+                        MarkerLayer(
+                          markers: [
+                            // Pickup Location Marker
+                            if (_pickupLatLng != null)
+                              Marker(
+                                point: _pickupLatLng!,
+                                width: 40,
+                                height: 40,
+                                child: const Icon(
+                                  Icons.location_on,
+                                  color: Colors.red,
+                                  size: 40,
+                                ),
+                              ),
+                            // Driver Location Marker
+                            Marker(
+                              point: LatLng(lat, lng),
+                              width: 60,
+                              height: 60,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.2),
+                                      blurRadius: 6,
+                                      offset: const Offset(0, 3),
+                                    ),
+                                  ],
+                                ),
+                                child: Icon(
+                                  Icons.local_taxi,
+                                  color: Mycolors.basecolor,
+                                  size: 35,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              else
+                Container(
+                  height: 200,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[200],
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.location_off, size: 48, color: Mycolors.basecolor.withOpacity(0.5)),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Waiting for GPS signal...',
+                          style: GoogleFonts.poppins(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.grey[700],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
 
               const SizedBox(height: 16),
 
