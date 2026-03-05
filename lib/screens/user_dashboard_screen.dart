@@ -598,132 +598,123 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
               ],
             ),
           ),
-          const SizedBox(height: 40),
-          Center(
-            child: Column(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: Mycolors.basecolor.withOpacity(0.05),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    Icons.map_outlined,
-                    size: 64,
-                    color: Mycolors.basecolor.withOpacity(0.5),
-                  ),
-                ),
-                const SizedBox(height: 15),
-                Text(
-                  "Explore more with RelyGO",
-                  style: GoogleFonts.poppins(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black.withOpacity(0.7),
-                  ),
-                ),
-                Text(
-                  "Enter a destination to find available drivers",
-                  style: GoogleFonts.poppins(
-                    color: Mycolors.gray,
-                    fontSize: 14,
-                  ),
-                ),
-              ],
-            ),
-          ),
+          const SizedBox(height: 20),
           // Search Results - Firestore drivers
-          Expanded(
-            child: StreamBuilder<List<Map<String, dynamic>>>(
-              stream: UserService.getDriversStream(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                if (snapshot.hasError) {
-                  return Center(
-                    child: Text(
-                      'Failed to load drivers',
-                      style: GoogleFonts.poppins(color: Mycolors.red),
+          StreamBuilder<List<Map<String, dynamic>>>(
+            stream: UserService.getDriversStream(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Padding(
+                  padding: EdgeInsets.all(40),
+                  child: Center(child: CircularProgressIndicator()),
+                );
+              }
+              List<Map<String, dynamic>> drivers = snapshot.data ?? [];
+
+              // Filter by search query
+              if (_driverSearchQuery.isNotEmpty) {
+                final q = _driverSearchQuery.toLowerCase();
+                drivers = drivers.where((d) {
+                  final name = (d['name'] ?? d['fullName'] ?? '').toString().toLowerCase();
+                  final vehicleType = (d['vehicleType'] ?? '').toString().toLowerCase();
+                  return name.contains(q) || vehicleType.contains(q);
+                }).toList();
+              }
+
+              // IF NO QUERY AND NO DRIVERS (or just starting), show the placeholder
+              if (_driverSearchQuery.isEmpty && drivers.isEmpty) {
+                return Column(
+                  children: [
+                    const SizedBox(height: 30),
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: Mycolors.basecolor.withOpacity(0.05),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.map_outlined,
+                        size: 64,
+                        color: Mycolors.basecolor.withOpacity(0.5),
+                      ),
                     ),
-                  );
-                }
-                List<Map<String, dynamic>> drivers = snapshot.data ?? [];
+                    const SizedBox(height: 15),
+                    Text(
+                      "Explore more with RelyGO",
+                      style: GoogleFonts.poppins(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: Theme.of(context).textTheme.bodyLarge?.color?.withOpacity(0.7),
+                      ),
+                    ),
+                    Text(
+                      "Enter a destination to find available drivers",
+                      style: GoogleFonts.poppins(
+                        color: Mycolors.gray,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                );
+              }
 
-                // Filter by search query (name, email, vehicleType)
-                if (_driverSearchQuery.isNotEmpty) {
-                  final q = _driverSearchQuery.toLowerCase();
-                  drivers = drivers.where((d) {
-                    final name = (d['name'] ?? d['fullName'] ?? '')
-                        .toString()
-                        .toLowerCase();
-                    final email = (d['email'] ?? '').toString().toLowerCase();
-                    final vehicleType = (d['vehicleType'] ?? '')
-                        .toString()
-                        .toLowerCase();
-                    return name.contains(q) ||
-                        email.contains(q) ||
-                        vehicleType.contains(q);
-                  }).toList();
-                }
-
-                if (drivers.isEmpty) {
-                  return Center(
+              if (drivers.isEmpty) {
+                return Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(40),
                     child: Text(
-                      'No drivers available',
+                      'No drivers found for "$_driverSearchQuery"',
                       style: GoogleFonts.poppins(color: Mycolors.gray),
                     ),
-                  );
-                }
-                return ListView.builder(
-                  itemCount: drivers.length,
-                  itemBuilder: (context, index) {
-                    final d = drivers[index];
-                    final name = d['name'] ?? d['fullName'] ?? 'Driver';
-                    final rating = (d['rating'] is num)
-                        ? (d['rating'] as num).toDouble()
-                        : 0.0;
-                    final displayRating = rating == 0
-                        ? 'New'
-                        : '${rating.toStringAsFixed(1)} ⭐';
-                    final rawStatus = (d['status'] ?? '')
-                        .toString()
-                        .toLowerCase();
-                    final isAvailable =
-                        rawStatus == 'approved' ||
-                        rawStatus == 'active' ||
-                        (d['availability'] ?? 'available') == 'available';
-                    final status = isAvailable ? 'Available' : 'Busy';
-                    final statusColor = isAvailable
-                        ? Mycolors.green
-                        : Mycolors.orange;
-                    final distance = d['distanceText'] ?? '';
-                    final price = d['baseFare'] != null
-                        ? '₹${d['baseFare']}'
-                        : '₹150'; // Default price
-                    return GestureDetector(
-                      onTap: () => _showDriverDetailsSheet(d),
-                      child: _buildDriverCard(
-                        context,
-                        name,
-                        displayRating,
-                        distance,
-                        status,
-                        statusColor,
-                        price,
-                        d,
-                      ),
-                    );
-                  },
+                  ),
                 );
-              },
-            ),
+              }
+
+              return ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: drivers.length,
+                itemBuilder: (context, index) {
+                  final d = drivers[index];
+                  final name = d['name'] ?? d['fullName'] ?? 'Driver';
+                  final rating = (d['rating'] is num)
+                      ? (d['rating'] as num).toDouble()
+                      : 0.0;
+                  final displayRating = rating == 0
+                      ? 'New'
+                      : '${rating.toStringAsFixed(1)} ⭐';
+                  final rawStatus = (d['status'] ?? '')
+                      .toString()
+                      .toLowerCase();
+                  final isAvailable =
+                      rawStatus == 'approved' ||
+                      rawStatus == 'active' ||
+                      (d['availability'] ?? 'available') == 'available';
+                  final status = isAvailable ? 'Available' : 'Busy';
+                  final statusColor = isAvailable
+                      ? Mycolors.green
+                      : Mycolors.orange;
+                  final distance = d['distanceText'] ?? '';
+                  final price = d['baseFare'] != null
+                      ? '₹${d['baseFare']}'
+                      : '₹150'; // Default price
+                  return GestureDetector(
+                    onTap: () => _showDriverDetailsSheet(d),
+                    child: _buildDriverCard(
+                      context,
+                      name,
+                      displayRating,
+                      distance,
+                      status,
+                      statusColor,
+                      price,
+                      d,
+                    ),
+                  );
+                },
+              );
+            },
           ),
-        ],
-      ),
-    );
-  }
 
   void _showDriverDetailsSheet(Map<String, dynamic> driver) {
     final String driverId = (driver['id'] ?? '').toString();

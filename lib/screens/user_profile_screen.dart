@@ -701,10 +701,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
+        bool isLocationEnabled = currentLocationStatus;
         return StatefulBuilder(
           builder: (context, setDialogState) {
             final isDark = AppSettings.themeMode.value == ThemeMode.dark;
-            bool isLocationEnabled = currentLocationStatus;
             
             return AlertDialog(
               shape: RoundedRectangleBorder(

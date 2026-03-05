@@ -88,7 +88,6 @@ class AuthWrapper extends StatelessWidget {
 
   Widget _buildPendingApprovalScreen(BuildContext context, String userType) {
     return Scaffold(
-      backgroundColor: Colors.white,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -113,7 +112,6 @@ class AuthWrapper extends StatelessWidget {
                 'Application Under Review',
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                   fontWeight: FontWeight.bold,
-                  color: Colors.black,
                 ),
               ),
               const SizedBox(height: 16),
@@ -148,7 +146,6 @@ class AuthWrapper extends StatelessWidget {
 
   Widget _buildRejectedScreen(BuildContext context, String userType) {
     return Scaffold(
-      backgroundColor: Colors.white,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -169,7 +166,6 @@ class AuthWrapper extends StatelessWidget {
                 'Application Rejected',
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                   fontWeight: FontWeight.bold,
-                  color: Colors.black,
                 ),
               ),
               const SizedBox(height: 16),
@@ -235,7 +231,6 @@ class AuthWrapper extends StatelessWidget {
     IconData icon,
   ) {
     return Scaffold(
-      backgroundColor: Colors.white,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -256,7 +251,6 @@ class AuthWrapper extends StatelessWidget {
                 'Platform Restricted',
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                   fontWeight: FontWeight.bold,
-                  color: Colors.black,
                 ),
               ),
               const SizedBox(height: 16),

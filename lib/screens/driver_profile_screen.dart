@@ -436,7 +436,6 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
           style: GoogleFonts.poppins(
             fontSize: 16,
             fontWeight: FontWeight.w600,
-            color: Colors.black,
           ),
         ),
         subtitle: Text(
@@ -919,8 +918,8 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
                   itemCount: rides.length > 5 ? 5 : rides.length,
                   itemBuilder: (context, index) {
                     final ride = rides[index];
-                    final pickup = ride['pickup'] ?? 'Unknown location';
-                    final dropoff = ride['destination'] ?? 'Unknown location';
+                    final pickup = ride['pickup'] ?? ride['pickupLocation'] ?? 'Unknown location';
+                    final dropoff = ride['destination'] ?? ride['dropoffLocation'] ?? 'Unknown location';
                     final fare = ride['fare']?.toString() ?? '0';
                     final time = ride['createdAt'] is Timestamp
                         ? DateFormat(
@@ -1219,10 +1218,10 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
+        bool isLocationEnabled = currentLocationStatus;
         return StatefulBuilder(
           builder: (context, setDialogState) {
             final isDark = AppSettings.themeMode.value == ThemeMode.dark;
-            bool isLocationEnabled = currentLocationStatus;
             return AlertDialog(
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
