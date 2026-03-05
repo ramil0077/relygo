@@ -33,8 +33,9 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
     _checkForAcceptedRequests();
   }
 
+  final Set<String> _shownPaymentDialogs = {};
+
   void _checkForAcceptedRequests() {
-    // Check for accepted requests that need payment
     final userId = AuthService.currentUserId;
     if (userId == null) return;
 
@@ -44,13 +45,41 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
         .where('status', isEqualTo: 'accepted')
         .snapshots()
         .listen((snapshot) {
-          for (var doc in snapshot.docs) {
-            final data = doc.data();
-            if (data['status'] == 'accepted' && data['paymentMethod'] == null) {
-              _showPaymentDialog(doc.id, data);
-            }
-          }
-        });
+      if (!mounted) return;
+      for (var doc in snapshot.docs) {
+        final data = doc.data();
+        // Only show if: Status is accepted, NOT paid, and we haven't shown a dialog for this ID yet
+        if (data['status'] == 'accepted' &&
+            data['paymentMethod'] == null &&
+            !_shownPaymentDialogs.contains(doc.id)) {
+          _shownPaymentDialogs.add(doc.id);
+          _showPaymentDialog(doc.id, data);
+        }
+      }
+    });
+  }
+
+  Widget _buildDetailRow(IconData icon, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
+      child: Row(
+        children: [
+          Icon(icon, size: 16, color: Mycolors.basecolor),
+          const SizedBox(width: 8),
+          Text(
+            '$label: ',
+            style: GoogleFonts.poppins(fontSize: 13, color: Mycolors.gray),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   void _showPaymentDialog(String requestId, Map<String, dynamic> requestData) {
@@ -74,19 +103,39 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                 'Your driver has accepted your ride request.',
                 style: GoogleFonts.poppins(),
               ),
-              const SizedBox(height: 12),
-              Text(
-                'Driver: ${requestData['driverName'] ?? 'Driver'}',
-                style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
-              ),
-              Text(
-                'Destination: ${requestData['destination'] ?? 'Destination'}',
-                style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+              const SizedBox(height: 16),
+              _buildDetailRow(Icons.person, 'Driver', requestData['driverName'] ?? 'Driver'),
+              _buildDetailRow(Icons.place, 'To', requestData['destination'] ?? 'Destination'),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Mycolors.basecolor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Mycolors.basecolor.withOpacity(0.3)),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Agreed Fare:',
+                      style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+                    ),
+                    Text(
+                      '₹${requestData['fare'] ?? '150'}',
+                      style: GoogleFonts.poppins(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Mycolors.basecolor,
+                      ),
+                    ),
+                  ],
+                ),
               ),
               const SizedBox(height: 12),
               Text(
                 'Please proceed to payment to confirm your ride.',
-                style: GoogleFonts.poppins(fontSize: 14, color: Mycolors.gray),
+                style: GoogleFonts.poppins(fontSize: 12, color: Mycolors.gray),
               ),
             ],
           ),
@@ -393,9 +442,11 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                   ),
                   TextButton(
                     onPressed: () {
-                      setState(() {
-                        _selectedIndex = 1; // Switch to search tab
-                      });
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const RideHistoryScreen()),
+                      );
                     },
                     child: Text(
                       "View All",
@@ -467,47 +518,121 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
   }
 
   Widget _buildSearchTab() {
-    return Padding(
+    return SingleChildScrollView(
       padding: ResponsiveUtils.getResponsivePadding(context),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(height: ResponsiveSpacing.getMediumSpacing(context)),
-          // Search Bar
-          TextField(
-            onChanged: (value) {
-              setState(() {
-                _driverSearchQuery = value.trim();
-              });
-            },
-            decoration: InputDecoration(
-              hintText: "Search drivers, locations...",
-              prefixIcon: Icon(
-                Icons.search,
-                color: Mycolors.basecolor,
-                size: ResponsiveUtils.getResponsiveIconSize(
-                  context,
-                  mobile: 24,
-                  tablet: 26,
-                  desktop: 28,
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Find a Driver",
+                  style: ResponsiveTextStyles.getHeadlineStyle(context),
                 ),
-              ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(
-                  ResponsiveUtils.getResponsiveBorderRadius(
-                    context,
-                    mobile: 12,
-                    tablet: 14,
-                    desktop: 16,
+                Text(
+                  "Search for nearby drivers and services",
+                  style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    color: Mycolors.gray,
                   ),
                 ),
-              ),
-              filled: true,
-              fillColor: Theme.of(context).cardColor,
-              contentPadding: ResponsiveUtils.getResponsivePadding(context),
+              ],
             ),
           ),
-          SizedBox(height: ResponsiveSpacing.getMediumSpacing(context)),
-
+          Container(
+            decoration: BoxDecoration(
+              color: Theme.of(context).cardColor,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: TextField(
+              onChanged: (value) {
+                setState(() {
+                  _driverSearchQuery = value.trim();
+                });
+              },
+              decoration: InputDecoration(
+                hintText: "Search location or driver name...",
+                prefixIcon: Icon(Icons.search, color: Mycolors.basecolor),
+                suffixIcon: IconButton(
+                  icon: const Icon(Icons.filter_list),
+                  onPressed: () {
+                    // TODO: Implement filters
+                  },
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide.none,
+                ),
+                filled: true,
+                fillColor: Theme.of(context).cardColor,
+                contentPadding: const EdgeInsets.symmetric(vertical: 16),
+              ),
+            ),
+          ),
+          const SizedBox(height: 30),
+          // Suggested Destinations or placeholder
+          Text(
+            "Suggested Destinations",
+            style: ResponsiveTextStyles.getSubTitleStyle(context),
+          ),
+          const SizedBox(height: 15),
+          SizedBox(
+            height: 100,
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              children: [
+                _buildSuggestedCard("Home", Icons.home),
+                _buildSuggestedCard("Work", Icons.work),
+                _buildSuggestedCard("Mall", Icons.shopping_bag),
+                _buildSuggestedCard("Airport", Icons.local_airport),
+              ],
+            ),
+          ),
+          const SizedBox(height: 40),
+          Center(
+            child: Column(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Mycolors.basecolor.withOpacity(0.05),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.map_outlined,
+                    size: 64,
+                    color: Mycolors.basecolor.withOpacity(0.5),
+                  ),
+                ),
+                const SizedBox(height: 15),
+                Text(
+                  "Explore more with RelyGO",
+                  style: GoogleFonts.poppins(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black.withOpacity(0.7),
+                  ),
+                ),
+                Text(
+                  "Enter a destination to find available drivers",
+                  style: GoogleFonts.poppins(
+                    color: Mycolors.gray,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+          ),
           // Search Results - Firestore drivers
           Expanded(
             child: StreamBuilder<List<Map<String, dynamic>>>(

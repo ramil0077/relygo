@@ -230,6 +230,9 @@ class _DriverNotificationsScreenState extends State<DriverNotificationsScreen> {
 
   Future<void> _acceptWithFare(String requestId) async {
     final controller = TextEditingController();
+    final driverId = AuthService.currentUserId;
+    if (driverId == null) return;
+
     await showDialog(
       context: context,
       builder: (context) {
@@ -237,7 +240,7 @@ class _DriverNotificationsScreenState extends State<DriverNotificationsScreen> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
-          title: Text('Enter Estimated Fare', style: GoogleFonts.poppins()),
+          title: Text('Enter Estimated Fare', style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
           content: TextField(
             controller: controller,
             keyboardType: TextInputType.number,
@@ -245,6 +248,7 @@ class _DriverNotificationsScreenState extends State<DriverNotificationsScreen> {
               labelText: 'Fare (₹)',
               border: OutlineInputBorder(),
             ),
+            autofocus: true,
           ),
           actions: [
             TextButton(
@@ -256,27 +260,21 @@ class _DriverNotificationsScreenState extends State<DriverNotificationsScreen> {
             ),
             ElevatedButton(
               onPressed: () async {
-                final num? fare = num.tryParse(controller.text.trim());
+                final double? fare = double.tryParse(controller.text.trim());
                 if (fare == null) return;
                 Navigator.of(context).pop();
 
-                // Set drop time (e.g., 30 minutes from now)
-                final dropTime = DateTime.now().add(
-                  const Duration(minutes: 30),
-                );
+                // Get driver info
+                String driverName = 'Driver';
+                final driverDoc = await FirebaseFirestore.instance.collection('users').doc(driverId).get();
+                if (driverDoc.exists) {
+                  driverName = (driverDoc.data()?['name'] ?? driverDoc.data()?['fullName'] ?? 'Driver').toString();
+                }
 
-                await FirebaseFirestore.instance
-                    .collection('ride_requests')
-                    .doc(requestId)
-                    .update({
-                      'status': 'accepted',
-                      'fare': fare,
-                      'dropTime': Timestamp.fromDate(dropTime),
-                      'updatedAt': FieldValue.serverTimestamp(),
-                    });
+                await DriverService.acceptBooking(requestId, fare, driverName);
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: Mycolors.basecolor,
+                backgroundColor: Mycolors.green,
                 foregroundColor: Colors.white,
               ),
               child: Text('Confirm', style: GoogleFonts.poppins()),

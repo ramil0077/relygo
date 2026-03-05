@@ -5,6 +5,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:relygo/services/auth_service.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
+import 'package:relygo/services/location_service.dart';
+import 'dart:async';
 
 class ServiceBookingScreen extends StatefulWidget {
   const ServiceBookingScreen({super.key});
@@ -348,22 +350,47 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Expanded(
-                    child: TextField(
-                      controller: _pickupController,
-                      decoration: InputDecoration(
-                        hintText: "Enter pickup location",
-                        prefixIcon: Icon(
-                          Icons.location_on,
-                          color: Mycolors.basecolor,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 14,
-                        ),
-                      ),
+                    child: Autocomplete<String>(
+                      optionsBuilder: (TextEditingValue textEditingValue) async {
+                        if (textEditingValue.text == '') {
+                          return const Iterable<String>.empty();
+                        }
+                        return await LocationService.getSuggestions(
+                            textEditingValue.text);
+                      },
+                      onSelected: (String selection) {
+                        _pickupController.text = selection;
+                      },
+                      fieldViewBuilder:
+                          (context, controller, focusNode, onFieldSubmitted) {
+                        // Sync with our controller
+                        if (_pickupController.text.isNotEmpty &&
+                            controller.text.isEmpty) {
+                          controller.text = _pickupController.text;
+                        }
+                        controller.addListener(() {
+                          _pickupController.text = controller.text;
+                        });
+
+                        return TextField(
+                          controller: controller,
+                          focusNode: focusNode,
+                          decoration: InputDecoration(
+                            hintText: "Enter pickup location",
+                            prefixIcon: Icon(
+                              Icons.location_on,
+                              color: Mycolors.basecolor,
+                            ),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 14,
+                            ),
+                          ),
+                        );
+                      },
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -425,15 +452,40 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
                 ),
               ),
               const SizedBox(height: 15),
-              TextField(
-                controller: _destinationController,
-                decoration: InputDecoration(
-                  hintText: "Enter destination",
-                  prefixIcon: Icon(Icons.place, color: Mycolors.basecolor),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
+              Autocomplete<String>(
+                optionsBuilder: (TextEditingValue textEditingValue) async {
+                  if (textEditingValue.text == '') {
+                    return const Iterable<String>.empty();
+                  }
+                  return await LocationService.getSuggestions(
+                      textEditingValue.text);
+                },
+                onSelected: (String selection) {
+                  _destinationController.text = selection;
+                },
+                fieldViewBuilder:
+                    (context, controller, focusNode, onFieldSubmitted) {
+                  // Sync with our controller
+                  if (_destinationController.text.isNotEmpty &&
+                      controller.text.isEmpty) {
+                    controller.text = _destinationController.text;
+                  }
+                  controller.addListener(() {
+                    _destinationController.text = controller.text;
+                  });
+
+                  return TextField(
+                    controller: controller,
+                    focusNode: focusNode,
+                    decoration: InputDecoration(
+                      hintText: "Enter destination",
+                      prefixIcon: Icon(Icons.place, color: Mycolors.basecolor),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  );
+                },
               ),
               const SizedBox(height: 30),
 
@@ -801,7 +853,20 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
             : null,
       };
 
-      await FirebaseFirestore.instance.collection('ride_requests').add(data);
+      final docRef = await FirebaseFirestore.instance.collection('ride_requests').add(data);
+
+      // Notify driver
+      if (_driverId != null) {
+        await FirebaseFirestore.instance.collection('notifications').add({
+          'userId': _driverId, // Driver's ID (assuming driver maps to a user record)
+          'title': 'New Booking Request',
+          'message': 'You have a new ride request from the pickup location.',
+          'type': 'new_booking',
+          'bookingId': docRef.id,
+          'read': false,
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+      }
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

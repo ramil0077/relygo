@@ -340,7 +340,7 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
                   "App settings and preferences",
                   Icons.settings,
                   () {
-                    _showSettingsDialog();
+                    _showSettingsDialog(data['isLocationEnabled'] ?? true);
                   },
                 ),
                 const SizedBox(height: 20),
@@ -1215,13 +1215,14 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
     );
   }
 
-  void _showSettingsDialog() {
+  void _showSettingsDialog(bool currentLocationStatus) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return StatefulBuilder(
           builder: (context, setDialogState) {
             final isDark = AppSettings.themeMode.value == ThemeMode.dark;
+            bool isLocationEnabled = currentLocationStatus;
             return AlertDialog(
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
@@ -1258,17 +1259,33 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
                     },
                   ),
                   // Location Services toggle
-                  ListTile(
-                    leading: Icon(Icons.location_on, color: Mycolors.basecolor),
+                  SwitchListTile(
+                    secondary: Icon(Icons.location_on, color: Mycolors.basecolor),
                     title: Text(
                       "Location Services",
                       style: GoogleFonts.poppins(),
                     ),
-                    trailing: Switch(
-                      value: true,
-                      onChanged: (value) {},
-                      activeTrackColor: Mycolors.basecolor,
+                    subtitle: Text(
+                      isLocationEnabled ? "Enabled" : "Disabled",
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        color: Mycolors.gray,
+                      ),
                     ),
+                    value: isLocationEnabled,
+                    activeTrackColor: Mycolors.basecolor,
+                    onChanged: (value) async {
+                      final uid = AuthService.currentUserId;
+                      if (uid != null) {
+                        setDialogState(() {
+                          isLocationEnabled = value;
+                          currentLocationStatus = value;
+                        });
+                        await UserService.updateUserFields(uid, {
+                          'isLocationEnabled': value,
+                        });
+                      }
+                    },
                   ),
                 ],
               ),

@@ -56,10 +56,12 @@ class _AnimatedBottomNavBarState extends State<AnimatedBottomNavBar>
         desktop: 100,
       ),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Theme.of(context).brightness == Brightness.dark
+                ? Colors.black.withOpacity(0.4)
+                : Colors.black.withOpacity(0.1),
             blurRadius: 20,
             offset: const Offset(0, -5),
           ),
@@ -147,7 +149,9 @@ class _AnimatedBottomNavBarState extends State<AnimatedBottomNavBar>
                           decoration: BoxDecoration(
                             color: isSelected
                                 ? Mycolors.basecolor
-                                : Colors.grey.withOpacity(0.1),
+                                : (Theme.of(context).brightness == Brightness.dark
+                                    ? Colors.white.withOpacity(0.05)
+                                    : Colors.grey.withOpacity(0.1)),
                             shape: BoxShape.circle,
                             boxShadow: isSelected
                                 ? [
@@ -161,7 +165,11 @@ class _AnimatedBottomNavBarState extends State<AnimatedBottomNavBar>
                           ),
                           child: Icon(
                             item.icon,
-                            color: isSelected ? Colors.white : Colors.grey[600],
+                            color: isSelected
+                                ? Colors.white
+                                : (Theme.of(context).brightness == Brightness.dark
+                                    ? Colors.grey[400]
+                                    : Colors.grey[600]),
                             size: ResponsiveUtils.getResponsiveIconSize(
                               context,
                               mobile: 22,
@@ -192,7 +200,9 @@ class _AnimatedBottomNavBarState extends State<AnimatedBottomNavBar>
                                 : FontWeight.w500,
                             color: isSelected
                                 ? Mycolors.basecolor
-                                : Colors.grey[600],
+                                : (Theme.of(context).brightness == Brightness.dark
+                                    ? Colors.grey[400]
+                                    : Colors.grey[600]),
                           ),
                           child: Text(item.label),
                         ),
