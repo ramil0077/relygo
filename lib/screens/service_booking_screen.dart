@@ -25,7 +25,8 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
   String? _driverId;
   String? _driverName;
   int? _estimatedPrice;
-  bool _detectingLocation = false;
+  bool _detectingPickupLocation = false;
+  bool _detectingDestinationLocation = false;
 
   @override
   void initState() {
@@ -53,9 +54,15 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
     super.dispose();
   }
 
-  /// Auto-detect current location and fill pickup field
-  Future<void> _detectCurrentLocation() async {
-    setState(() => _detectingLocation = true);
+  /// Auto-detect current location and fill pickup or destination field
+  Future<void> _detectCurrentLocation({bool isPickup = true}) async {
+    setState(() {
+      if (isPickup) {
+        _detectingPickupLocation = true;
+      } else {
+        _detectingDestinationLocation = true;
+      }
+    });
     try {
       // Check if location services are enabled
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
@@ -150,7 +157,11 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
             : '${position.latitude.toStringAsFixed(5)}, ${position.longitude.toStringAsFixed(5)}';
 
         setState(() {
-          _pickupController.text = address;
+          if (isPickup) {
+            _pickupController.text = address;
+          } else {
+            _destinationController.text = address;
+          }
         });
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -178,7 +189,12 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
         );
       }
     } finally {
-      if (mounted) setState(() => _detectingLocation = false);
+      if (mounted) {
+        setState(() {
+          _detectingPickupLocation = false;
+          _detectingDestinationLocation = false;
+        });
+      }
     }
   }
 
@@ -398,7 +414,7 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
                   Tooltip(
                     message: 'Use my current location',
                     child: InkWell(
-                      onTap: _detectingLocation ? null : _detectCurrentLocation,
+                      onTap: _detectingPickupLocation ? null : () => _detectCurrentLocation(isPickup: true),
                       borderRadius: BorderRadius.circular(12),
                       child: Container(
                         width: 50,
@@ -414,7 +430,7 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
                             ),
                           ],
                         ),
-                        child: _detectingLocation
+                        child: _detectingPickupLocation
                             ? const Padding(
                                 padding: EdgeInsets.all(14),
                                 child: CircularProgressIndicator(
@@ -452,40 +468,88 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
                 ),
               ),
               const SizedBox(height: 15),
-              Autocomplete<String>(
-                optionsBuilder: (TextEditingValue textEditingValue) async {
-                  if (textEditingValue.text == '') {
-                    return const Iterable<String>.empty();
-                  }
-                  return await LocationService.getSuggestions(
-                      textEditingValue.text);
-                },
-                onSelected: (String selection) {
-                  _destinationController.text = selection;
-                },
-                fieldViewBuilder:
-                    (context, controller, focusNode, onFieldSubmitted) {
-                  // Sync with our controller
-                  if (_destinationController.text.isNotEmpty &&
-                      controller.text.isEmpty) {
-                    controller.text = _destinationController.text;
-                  }
-                  controller.addListener(() {
-                    _destinationController.text = controller.text;
-                  });
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: Autocomplete<String>(
+                      optionsBuilder: (TextEditingValue textEditingValue) async {
+                        if (textEditingValue.text == '') {
+                          return const Iterable<String>.empty();
+                        }
+                        return await LocationService.getSuggestions(
+                            textEditingValue.text);
+                      },
+                      onSelected: (String selection) {
+                        _destinationController.text = selection;
+                      },
+                      fieldViewBuilder:
+                          (context, controller, focusNode, onFieldSubmitted) {
+                        // Sync with our controller
+                        if (_destinationController.text.isNotEmpty &&
+                            controller.text.isEmpty) {
+                          controller.text = _destinationController.text;
+                        }
+                        controller.addListener(() {
+                          _destinationController.text = controller.text;
+                        });
 
-                  return TextField(
-                    controller: controller,
-                    focusNode: focusNode,
-                    decoration: InputDecoration(
-                      hintText: "Enter destination",
-                      prefixIcon: Icon(Icons.place, color: Mycolors.basecolor),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        return TextField(
+                          controller: controller,
+                          focusNode: focusNode,
+                          decoration: InputDecoration(
+                            hintText: "Enter destination",
+                            prefixIcon: Icon(Icons.place, color: Mycolors.basecolor),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 14,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  // 📍 Auto-Location Button
+                  Tooltip(
+                    message: 'Use my current location',
+                    child: InkWell(
+                      onTap: _detectingDestinationLocation ? null : () => _detectCurrentLocation(isPickup: false),
+                      borderRadius: BorderRadius.circular(12),
+                      child: Container(
+                        width: 50,
+                        height: 54,
+                        decoration: BoxDecoration(
+                          color: Mycolors.basecolor,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Mycolors.basecolor.withOpacity(0.3),
+                              blurRadius: 6,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                        child: _detectingDestinationLocation
+                            ? const Padding(
+                                padding: EdgeInsets.all(14),
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2.5,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : const Icon(
+                                Icons.my_location,
+                                color: Colors.white,
+                                size: 24,
+                              ),
                       ),
                     ),
-                  );
-                },
+                  ),
+                ],
               ),
               const SizedBox(height: 30),
 

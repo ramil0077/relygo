@@ -442,11 +442,9 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                   ),
                   TextButton(
                     onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const RideHistoryScreen()),
-                      );
+                      setState(() {
+                        _selectedIndex = 2; // History Tab
+                      });
                     },
                     child: Text(
                       "View All",
@@ -530,7 +528,7 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
               children: [
                 Text(
                   "Find a Driver",
-                  style: ResponsiveTextStyles.getHeadlineStyle(context),
+                  style: ResponsiveTextStyles.getTitleStyle(context),
                 ),
                 Text(
                   "Search for nearby drivers and services",
@@ -585,7 +583,7 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
           // Suggested Destinations or placeholder
           Text(
             "Suggested Destinations",
-            style: ResponsiveTextStyles.getSubTitleStyle(context),
+            style: ResponsiveTextStyles.getSubtitleStyle(context),
           ),
           const SizedBox(height: 15),
           SizedBox(
@@ -717,6 +715,10 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
               );
             },
           ),
+        ],
+      ),
+    );
+  }
 
   void _showDriverDetailsSheet(Map<String, dynamic> driver) {
     final String driverId = (driver['id'] ?? '').toString();
@@ -2709,4 +2711,38 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
       ),
     );
   }
+
+  Widget _buildSuggestedCard(String title, IconData icon) {
+    return Container(
+      width: 100,
+      margin: const EdgeInsets.only(right: 15),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Theme.of(context).brightness == Brightness.dark
+                ? Colors.black.withOpacity(0.3)
+                : Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, color: Mycolors.basecolor, size: 30),
+          const SizedBox(height: 8),
+          Text(
+            title,
+            style: GoogleFonts.poppins(
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
+

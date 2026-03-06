@@ -971,19 +971,24 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                route,
-                style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
-              ),
-              Text(
-                time,
-                style: GoogleFonts.poppins(fontSize: 12, color: Mycolors.gray),
-              ),
-            ],
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  route,
+                  style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 2,
+                ),
+                Text(
+                  time,
+                  style: GoogleFonts.poppins(fontSize: 12, color: Mycolors.gray),
+                ),
+              ],
+            ),
           ),
+          const SizedBox(width: 8),
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
