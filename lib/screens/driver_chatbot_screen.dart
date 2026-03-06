@@ -38,6 +38,7 @@ class _DriverChatbotScreenState extends State<DriverChatbotScreen> {
   double _totalEarnings = 0;
   double _todayEarnings = 0;
   double _averageRating = 0;
+  List<Map<String, dynamic>> _recentRides = [];
 
   @override
   void initState() {
@@ -67,6 +68,8 @@ class _DriverChatbotScreenState extends State<DriverChatbotScreen> {
       int todRides = 0;
       double totEarnings = 0;
       double todEarnings = 0;
+      
+      List<Map<String, dynamic>> allRides = [];
 
       for (var doc in ridesSnap.docs) {
         totRides++;
@@ -94,7 +97,17 @@ class _DriverChatbotScreenState extends State<DriverChatbotScreen> {
           todRides++;
           todEarnings += fare;
         }
+        
+        allRides.add({
+          'fare': fare,
+          'date': createdAt?.toDate() ?? DateTime.now(),
+          'pickup': data['pickupLocation'] ?? data['pickup'] ?? 'Unknown',
+          'dropoff': data['dropoffLocation'] ?? data['destination'] ?? 'Unknown',
+        });
       }
+      
+      allRides.sort((a, b) => (b['date'] as DateTime).compareTo(a['date'] as DateTime));
+      final recentRidesList = allRides.take(10).toList();
 
       // Ratings
       final reviewsSnap = await FirebaseFirestore.instance
@@ -125,6 +138,7 @@ class _DriverChatbotScreenState extends State<DriverChatbotScreen> {
           _totalEarnings = totEarnings;
           _todayEarnings = todEarnings;
           _averageRating = rating;
+          _recentRides = recentRidesList;
         });
       }
     } catch (e) {
@@ -161,20 +175,34 @@ class _DriverChatbotScreenState extends State<DriverChatbotScreen> {
       return;
     }
 
+    // Build recent rides string
+    String recentRidesText = "No recent rides.";
+    if (_recentRides.isNotEmpty) {
+      recentRidesText = _recentRides.map((r) {
+        final date = r['date'] as DateTime;
+        final dateStr = "${date.day}/${date.month}/${date.year}";
+        return "- $dateStr: ${r['pickup']} to ${r['dropoff']} (₹${r['fare']})";
+      }).join("\n");
+    }
+
     // System prompt with live driver stats injected
     final String systemPrompt =
         """
-You are a helpful, professional AI assistant built into the RelyGo driver app. You support driver partners.
-Your tone should be friendly, clear, and very concise. You are replying to a chat interface, keep it brief!
+You are RelyGo Assistant, a highly intelligent and data-learned AI assistant built into the RelyGo driver app to support driver partners.
+You have been trained on their actual historical earnings and ride data. Your tone should be friendly, clear, helpful and concise. Keep replies brief.
 
-The driver's current real-time statistics from Firebase are:
+Here is the driver's real-time statistics and historical data from the database:
 - Total Rides Completed: $_totalRides
 - Today's Rides: $_todayRides
 - Total Earnings: ₹${_totalEarnings.toStringAsFixed(0)}
 - Today's Earnings: ₹${_todayEarnings.toStringAsFixed(0)}
 - Average Passenger Rating: ${_averageRating > 0 ? _averageRating.toStringAsFixed(1) : 'Not rated yet'} out of 5
 
-Answer their questions specifically and accurately based on exactly this data.
+Recent Rides History:
+$recentRidesText
+
+Answer their questions specifically and accurately based on exactly this data. 
+Since you are a "data learned" chatbot, you can analyze these earnings and rides, providing insights like their most recent ride, their earning trends, and anything else they ask about their ride history.
 If they ask a general question not related to stats, be helpful and informative.
 """;
 
