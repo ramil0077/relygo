@@ -4,6 +4,7 @@ import 'package:relygo/constants.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:relygo/services/auth_service.dart';
 import 'package:relygo/services/ride_completion_service.dart';
+import 'package:relygo/services/driver_service.dart';
 
 class DriverNotificationsScreen extends StatefulWidget {
   const DriverNotificationsScreen({super.key});
