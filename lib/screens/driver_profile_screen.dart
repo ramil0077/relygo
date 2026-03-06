@@ -889,8 +889,11 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
             "Recent Rides",
             style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
           ),
-          content: SizedBox(
+          content: Container(
             width: double.maxFinite,
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.5,
+            ),
             child: StreamBuilder<List<Map<String, dynamic>>>(
               stream: UserService.getDriverRideHistoryStream(uid),
               builder: (context, snapshot) {
@@ -915,7 +918,7 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
 
                 return ListView.builder(
                   shrinkWrap: true,
-                  itemCount: rides.length > 5 ? 5 : rides.length,
+                  itemCount: rides.length,
                   itemBuilder: (context, index) {
                     final ride = rides[index];
                     final pickup = ride['pickup'] ?? ride['pickupLocation'] ?? 'Unknown location';
@@ -926,7 +929,7 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
                             'dd MMM, hh:mm a',
                           ).format((ride['createdAt'] as Timestamp).toDate())
                         : 'Unknown time';
-                    final status = ride['status'] ?? 'Completed';
+                    final status = (ride['status'] ?? 'Completed').toString().trim();
 
                     return _buildRideItem(
                       "$pickup to $dropoff",
@@ -959,6 +962,27 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
     String time,
     String status,
   ) {
+    Color statusColor = Mycolors.green;
+    switch (status.toLowerCase()) {
+      case 'pending':
+        statusColor = Mycolors.orange;
+        break;
+      case 'rejected':
+      case 'cancelled':
+        statusColor = Mycolors.red;
+        break;
+      case 'ongoing':
+      case 'started':
+        statusColor = Colors.blue;
+        break;
+      case 'accepted':
+      case 'paid':
+      case 'completed':
+      default:
+        statusColor = Mycolors.green;
+        break;
+    }
+
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
@@ -1001,7 +1025,7 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
               ),
               Text(
                 status,
-                style: GoogleFonts.poppins(fontSize: 12, color: Mycolors.green),
+                style: GoogleFonts.poppins(fontSize: 12, color: statusColor),
               ),
             ],
           ),
