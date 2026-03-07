@@ -5,7 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:relygo/services/auth_service.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
-import 'package:relygo/services/location_service.dart';
+import 'package:relygo/screens/map_picker_screen.dart';
 import 'dart:async';
 
 class ServiceBookingScreen extends StatefulWidget {
@@ -26,7 +26,6 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
   String? _driverName;
   int? _estimatedPrice;
   bool _detectingPickupLocation = false;
-  bool _detectingDestinationLocation = false;
 
   @override
   void initState() {
@@ -54,14 +53,10 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
     super.dispose();
   }
 
-  /// Auto-detect current location and fill pickup or destination field
-  Future<void> _detectCurrentLocation({bool isPickup = true}) async {
+  /// Auto-detect current location and fill pickup field
+  Future<void> _detectCurrentLocation() async {
     setState(() {
-      if (isPickup) {
-        _detectingPickupLocation = true;
-      } else {
-        _detectingDestinationLocation = true;
-      }
+      _detectingPickupLocation = true;
     });
     try {
       // Check if location services are enabled
@@ -157,11 +152,7 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
             : '${position.latitude.toStringAsFixed(5)}, ${position.longitude.toStringAsFixed(5)}';
 
         setState(() {
-          if (isPickup) {
-            _pickupController.text = address;
-          } else {
-            _destinationController.text = address;
-          }
+          _pickupController.text = address;
         });
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -192,7 +183,6 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
       if (mounted) {
         setState(() {
           _detectingPickupLocation = false;
-          _detectingDestinationLocation = false;
         });
       }
     }
@@ -366,55 +356,39 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Expanded(
-                    child: Autocomplete<String>(
-                      optionsBuilder: (TextEditingValue textEditingValue) async {
-                        if (textEditingValue.text == '') {
-                          return const Iterable<String>.empty();
-                        }
-                        return await LocationService.getSuggestions(
-                            textEditingValue.text);
-                      },
-                      onSelected: (String selection) {
-                        _pickupController.text = selection;
-                      },
-                      fieldViewBuilder:
-                          (context, controller, focusNode, onFieldSubmitted) {
-                        // Sync with our controller
-                        if (_pickupController.text.isNotEmpty &&
-                            controller.text.isEmpty) {
-                          controller.text = _pickupController.text;
-                        }
-                        controller.addListener(() {
-                          _pickupController.text = controller.text;
-                        });
-
-                        return TextField(
-                          controller: controller,
-                          focusNode: focusNode,
-                          decoration: InputDecoration(
-                            hintText: "Enter pickup location",
-                            prefixIcon: Icon(
-                              Icons.location_on,
-                              color: Mycolors.basecolor,
-                            ),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 14,
-                            ),
+                    child: TextField(
+                      controller: _pickupController,
+                      decoration: InputDecoration(
+                        hintText: 'Enter pickup location',
+                        prefixIcon: Icon(
+                          Icons.location_on,
+                          color: Mycolors.basecolor,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: Mycolors.basecolor,
+                            width: 2,
                           ),
-                        );
-                      },
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 14,
+                        ),
+                      ),
                     ),
                   ),
                   const SizedBox(width: 10),
-                  // 📍 Auto-Location Button
+                  // 📍 GPS Auto-detect Button
                   Tooltip(
                     message: 'Use my current location',
                     child: InkWell(
-                      onTap: _detectingPickupLocation ? null : () => _detectCurrentLocation(isPickup: true),
+                      onTap: _detectingPickupLocation
+                          ? null
+                          : () => _detectCurrentLocation(),
                       borderRadius: BorderRadius.circular(12),
                       child: Container(
                         width: 50,
@@ -467,57 +441,55 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
                   color: Colors.black,
                 ),
               ),
-              const SizedBox(height: 15),
+              const SizedBox(height: 10),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Expanded(
-                    child: Autocomplete<String>(
-                      optionsBuilder: (TextEditingValue textEditingValue) async {
-                        if (textEditingValue.text == '') {
-                          return const Iterable<String>.empty();
-                        }
-                        return await LocationService.getSuggestions(
-                            textEditingValue.text);
-                      },
-                      onSelected: (String selection) {
-                        _destinationController.text = selection;
-                      },
-                      fieldViewBuilder:
-                          (context, controller, focusNode, onFieldSubmitted) {
-                        // Sync with our controller
-                        if (_destinationController.text.isNotEmpty &&
-                            controller.text.isEmpty) {
-                          controller.text = _destinationController.text;
-                        }
-                        controller.addListener(() {
-                          _destinationController.text = controller.text;
-                        });
-
-                        return TextField(
-                          controller: controller,
-                          focusNode: focusNode,
-                          decoration: InputDecoration(
-                            hintText: "Enter destination",
-                            prefixIcon: Icon(Icons.place, color: Mycolors.basecolor),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 14,
-                            ),
+                    child: TextField(
+                      controller: _destinationController,
+                      decoration: InputDecoration(
+                        hintText: 'Enter destination',
+                        prefixIcon: Icon(
+                          Icons.place,
+                          color: Mycolors.basecolor,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: Mycolors.basecolor,
+                            width: 2,
                           ),
-                        );
-                      },
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 14,
+                        ),
+                      ),
                     ),
                   ),
                   const SizedBox(width: 10),
-                  // 📍 Auto-Location Button
+                  // 🗺️ Choose on Map Button
                   Tooltip(
-                    message: 'Use my current location',
+                    message: 'Choose on map',
                     child: InkWell(
-                      onTap: _detectingDestinationLocation ? null : () => _detectCurrentLocation(isPickup: false),
+                      onTap: () async {
+                        final result = await Navigator.of(context).push<String>(
+                          MaterialPageRoute(
+                            builder: (_) => const MapPickerScreen(
+                              title: 'Pick Destination',
+                            ),
+                          ),
+                        );
+                        if (result != null && result.isNotEmpty) {
+                          setState(() {
+                            _destinationController.text = result;
+                          });
+                        }
+                      },
                       borderRadius: BorderRadius.circular(12),
                       child: Container(
                         width: 50,
@@ -533,23 +505,23 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
                             ),
                           ],
                         ),
-                        child: _detectingDestinationLocation
-                            ? const Padding(
-                                padding: EdgeInsets.all(14),
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2.5,
-                                  color: Colors.white,
-                                ),
-                              )
-                            : const Icon(
-                                Icons.my_location,
-                                color: Colors.white,
-                                size: 24,
-                              ),
+                        child: const Icon(
+                          Icons.map_outlined,
+                          color: Colors.white,
+                          size: 24,
+                        ),
                       ),
                     ),
                   ),
                 ],
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'Tap 🗺️ to choose destination on map',
+                style: GoogleFonts.poppins(
+                  fontSize: 12,
+                  color: Mycolors.gray,
+                ),
               ),
               const SizedBox(height: 30),
 
