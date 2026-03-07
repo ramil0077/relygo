@@ -561,7 +561,7 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                 });
               },
               decoration: InputDecoration(
-                hintText: "Search location or driver name...",
+                hintText: "Search by driver name or vehicle type...",
                 prefixIcon: Icon(Icons.search, color: Mycolors.basecolor),
                 suffixIcon: IconButton(
                   icon: const Icon(Icons.filter_list),
@@ -577,25 +577,6 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                 fillColor: Theme.of(context).cardColor,
                 contentPadding: const EdgeInsets.symmetric(vertical: 16),
               ),
-            ),
-          ),
-          const SizedBox(height: 30),
-          // Suggested Destinations or placeholder
-          Text(
-            "Suggested Destinations",
-            style: ResponsiveTextStyles.getSubtitleStyle(context),
-          ),
-          const SizedBox(height: 15),
-          SizedBox(
-            height: 100,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              children: [
-                _buildSuggestedCard("Home", Icons.home),
-                _buildSuggestedCard("Work", Icons.work),
-                _buildSuggestedCard("Mall", Icons.shopping_bag),
-                _buildSuggestedCard("Airport", Icons.local_airport),
-              ],
             ),
           ),
           const SizedBox(height: 20),
