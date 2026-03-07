@@ -37,6 +37,7 @@ class PaymentService {
     final options = {
       'key': key,
       'amount': amountInPaise, // in paise
+      'currency': 'INR', // Explicitly specify currency
       'name': name,
       'description': description,
       'prefill': {'contact': prefillContact, 'email': prefillEmail},

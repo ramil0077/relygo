@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:relygo/constants.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:razorpay_flutter/razorpay_flutter.dart';
+import 'package:relygo/services/payment_service.dart';
 import 'package:relygo/screens/user_dashboard_screen.dart';
-import 'package:relygo/utils/platform_utils.dart';
-import 'package:relygo/utils/responsive.dart';
 
 class PaymentScreen extends StatefulWidget {
   final String requestId;
@@ -27,10 +27,10 @@ class PaymentScreen extends StatefulWidget {
 class _PaymentScreenState extends State<PaymentScreen> {
   String _selectedPaymentMethod = 'card';
   bool _isProcessing = false;
-<<<<<<< HEAD
   PaymentService? _paymentService;
 
-  static String get _razorpayKey => PaymentConfig.razorpayKey;
+  // NOTE: Use your Razorpay Test Key here for dummy/test payments
+  static const String _razorpayTestKey = 'rzp_test_1DP5mmOlF5G5ag';
 
   @override
   void initState() {
@@ -55,7 +55,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
           _isProcessing = false;
         });
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Payment failed. Please try again.')),
+          const SnackBar(content: Text('Payment failed. Please try again.')),
         );
       },
     );
@@ -66,92 +66,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
     _paymentService?.dispose();
     super.dispose();
   }
-=======
->>>>>>> 19c60511df77cf71534b179d6daa8ec8cebe0b10
 
   @override
   Widget build(BuildContext context) {
-    // Show message on web that payment is not available
-    if (PlatformUtils.isWeb) {
-      return Scaffold(
-        backgroundColor: Colors.white,
-        appBar: AppBar(
-          backgroundColor: Colors.white,
-          elevation: 0,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.black),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-          title: Text(
-            "Payment",
-            style: GoogleFonts.poppins(
-              fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 20, tablet: 22, desktop: 24),
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
-            ),
-          ),
-        ),
-        body: Center(
-          child: Padding(
-            padding: ResponsiveUtils.getResponsivePadding(context),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.payment_outlined,
-                  size: ResponsiveUtils.getResponsiveIconSize(context, mobile: 80, tablet: 100, desktop: 120),
-                  color: Mycolors.basecolor.withOpacity(0.5),
-                ),
-                SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 24, tablet: 28, desktop: 32)),
-                Text(
-                  'Payment Not Available on Web',
-                  style: GoogleFonts.poppins(
-                    fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 24, tablet: 26, desktop: 28),
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 16, tablet: 18, desktop: 20)),
-                Text(
-                  'Payment features are only available on mobile devices. Please use the mobile app to complete your payment.',
-                  style: GoogleFonts.poppins(
-                    fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 16, tablet: 17, desktop: 18),
-                    color: Colors.grey[600],
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 32, tablet: 36, desktop: 40)),
-                ElevatedButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Mycolors.basecolor,
-                    foregroundColor: Colors.white,
-                    padding: EdgeInsets.symmetric(
-                      horizontal: ResponsiveUtils.getResponsiveSpacing(context, mobile: 32, tablet: 36, desktop: 40),
-                      vertical: ResponsiveUtils.getResponsiveSpacing(context, mobile: 16, tablet: 18, desktop: 20),
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(
-                        ResponsiveUtils.getResponsiveBorderRadius(context, mobile: 12, tablet: 14, desktop: 16),
-                      ),
-                    ),
-                  ),
-                  child: Text(
-                    'Go Back',
-                    style: GoogleFonts.poppins(
-                      fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 16, tablet: 17, desktop: 18),
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-    }
-
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -164,7 +81,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
         title: Text(
           "Payment",
           style: GoogleFonts.poppins(
-            fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 20, tablet: 22, desktop: 24),
+            fontSize: 20,
             fontWeight: FontWeight.bold,
             color: Colors.black,
           ),
@@ -172,18 +89,16 @@ class _PaymentScreenState extends State<PaymentScreen> {
       ),
       body: SafeArea(
         child: Padding(
-          padding: ResponsiveUtils.getResponsivePadding(context),
+          padding: const EdgeInsets.all(20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Ride Details
               Container(
-                padding: ResponsiveUtils.getResponsivePadding(context),
+                padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: Mycolors.lightGray,
-                  borderRadius: BorderRadius.circular(
-                    ResponsiveUtils.getResponsiveBorderRadius(context, mobile: 12, tablet: 14, desktop: 16),
-                  ),
+                  borderRadius: BorderRadius.circular(12),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -191,36 +106,30 @@ class _PaymentScreenState extends State<PaymentScreen> {
                     Text(
                       "Ride Details",
                       style: GoogleFonts.poppins(
-                        fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 16, tablet: 17, desktop: 18),
+                        fontSize: 16,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 8, tablet: 10, desktop: 12)),
+                    const SizedBox(height: 8),
                     Text(
                       "Driver: ${widget.driverName}",
-                      style: GoogleFonts.poppins(
-                        fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 14, tablet: 15, desktop: 16),
-                      ),
+                      style: GoogleFonts.poppins(fontSize: 14),
                     ),
                     Text(
                       "Destination: ${widget.destination}",
-                      style: GoogleFonts.poppins(
-                        fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 14, tablet: 15, desktop: 16),
-                      ),
+                      style: GoogleFonts.poppins(fontSize: 14),
                     ),
                   ],
                 ),
               ),
-              SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 20, tablet: 24, desktop: 28)),
+              const SizedBox(height: 20),
 
               // Amount
               Container(
-                padding: ResponsiveUtils.getResponsivePadding(context),
+                padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
                   color: Mycolors.basecolor.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(
-                    ResponsiveUtils.getResponsiveBorderRadius(context, mobile: 12, tablet: 14, desktop: 16),
-                  ),
+                  borderRadius: BorderRadius.circular(12),
                   border: Border.all(
                     color: Mycolors.basecolor.withOpacity(0.3),
                   ),
@@ -231,14 +140,14 @@ class _PaymentScreenState extends State<PaymentScreen> {
                     Text(
                       "Total Amount",
                       style: GoogleFonts.poppins(
-                        fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 18, tablet: 20, desktop: 22),
+                        fontSize: 18,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
                     Text(
                       "₹${widget.amount.toStringAsFixed(0)}",
                       style: GoogleFonts.poppins(
-                        fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 24, tablet: 26, desktop: 28),
+                        fontSize: 24,
                         fontWeight: FontWeight.bold,
                         color: Mycolors.basecolor,
                       ),
@@ -246,17 +155,17 @@ class _PaymentScreenState extends State<PaymentScreen> {
                   ],
                 ),
               ),
-              SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 30, tablet: 36, desktop: 40)),
+              const SizedBox(height: 30),
 
               // Payment Methods
               Text(
                 "Payment Method",
                 style: GoogleFonts.poppins(
-                  fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 18, tablet: 20, desktop: 22),
+                  fontSize: 18,
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 15, tablet: 18, desktop: 20)),
+              const SizedBox(height: 15),
 
               _buildPaymentMethod(
                 'card',
@@ -264,42 +173,40 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 Icons.credit_card,
                 'Pay with your card',
               ),
-              SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 10, tablet: 12, desktop: 14)),
+              const SizedBox(height: 10),
               _buildPaymentMethod(
                 'upi',
                 'UPI',
                 Icons.account_balance_wallet,
                 'Pay with UPI',
               ),
-              SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 10, tablet: 12, desktop: 14)),
+              const SizedBox(height: 10),
               _buildPaymentMethod(
                 'cash',
                 'Cash',
                 Icons.money,
                 'Pay in cash to driver',
               ),
-              SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 30, tablet: 36, desktop: 40)),
+              const SizedBox(height: 30),
 
               // Pay Now Button
               SizedBox(
                 width: double.infinity,
-                height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 55, tablet: 60, desktop: 65),
+                height: 55,
                 child: ElevatedButton(
                   onPressed: _isProcessing ? null : _processPayment,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Mycolors.basecolor,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(
-                        ResponsiveUtils.getResponsiveBorderRadius(context, mobile: 12, tablet: 14, desktop: 16),
-                      ),
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    elevation: ResponsiveUtils.getResponsiveElevation(context, mobile: 2, tablet: 3, desktop: 4),
+                    elevation: 2,
                   ),
                   child: _isProcessing
-                      ? SizedBox(
-                          height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 20, tablet: 22, desktop: 24),
-                          width: ResponsiveUtils.getResponsiveSpacing(context, mobile: 20, tablet: 22, desktop: 24),
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
                           child: CircularProgressIndicator(
                             color: Colors.white,
                             strokeWidth: 2,
@@ -308,7 +215,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                       : Text(
                           "Pay ₹${widget.amount.toStringAsFixed(0)}",
                           style: GoogleFonts.poppins(
-                            fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 18, tablet: 20, desktop: 22),
+                            fontSize: 18,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -335,19 +242,12 @@ class _PaymentScreenState extends State<PaymentScreen> {
         });
       },
       child: Container(
-        padding: ResponsiveUtils.getResponsivePadding(context),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-<<<<<<< HEAD
           color: isSelected
               ? Mycolors.basecolor.withOpacity(0.1)
               : Colors.white,
-          borderRadius: BorderRadius.circular(
-            ResponsiveUtils.getResponsiveBorderRadius(context, mobile: 12, tablet: 14, desktop: 16),
-          ),
-=======
-          color: isSelected ? Mycolors.basecolor.withOpacity(0.1) : Colors.white,
           borderRadius: BorderRadius.circular(12),
->>>>>>> 19c60511df77cf71534b179d6daa8ec8cebe0b10
           border: Border.all(
             color: isSelected ? Mycolors.basecolor : Colors.grey.shade300,
             width: isSelected ? 2 : 1,
@@ -358,9 +258,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
             Icon(
               icon,
               color: isSelected ? Mycolors.basecolor : Colors.grey,
-              size: ResponsiveUtils.getResponsiveIconSize(context, mobile: 24, tablet: 26, desktop: 28),
+              size: 24,
             ),
-            SizedBox(width: ResponsiveUtils.getResponsiveSpacing(context, mobile: 12, tablet: 14, desktop: 16)),
+            const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -368,7 +268,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                   Text(
                     title,
                     style: GoogleFonts.poppins(
-                      fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 16, tablet: 17, desktop: 18),
+                      fontSize: 16,
                       fontWeight: FontWeight.w600,
                       color: isSelected ? Mycolors.basecolor : Colors.black,
                     ),
@@ -376,7 +276,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                   Text(
                     subtitle,
                     style: GoogleFonts.poppins(
-                      fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 12, tablet: 13, desktop: 14),
+                      fontSize: 12,
                       color: Colors.grey,
                     ),
                   ),
@@ -384,11 +284,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
               ),
             ),
             if (isSelected)
-              Icon(
-                Icons.check_circle,
-                color: Mycolors.basecolor,
-                size: ResponsiveUtils.getResponsiveIconSize(context, mobile: 24, tablet: 26, desktop: 28),
-              ),
+              Icon(Icons.check_circle, color: Mycolors.basecolor, size: 24),
           ],
         ),
       ),
@@ -396,15 +292,29 @@ class _PaymentScreenState extends State<PaymentScreen> {
   }
 
   Future<void> _processPayment() async {
-    setState(() {
-      _isProcessing = true;
-    });
+    // Cash: directly mark paid without Razorpay flow
+    if (_selectedPaymentMethod == 'cash') {
+      setState(() {
+        _isProcessing = true;
+      });
+      try {
+        await _markPaid(method: 'cash');
+        if (!mounted) return;
+        await _showSuccessDialog();
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isProcessing = false;
+          });
+        }
+      }
+      return;
+    }
 
-<<<<<<< HEAD
     // Card/UPI: open Razorpay test checkout
     final int amountPaise = (widget.amount * 100).toInt();
     _paymentService?.openCheckout(
-      key: _razorpayKey,
+      key: _razorpayTestKey,
       amountInPaise: amountPaise,
       name: 'RelyGo Ride',
       description: 'Payment for ${widget.destination}',
@@ -415,130 +325,14 @@ class _PaymentScreenState extends State<PaymentScreen> {
   }
 
   Future<void> _markPaid({required String method}) async {
-<<<<<<< HEAD
-    // Update ride_requests collection
-=======
-    try {
-      // Simulated payment processing (works reliably on all devices)
-      await Future.delayed(const Duration(seconds: 2));
-
-      await _markPaid(method: _selectedPaymentMethod);
-      if (!mounted) return;
-      await _showSuccessDialog();
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Payment failed. Please try again.')),
-      );
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isProcessing = false;
-        });
-      }
-    }
-  }
-
-  Future<void> _markPaid({required String method}) async {
->>>>>>> 19c60511df77cf71534b179d6daa8ec8cebe0b10
     await FirebaseFirestore.instance
         .collection('ride_requests')
         .doc(widget.requestId)
         .update({
-<<<<<<< HEAD
-          'status': 'ongoing',
-          'isPaid': true,
-=======
-      final batch = FirebaseFirestore.instance.batch();
-      
-      // Update ride_requests
-      final rideRequestRef = FirebaseFirestore.instance.collection('ride_requests').doc(widget.requestId);
-      batch.update(rideRequestRef, {
-        'status': 'ongoing',
-        'paymentMethod': method,
-        'paidAt': FieldValue.serverTimestamp(),
-        'isPaid': true,
-      });
-
-      // Update bookings if it exists
-      final bookingRef = FirebaseFirestore.instance.collection('bookings').doc(widget.requestId);
-      batch.update(bookingRef, {
-        'status': 'ongoing',
-        'paymentMethod': method,
-        'paidAt': FieldValue.serverTimestamp(),
-        'isPaid': true,
-      });
-
-      await batch.commit().catchError((e) {
-        // If bookings doesn't exist, the batch might fail if we don't handle it.
-        // But since they use same ID, it's safer to do individual updates or check existence.
-        // Let's do individual to avoid batch failure on non-existent doc.
-      });
-      
-      final rideRequestDoc = await rideRequestRef.get();
-      final driverId = rideRequestDoc.data()?['driverId'];
-      
-      // To be safe, just do individual updates
-      await rideRequestRef.update({
-        'status': 'ongoing',
-        'paymentMethod': method,
-        'paidAt': FieldValue.serverTimestamp(),
-        'isPaid': true,
-      });
-      
-      try {
-        await bookingRef.update({
-          'status': 'ongoing',
->>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
+          'status': 'paid',
           'paymentMethod': method,
-          'paidAt': FieldValue.serverTimestamp(),
-          'isPaid': true,
+          'paidAt': Timestamp.now(),
         });
-<<<<<<< HEAD
-    
-    // Also update bookings collection if it exists
-    try {
-      final bookingDoc = await FirebaseFirestore.instance
-          .collection('bookings')
-          .doc(widget.requestId)
-          .get();
-      if (bookingDoc.exists) {
-        await FirebaseFirestore.instance
-            .collection('bookings')
-            .doc(widget.requestId)
-            .update({
-              'status': 'ongoing',
-              'isPaid': true,
-              'paymentMethod': method,
-              'paymentDate': Timestamp.now(),
-            });
-      }
-    } catch (e) {
-      // Ignore if bookings collection doesn't have this document
-      print('Bookings collection update skipped: $e');
-    }
-=======
-      } catch (_) {}
-
-      // Notify driver about payment
-      if (driverId != null) {
-        await FirebaseFirestore.instance.collection('notifications').add({
-          'driverId': driverId,
-          'title': 'Payment Received',
-          'message': 'Payment has been received for ride with ${rideRequestDoc.data()?['userName'] ?? 'User'}.',
-          'type': 'payment_received',
-          'bookingId': widget.requestId,
-          'read': false,
-          'createdAt': FieldValue.serverTimestamp(),
-        });
-      }
->>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
-=======
-      'status': 'paid',
-      'paymentMethod': method,
-      'paidAt': Timestamp.now(),
-    });
->>>>>>> 19c60511df77cf71534b179d6daa8ec8cebe0b10
   }
 
   Future<void> _showSuccessDialog() async {
@@ -615,6 +409,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                   child: ElevatedButton(
                     onPressed: () {
                       Navigator.of(context).pop(); // Close dialog
+                      // Navigate to user dashboard screen
                       Navigator.of(context).pushAndRemoveUntil(
                         MaterialPageRoute(
                           builder: (context) => const UserDashboardScreen(),
