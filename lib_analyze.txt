@@ -1,0 +1,923 @@
+Analyzing lib...
+
+  error - screens\driver_dashboard_screen.dart:170:53 - The name 'DriverChatbotScreen' isn't a class. Try correcting the name to match an existing class. - creation_with_non_type
+  error - screens\driver_dashboard_screen.dart:345:67 - 2 positional arguments expected by '_handleStartRide', but 0 found. Try adding the missing arguments. - not_enough_positional_arguments
+  error - screens\driver_dashboard_screen.dart:345:67 - The named parameter 'specificRideId' isn't defined. Try correcting the name to an existing named parameter's name, or defining a named parameter with the name 'specificRideId'. - undefined_named_parameter
+  error - screens\driver_dashboard_screen.dart:363:19 - Undefined name '_activeRideId'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\driver_dashboard_screen.dart:394:81 - Undefined name '_activeRideId'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\driver_dashboard_screen.dart:396:35 - The method '_stopLocationUpdates' isn't defined for the type '_DriverDashboardScreenState'. Try correcting the name to the name of an existing method, or defining a method named '_stopLocationUpdates'. - undefined_method
+  error - screens\driver_dashboard_screen.dart:426:34 - Undefined name '_todayRides'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\driver_dashboard_screen.dart:427:37 - Undefined name '_todayEarnings'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\driver_dashboard_screen.dart:428:42 - Undefined name '_avgRating'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\driver_dashboard_screen.dart:462:66 - The argument type 'Map<String, dynamic>' can't be assigned to the parameter type 'String'.  - argument_type_not_assignable
+  error - screens\driver_dashboard_screen.dart:462:70 - 4 positional arguments expected by '_buildMobileStatsGrid', but 2 found. Try adding the missing arguments. - not_enough_positional_arguments
+  error - screens\driver_dashboard_screen.dart:463:66 - The argument type 'Map<String, dynamic>' can't be assigned to the parameter type 'String'.  - argument_type_not_assignable
+  error - screens\driver_dashboard_screen.dart:463:70 - 4 positional arguments expected by '_buildTabletStatsGrid', but 2 found. Try adding the missing arguments. - not_enough_positional_arguments
+  error - screens\driver_dashboard_screen.dart:464:68 - The argument type 'Map<String, dynamic>' can't be assigned to the parameter type 'String'.  - argument_type_not_assignable
+  error - screens\driver_dashboard_screen.dart:464:72 - 4 positional arguments expected by '_buildDesktopStatsGrid', but 2 found. Try adding the missing arguments. - not_enough_positional_arguments
+  error - screens\driver_dashboard_screen.dart:468:21 - Too many positional arguments: 0 expected, but 1 found. Try removing the extra positional arguments, or specifying the name for named arguments. - extra_positional_arguments_could_be_named
+  error - screens\driver_dashboard_screen.dart:468:49 - Expected to find ';'. - expected_token
+  error - screens\driver_dashboard_screen.dart:469:19 - Expected to find ')'. - expected_token
+  error - screens\driver_dashboard_screen.dart:469:19 - Expected to find '}'. - expected_token
+  error - screens\driver_dashboard_screen.dart:470:17 - Expected to find ';'. - expected_token
+  error - screens\driver_dashboard_screen.dart:470:18 - Expected an identifier. - missing_identifier
+  error - screens\driver_dashboard_screen.dart:470:18 - Unexpected text ';'. Try removing the text. - unexpected_token
+  error - screens\driver_dashboard_screen.dart:471:15 - Expected to find '}'. - expected_token
+  error - screens\driver_dashboard_screen.dart:605:13 - Expected an identifier. - missing_identifier
+  error - screens\driver_dashboard_screen.dart:605:13 - Expected to find ')'. - expected_token
+  error - screens\driver_dashboard_screen.dart:607:10 - Expected a class member. Try placing this code inside a class member. - expected_class_member
+  error - screens\driver_dashboard_screen.dart:608:7 - Expected a class member. Try placing this code inside a class member. - expected_class_member
+  error - screens\driver_dashboard_screen.dart:608:8 - Expected a class member. Try placing this code inside a class member. - expected_class_member
+  error - screens\driver_dashboard_screen.dart:609:5 - Expected a class member. Try placing this code inside a class member. - expected_class_member
+  error - screens\driver_dashboard_screen.dart:609:6 - Expected a class member. Try placing this code inside a class member. - expected_class_member
+  error - screens\driver_dashboard_screen.dart:876:19 - Undefined name '_scrollController'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\driver_dashboard_screen.dart:892:19 - The function 'setState' isn't defined. Try importing the library that defines 'setState', correcting the name to the name of an existing function, or defining a function named 'setState'. - undefined_function
+  error - screens\driver_dashboard_screen.dart:893:21 - Undefined name '_selectedIndex'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\driver_dashboard_screen.dart:926:17 - Undefined name '_showSettingsDialog'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\driver_dashboard_screen.dart:940:17 - Undefined name '_showEmergencyDialog'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\driver_dashboard_screen.dart:951:19 - The function 'setState' isn't defined. Try importing the library that defines 'setState', correcting the name to the name of an existing function, or defining a function named 'setState'. - undefined_function
+  error - screens\driver_dashboard_screen.dart:952:21 - Undefined name '_selectedIndex'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\driver_dashboard_screen.dart:975:17 - The argument type 'Future<void> Function(BuildContext, String)' can't be assigned to the parameter type 'VoidCallback'.  - argument_type_not_assignable
+  error - screens\driver_dashboard_screen.dart:986:19 - The function 'setState' isn't defined. Try importing the library that defines 'setState', correcting the name to the name of an existing function, or defining a function named 'setState'. - undefined_function
+  error - screens\driver_dashboard_screen.dart:987:21 - Undefined name '_selectedIndex'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\driver_dashboard_screen.dart:1020:17 - Undefined name '_showSettingsDialog'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\driver_dashboard_screen.dart:1034:17 - Undefined name '_showEmergencyDialog'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\driver_dashboard_screen.dart:1045:19 - The function 'setState' isn't defined. Try importing the library that defines 'setState', correcting the name to the name of an existing function, or defining a function named 'setState'. - undefined_function
+  error - screens\driver_dashboard_screen.dart:1046:21 - Undefined name '_selectedIndex'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\driver_dashboard_screen.dart:1069:15 - Undefined name '_scrollController'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\driver_dashboard_screen.dart:1085:15 - The function 'setState' isn't defined. Try importing the library that defines 'setState', correcting the name to the name of an existing function, or defining a function named 'setState'. - undefined_function
+  error - screens\driver_dashboard_screen.dart:1086:17 - Undefined name '_selectedIndex'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\driver_dashboard_screen.dart:1115:13 - Undefined name '_showSettingsDialog'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\driver_dashboard_screen.dart:1125:13 - Undefined name '_showEmergencyDialog'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\driver_dashboard_screen.dart:1136:15 - The function 'setState' isn't defined. Try importing the library that defines 'setState', correcting the name to the name of an existing function, or defining a function named 'setState'. - undefined_function
+  error - screens\driver_dashboard_screen.dart:1137:17 - Undefined name '_selectedIndex'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\driver_dashboard_screen.dart:1978:1 - Expected a method, getter, setter or operator declaration. This appears to be incomplete code. Try removing it or completing it. - expected_executable
+  error - screens\driver_management_screen.dart:499:35 - Undefined name 'ChatService'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\driver_management_screen.dart:503:31 - The method 'ChatDetailScreen' isn't defined for the type '_DriverManagementScreenState'. Try correcting the name to the name of an existing method, or defining a method named 'ChatDetailScreen'. - undefined_method
+  error - screens\driver_notifications_screen.dart:275:78 - 4 positional arguments expected by 'acceptBooking', but 3 found. Try adding the missing arguments. - not_enough_positional_arguments
+  error - screens\driver_profile_screen.dart:73:13 - Undefined name 'userId'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\driver_profile_screen.dart:76:50 - Undefined name 'userId'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\driver_profile_screen.dart:113:43 - 1 positional argument expected by '_showSettingsDialog', but 0 found. Try adding the missing argument. - not_enough_positional_arguments
+  error - screens\driver_profile_screen.dart:144:15 - Unexpected text 'return'. Try removing the text. - unexpected_token
+  error - screens\driver_profile_screen.dart:144:22 - The element type 'SingleChildScrollView' can't be assigned to the list type 'BoxShadow'. - list_element_type_not_assignable
+  error - screens\driver_profile_screen.dart:160:25 - The named parameter 'child' isn't defined. Try correcting the name to an existing named parameter's name, or defining a named parameter with the name 'child'. - undefined_named_parameter
+  error - screens\driver_profile_screen.dart:186:39 - Undefined name 'userId'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\driver_profile_screen.dart:212:1 - Expected an identifier. - missing_identifier
+  error - screens\driver_profile_screen.dart:212:1 - The '===' operator is not supported. - unsupported_operator
+  error - screens\driver_profile_screen.dart:212:4 - Missing selector such as '.identifier' or '[0]'. Try adding a selector. - missing_assignable_selector
+  error - screens\driver_profile_screen.dart:212:4 - The '===' operator is not supported. - unsupported_operator
+  error - screens\driver_profile_screen.dart:212:4 - Too many positional arguments: 0 expected, but 1 found. Try removing the extra positional arguments, or specifying the name for named arguments. - extra_positional_arguments_could_be_named
+  error - screens\driver_profile_screen.dart:212:7 - Expected an identifier. - missing_identifier
+  error - screens\driver_profile_screen.dart:213:23 - Expected an identifier. - missing_identifier
+  error - screens\driver_profile_screen.dart:216:19 - The argument for the named parameter 'child' was already specified. Try removing one of the named arguments, or correcting one of the names to reference a different named parameter. - duplicate_named_argument
+  error - screens\driver_profile_screen.dart:216:19 - The named parameter 'child' isn't defined. Try correcting the name to an existing named parameter's name, or defining a named parameter with the name 'child'. - undefined_named_parameter
+  error - screens\driver_profile_screen.dart:283:29 - Expected to find ']'. - expected_token
+  error - screens\driver_profile_screen.dart:286:23 - Expected to find ']'. - expected_token
+  error - screens\driver_profile_screen.dart:287:23 - Too many positional arguments: 0 expected, but 14 found. Try removing the extra positional arguments, or specifying the name for named arguments. - extra_positional_arguments_could_be_named
+  error - screens\driver_profile_screen.dart:291:65 - Undefined name 'userId'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\driver_profile_screen.dart:373:29 - The named parameter 'currentYear' isn't defined. Try correcting the name to an existing named parameter's name, or defining a named parameter with the name 'currentYear'. - undefined_named_parameter
+  error - screens\driver_profile_screen.dart:422:47 - 1 positional argument expected by '_showSettingsDialog', but 0 found. Try adding the missing argument. - not_enough_positional_arguments
+  error - screens\driver_profile_screen.dart:451:1 - Expected an identifier. - missing_identifier
+  error - screens\driver_profile_screen.dart:451:1 - The '===' operator is not supported. - unsupported_operator
+  error - screens\driver_profile_screen.dart:451:4 - Missing selector such as '.identifier' or '[0]'. Try adding a selector. - missing_assignable_selector
+  error - screens\driver_profile_screen.dart:451:4 - The '===' operator is not supported. - unsupported_operator
+  error - screens\driver_profile_screen.dart:451:4 - Too many positional arguments: 1 expected, but 2 found. Try removing the extra positional arguments, or specifying the name for named arguments. - extra_positional_arguments_could_be_named
+  error - screens\driver_profile_screen.dart:451:7 - Expected an identifier. - missing_identifier
+  error - screens\driver_profile_screen.dart:452:29 - Expected an identifier. - missing_identifier
+  error - screens\driver_profile_screen.dart:454:25 - Expected to find ')'. - expected_token
+  error - screens\driver_profile_screen.dart:457:21 - The element type 'SizedBox' can't be assigned to the list type 'BoxShadow'. - list_element_type_not_assignable
+  error - screens\driver_profile_screen.dart:460:21 - The element type 'Row' can't be assigned to the list type 'BoxShadow'. - list_element_type_not_assignable
+  error - screens\driver_profile_screen.dart:464:29 - Undefined name 'totalRides'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\driver_profile_screen.dart:468:1 - Expected an identifier. - missing_identifier
+  error - screens\driver_profile_screen.dart:468:1 - The '===' operator is not supported. - unsupported_operator
+  error - screens\driver_profile_screen.dart:468:4 - Missing selector such as '.identifier' or '[0]'. Try adding a selector. - missing_assignable_selector
+  error - screens\driver_profile_screen.dart:468:4 - The '===' operator is not supported. - unsupported_operator
+  error - screens\driver_profile_screen.dart:468:4 - Too many positional arguments: 0 expected, but 2 found. Try removing the extra positional arguments, or specifying the name for named arguments. - extra_positional_arguments_could_be_named
+  error - screens\driver_profile_screen.dart:468:7 - Expected an identifier. - missing_identifier
+  error - screens\driver_profile_screen.dart:474:1 - Expected an identifier. - missing_identifier
+  error - screens\driver_profile_screen.dart:474:1 - Invalid constant value. - invalid_constant
+  error - screens\driver_profile_screen.dart:474:1 - Too many positional arguments: 0 expected, but 2 found. Try removing the extra arguments. - extra_positional_arguments
+  error - screens\driver_profile_screen.dart:474:4 - Expected an identifier. - missing_identifier
+  error - screens\driver_profile_screen.dart:474:7 - Expected an identifier. - missing_identifier
+  error - screens\driver_profile_screen.dart:474:11 - Arguments of a constant creation must be constant expressions. Try making the argument a valid constant, or use 'new' to call the constructor. - const_with_non_constant_argument
+  error - screens\driver_profile_screen.dart:474:11 - Expected to find ','. - expected_token
+  error - screens\driver_profile_screen.dart:474:11 - Undefined name 'c60511df77cf71534b179d6daa8ec8cebe0b10'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\driver_profile_screen.dart:481:32 - The method '[]' can't be unconditionally invoked because the receiver can be 'null'. Try making the call conditional (using '?.') or adding a null check to the target ('!'). - unchecked_use_of_nullable_value
+  error - screens\driver_profile_screen.dart:489:21 - Expected to find ')'. - expected_token
+  error - screens\driver_profile_screen.dart:491:17 - Expected to find ']'. - expected_token
+  error - screens\driver_profile_screen.dart:492:17 - Too many positional arguments: 0 expected, but 16 found. Try removing the extra positional arguments, or specifying the name for named arguments. - extra_positional_arguments_could_be_named
+  error - screens\driver_profile_screen.dart:499:25 - Undefined name 'totalRides'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\driver_profile_screen.dart:507:28 - Undefined name 'totalEarnings'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\driver_profile_screen.dart:519:25 - Undefined name 'hoursToday'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\driver_profile_screen.dart:547:28 - Undefined name 'docs'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\driver_profile_screen.dart:547:57 - The method '[]' can't be unconditionally invoked because the receiver can be 'null'. Try making the call conditional (using '?.') or adding a null check to the target ('!'). - unchecked_use_of_nullable_value
+  error - screens\driver_profile_screen.dart:559:37 - Undefined name 'vehicleModel'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\driver_profile_screen.dart:560:35 - Undefined name 'vehicleReg'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\driver_profile_screen.dart:585:21 - The method '_showRideHistoryDialog' isn't defined for the type '_DriverProfileScreenState'. Try correcting the name to the name of an existing method, or defining a method named '_showRideHistoryDialog'. - undefined_method
+  error - screens\driver_profile_screen.dart:610:45 - The method '[]' can't be unconditionally invoked because the receiver can be 'null'. Try making the call conditional (using '?.') or adding a null check to the target ('!'). - unchecked_use_of_nullable_value
+  error - screens\driver_profile_screen.dart:641:15 - Expected to find ')'. - expected_token
+  error - screens\driver_profile_screen.dart:1092:15 - The named parameter 'title' isn't defined. Try correcting the name to an existing named parameter's name, or defining a named parameter with the name 'title'. - undefined_named_parameter
+  error - screens\driver_profile_screen.dart:1096:15 - The named parameter 'content' isn't defined. Try correcting the name to an existing named parameter's name, or defining a named parameter with the name 'content'. - undefined_named_parameter
+  error - screens\driver_profile_screen.dart:1096:24 - Undefined name 'snapshot'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\driver_profile_screen.dart:1106:31 - Undefined name 'data'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\driver_profile_screen.dart:1111:31 - Undefined name 'data'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\driver_profile_screen.dart:1116:31 - Undefined name 'data'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\driver_profile_screen.dart:1121:31 - Undefined name 'data'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\driver_profile_screen.dart:1126:15 - The named parameter 'actions' isn't defined. Try correcting the name to an existing named parameter's name, or defining a named parameter with the name 'actions'. - undefined_named_parameter
+  error - screens\driver_profile_screen.dart:1135:31 - Undefined name 'data'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\driver_profile_screen.dart:1153:14 - Expected to find ')'. - expected_token
+  error - screens\driver_profile_screen.dart:1153:14 - Expected to find ']'. - expected_token
+  error - screens\driver_profile_screen.dart:1156:8 - Expected a class member. Try placing this code inside a class member. - expected_class_member
+  error - screens\driver_profile_screen.dart:1157:5 - Expected a class member. Try placing this code inside a class member. - expected_class_member
+  error - screens\driver_profile_screen.dart:1157:6 - Expected a class member. Try placing this code inside a class member. - expected_class_member
+  error - screens\driver_profile_screen.dart:1188:16 - Undefined name 'context'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\driver_profile_screen.dart:1254:21 - Undefined name 'mounted'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\driver_profile_screen.dart:1278:16 - Undefined name 'context'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\driver_profile_screen.dart:1333:16 - Undefined name 'context'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\driver_profile_screen.dart:1378:34 - Undefined name 'context'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\driver_profile_screen.dart:1383:24 - Undefined name 'context'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\driver_profile_screen.dart:1384:32 - Undefined name 'context'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\driver_profile_screen.dart:1397:16 - Undefined name 'context'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\driver_profile_screen.dart:1477:17 - Undefined name 'onTap'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\driver_profile_screen.dart:1477:22 - Expected to find ')'. - expected_token
+  error - screens\driver_profile_screen.dart:1477:22 - Expected to find ']'. - expected_token
+  error - screens\driver_profile_screen.dart:1478:15 - Expected to find ';'. - expected_token
+  error - screens\driver_profile_screen.dart:1478:16 - Expected an identifier. - missing_identifier
+  error - screens\driver_profile_screen.dart:1478:16 - Unexpected text ';'. Try removing the text. - unexpected_token
+  error - screens\driver_profile_screen.dart:1487:15 - Expected to find ';'. - expected_token
+  error - screens\driver_profile_screen.dart:1487:16 - Expected an identifier. - missing_identifier
+  error - screens\driver_profile_screen.dart:1487:16 - Unexpected text ';'. Try removing the text. - unexpected_token
+  error - screens\driver_profile_screen.dart:1496:15 - Expected to find ';'. - expected_token
+  error - screens\driver_profile_screen.dart:1496:16 - Expected an identifier. - missing_identifier
+  error - screens\driver_profile_screen.dart:1496:16 - Expected to find ';'. - expected_token
+  error - screens\driver_profile_screen.dart:1496:16 - Unexpected text ';'. Try removing the text. - unexpected_token
+  error - screens\driver_profile_screen.dart:1497:13 - Expected an identifier. - missing_identifier
+  error - screens\driver_profile_screen.dart:1497:13 - Expected to find ';'. - expected_token
+  error - screens\driver_profile_screen.dart:1497:13 - Unexpected text ';'. Try removing the text. - unexpected_token
+  error - screens\driver_profile_screen.dart:1497:14 - Expected an identifier. - missing_identifier
+  error - screens\driver_profile_screen.dart:1497:14 - Expected to find ';'. - expected_token
+  error - screens\driver_profile_screen.dart:1497:14 - Unexpected text ';'. Try removing the text. - unexpected_token
+  error - screens\driver_profile_screen.dart:1498:11 - Expected an identifier. - missing_identifier
+  error - screens\driver_profile_screen.dart:1498:11 - Expected to find ';'. - expected_token
+  error - screens\driver_profile_screen.dart:1498:11 - Unexpected text ';'. Try removing the text. - unexpected_token
+  error - screens\driver_profile_screen.dart:1498:12 - Expected an identifier. - missing_identifier
+  error - screens\driver_profile_screen.dart:1498:12 - Unexpected text ';'. Try removing the text. - unexpected_token
+  error - screens\driver_profile_screen.dart:1507:11 - Expected to find ';'. - expected_token
+  error - screens\driver_profile_screen.dart:1507:12 - Expected an identifier. - missing_identifier
+  error - screens\driver_profile_screen.dart:1507:12 - Unexpected text ';'. Try removing the text. - unexpected_token
+  error - screens\driver_profile_screen.dart:1508:1 - Expected an identifier. - missing_identifier
+  error - screens\driver_profile_screen.dart:1508:1 - The '===' operator is not supported. - unsupported_operator
+  error - screens\driver_profile_screen.dart:1508:4 - Illegal assignment to non-assignable expression. - illegal_assignment_to_non_assignable
+  error - screens\driver_profile_screen.dart:1508:4 - Missing selector such as '.identifier' or '[0]'. Try adding a selector. - missing_assignable_selector
+  error - screens\driver_profile_screen.dart:1508:4 - The '===' operator is not supported. - unsupported_operator
+  error - screens\driver_profile_screen.dart:1508:7 - Expected an identifier. - missing_identifier
+  error - screens\driver_profile_screen.dart:1508:7 - Expected to find ';'. - expected_token
+  error - screens\driver_profile_screen.dart:1509:15 - Expected an identifier. - missing_identifier
+  error - screens\driver_profile_screen.dart:1509:15 - Expected to find ';'. - expected_token
+  error - screens\driver_profile_screen.dart:1509:15 - Unexpected text ';'. Try removing the text. - unexpected_token
+  error - screens\driver_profile_screen.dart:1509:16 - Expected an identifier. - missing_identifier
+  error - screens\driver_profile_screen.dart:1509:16 - Expected to find ';'. - expected_token
+  error - screens\driver_profile_screen.dart:1509:16 - Unexpected text ';'. Try removing the text. - unexpected_token
+  error - screens\driver_profile_screen.dart:1510:13 - Expected an identifier. - missing_identifier
+  error - screens\driver_profile_screen.dart:1510:13 - Unexpected text ';'. Try removing the text. - unexpected_token
+  error - screens\driver_profile_screen.dart:1512:1 - Expected an identifier. - missing_identifier
+  error - screens\driver_profile_screen.dart:1512:1 - Too many positional arguments: 0 expected, but 2 found. Try removing the extra positional arguments, or specifying the name for named arguments. - extra_positional_arguments_could_be_named
+  error - screens\driver_profile_screen.dart:1512:4 - Expected an identifier. - missing_identifier
+  error - screens\driver_profile_screen.dart:1512:7 - Expected an identifier. - missing_identifier
+  error - screens\driver_profile_screen.dart:1512:11 - Expected to find ','. - expected_token
+  error - screens\driver_profile_screen.dart:1512:11 - Undefined name 'c60511df77cf71534b179d6daa8ec8cebe0b10'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\driver_profile_screen.dart:1520:16 - Undefined name 'context'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\driver_profile_screen.dart:1567:16 - Undefined name 'context'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\driver_profile_screen.dart:1588:21 - Undefined name 'mounted'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\driver_profile_screen.dart:1615:16 - Undefined name 'context'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\driver_profile_screen.dart:1712:23 - Undefined name 'mounted'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\driver_profile_screen.dart:1738:1 - Expected a method, getter, setter or operator declaration. This appears to be incomplete code. Try removing it or completing it. - expected_executable
+  error - screens\driver_tracking_screen.dart:36:3 - The name 'LatLng' is defined in the libraries 'package:google_maps_flutter_platform_interface/src/types/location.dart (via package:google_maps_flutter/google_maps_flutter.dart)' and 'package:latlong2/latlong.dart'. Try using 'as prefix' for one of the import directives, or hiding the name from all but one of the imports. - ambiguous_import
+  error - screens\driver_tracking_screen.dart:37:3 - The name 'LatLng' is defined in the libraries 'package:google_maps_flutter_platform_interface/src/types/location.dart (via package:google_maps_flutter/google_maps_flutter.dart)' and 'package:latlong2/latlong.dart'. Try using 'as prefix' for one of the import directives, or hiding the name from all but one of the imports. - ambiguous_import
+  error - screens\driver_tracking_screen.dart:44:3 - The name 'LatLng' is defined in the libraries 'package:google_maps_flutter_platform_interface/src/types/location.dart (via package:google_maps_flutter/google_maps_flutter.dart)' and 'package:latlong2/latlong.dart'. Try using 'as prefix' for one of the import directives, or hiding the name from all but one of the imports. - ambiguous_import
+  error - screens\driver_tracking_screen.dart:44:35 - The name 'LatLng' is defined in the libraries 'package:google_maps_flutter_platform_interface/src/types/location.dart (via package:google_maps_flutter/google_maps_flutter.dart)' and 'package:latlong2/latlong.dart'. Try using 'as prefix' for one of the import directives, or hiding the name from all but one of the imports. - ambiguous_import
+  error - screens\driver_tracking_screen.dart:59:29 - The getter 'bookingData' isn't defined for the type 'DriverTrackingScreen'. Try importing the library that defines 'bookingData', correcting the name to the name of an existing getter, or defining a getter or field named 'bookingData'. - undefined_getter
+  error - screens\driver_tracking_screen.dart:86:31 - 'LatLng' isn't a function. Try correcting the name to match an existing function, or define a method or function named 'LatLng'. - invocation_of_non_function
+  error - screens\driver_tracking_screen.dart:86:31 - The name 'LatLng' is defined in the libraries 'package:google_maps_flutter_platform_interface/src/types/location.dart (via package:google_maps_flutter/google_maps_flutter.dart)' and 'package:latlong2/latlong.dart'. Try using 'as prefix' for one of the import directives, or hiding the name from all but one of the imports. - ambiguous_import
+  error - screens\driver_tracking_screen.dart:106:31 - 'LatLng' isn't a function. Try correcting the name to match an existing function, or define a method or function named 'LatLng'. - invocation_of_non_function
+  error - screens\driver_tracking_screen.dart:106:31 - The name 'LatLng' is defined in the libraries 'package:google_maps_flutter_platform_interface/src/types/location.dart (via package:google_maps_flutter/google_maps_flutter.dart)' and 'package:latlong2/latlong.dart'. Try using 'as prefix' for one of the import directives, or hiding the name from all but one of the imports. - ambiguous_import
+  error - screens\driver_tracking_screen.dart:138:27 - 'LatLng' isn't a function. Try correcting the name to match an existing function, or define a method or function named 'LatLng'. - invocation_of_non_function
+  error - screens\driver_tracking_screen.dart:138:27 - The name 'LatLng' is defined in the libraries 'package:google_maps_flutter_platform_interface/src/types/location.dart (via package:google_maps_flutter/google_maps_flutter.dart)' and 'package:latlong2/latlong.dart'. Try using 'as prefix' for one of the import directives, or hiding the name from all but one of the imports. - ambiguous_import
+  error - screens\driver_tracking_screen.dart:159:24 - 'LatLngBounds' isn't a function. Try correcting the name to match an existing function, or define a method or function named 'LatLngBounds'. - invocation_of_non_function
+  error - screens\driver_tracking_screen.dart:159:24 - The name 'LatLngBounds' is defined in the libraries 'package:flutter_map/src/geo/latlng_bounds.dart (via package:flutter_map/flutter_map.dart)' and 'package:google_maps_flutter_platform_interface/src/types/location.dart (via package:google_maps_flutter/google_maps_flutter.dart)'. Try using 'as prefix' for one of the import directives, or hiding the name from all but one of the imports. - ambiguous_import
+  error - screens\driver_tracking_screen.dart:160:22 - 'LatLng' isn't a function. Try correcting the name to match an existing function, or define a method or function named 'LatLng'. - invocation_of_non_function
+  error - screens\driver_tracking_screen.dart:160:22 - The name 'LatLng' is defined in the libraries 'package:google_maps_flutter_platform_interface/src/types/location.dart (via package:google_maps_flutter/google_maps_flutter.dart)' and 'package:latlong2/latlong.dart'. Try using 'as prefix' for one of the import directives, or hiding the name from all but one of the imports. - ambiguous_import
+  error - screens\driver_tracking_screen.dart:164:22 - 'LatLng' isn't a function. Try correcting the name to match an existing function, or define a method or function named 'LatLng'. - invocation_of_non_function
+  error - screens\driver_tracking_screen.dart:164:22 - The name 'LatLng' is defined in the libraries 'package:google_maps_flutter_platform_interface/src/types/location.dart (via package:google_maps_flutter/google_maps_flutter.dart)' and 'package:latlong2/latlong.dart'. Try using 'as prefix' for one of the import directives, or hiding the name from all but one of the imports. - ambiguous_import
+  error - screens\driver_tracking_screen.dart:250:37 - 1 positional argument expected by '_buildBookingStatusCard', but 0 found. Try adding the missing argument. - not_enough_positional_arguments
+  error - screens\driver_tracking_screen.dart:254:34 - 1 positional argument expected by '_buildDriverInfoCard', but 0 found. Try adding the missing argument. - not_enough_positional_arguments
+  error - screens\driver_tracking_screen.dart:258:34 - 1 positional argument expected by '_buildContactActions', but 0 found. Try adding the missing argument. - not_enough_positional_arguments
+  error - screens\driver_tracking_screen.dart:262:35 - 1 positional argument expected by '_buildRideDetailsCard', but 0 found. Try adding the missing argument. - not_enough_positional_arguments
+  error - screens\driver_tracking_screen.dart:651:22 - The getter 'bookingData' isn't defined for the type 'DriverTrackingScreen'. Try importing the library that defines 'bookingData', correcting the name to the name of an existing getter, or defining a getter or field named 'bookingData'. - undefined_getter
+  error - screens\driver_tracking_screen.dart:661:36 - The getter 'bookingData' isn't defined for the type 'DriverTrackingScreen'. Try importing the library that defines 'bookingData', correcting the name to the name of an existing getter, or defining a getter or field named 'bookingData'. - undefined_getter
+  error - screens\driver_tracking_screen.dart:675:10 - The body might complete normally, causing 'null' to be returned, but the return type, 'Widget', is a potentially non-nullable type. Try adding either a return or a throw statement at the end. - body_might_complete_normally
+  error - screens\driver_tracking_screen.dart:676:27 - The getter 'bookingData' isn't defined for the type 'DriverTrackingScreen'. Try importing the library that defines 'bookingData', correcting the name to the name of an existing getter, or defining a getter or field named 'bookingData'. - undefined_getter
+  error - screens\driver_tracking_screen.dart:677:27 - The getter 'bookingData' isn't defined for the type 'DriverTrackingScreen'. Try importing the library that defines 'bookingData', correcting the name to the name of an existing getter, or defining a getter or field named 'bookingData'. - undefined_getter
+  error - screens\driver_tracking_screen.dart:686:32 - Undefined name 'driverId'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\driver_tracking_screen.dart:687:1 - Expected an identifier. - missing_identifier
+  error - screens\driver_tracking_screen.dart:687:1 - The '===' operator is not supported. - unsupported_operator
+  error - screens\driver_tracking_screen.dart:687:4 - Illegal assignment to non-assignable expression. - illegal_assignment_to_non_assignable
+  error - screens\driver_tracking_screen.dart:687:4 - Missing selector such as '.identifier' or '[0]'. Try adding a selector. - missing_assignable_selector
+  error - screens\driver_tracking_screen.dart:687:4 - The '===' operator is not supported. - unsupported_operator
+  error - screens\driver_tracking_screen.dart:687:7 - Expected an identifier. - missing_identifier
+  error - screens\driver_tracking_screen.dart:687:7 - Expected to find ';'. - expected_token
+  error - screens\driver_tracking_screen.dart:688:5 - Expected an identifier. - missing_identifier
+  error - screens\driver_tracking_screen.dart:688:65 - Undefined name 'driverId'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\driver_tracking_screen.dart:689:1 - Expected an identifier. - missing_identifier
+  error - screens\driver_tracking_screen.dart:689:4 - Expected an identifier. - missing_identifier
+  error - screens\driver_tracking_screen.dart:689:7 - Expected an identifier. - missing_identifier
+  error - screens\driver_tracking_screen.dart:689:9 - Expected to find ';'. - expected_token
+  error - screens\driver_tracking_screen.dart:689:11 - Expected to find ';'. - expected_token
+  error - screens\driver_tracking_screen.dart:689:11 - Undefined name 'c60511df77cf71534b179d6daa8ec8cebe0b10'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\driver_tracking_screen.dart:709:1 - Expected an identifier. - missing_identifier
+  error - screens\driver_tracking_screen.dart:709:1 - The '===' operator is not supported. - unsupported_operator
+  error - screens\driver_tracking_screen.dart:709:4 - Missing selector such as '.identifier' or '[0]'. Try adding a selector. - missing_assignable_selector
+  error - screens\driver_tracking_screen.dart:709:4 - The '===' operator is not supported. - unsupported_operator
+  error - screens\driver_tracking_screen.dart:709:4 - Too many positional arguments: 1 expected, but 4 found. Try removing the extra positional arguments, or specifying the name for named arguments. - extra_positional_arguments_could_be_named
+  error - screens\driver_tracking_screen.dart:709:7 - Expected an identifier. - missing_identifier
+  error - screens\driver_tracking_screen.dart:711:1 - Expected an identifier. - missing_identifier
+  error - screens\driver_tracking_screen.dart:711:4 - Expected an identifier. - missing_identifier
+  error - screens\driver_tracking_screen.dart:711:7 - Expected an identifier. - missing_identifier
+  error - screens\driver_tracking_screen.dart:711:11 - Expected to find ','. - expected_token
+  error - screens\driver_tracking_screen.dart:711:11 - Undefined name 'c60511df77cf71534b179d6daa8ec8cebe0b10'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\driver_tracking_screen.dart:712:17 - Expected to find ','. - expected_token
+  error - screens\driver_tracking_screen.dart:883:30 - The argument type 'Set<dynamic>' can't be assigned to the parameter type 'Set<Marker>'.  - argument_type_not_assignable
+  error - screens\driver_tracking_screen.dart:884:32 - The argument type 'Set<dynamic>' can't be assigned to the parameter type 'Set<Polyline>'.  - argument_type_not_assignable
+  error - screens\driver_tracking_screen.dart:920:15 - Too many positional arguments: 0 expected, but 3 found. Try removing the extra positional arguments, or specifying the name for named arguments. - extra_positional_arguments_could_be_named
+  error - screens\driver_tracking_screen.dart:1021:17 - Too many positional arguments: 0 expected, but 1 found. Try removing the extra positional arguments, or specifying the name for named arguments. - extra_positional_arguments_could_be_named
+  error - screens\driver_tracking_screen.dart:1022:15 - Expected to find ')'. - expected_token
+  error - screens\driver_tracking_screen.dart:1025:15 - Expected an identifier. - missing_identifier
+  error - screens\driver_tracking_screen.dart:1025:15 - Expected to find ')'. - expected_token
+  error - screens\driver_tracking_screen.dart:1025:15 - Expected to find ','. - expected_token
+  error - screens\driver_tracking_screen.dart:1025:19 - Undefined name 'lat'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\driver_tracking_screen.dart:1025:34 - Undefined name 'lng'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\driver_tracking_screen.dart:1035:38 - The argument type 'GoogleMapController?' can't be assigned to the parameter type 'MapController?'.  - argument_type_not_assignable
+  error - screens\driver_tracking_screen.dart:1037:40 - 'LatLng' isn't a function. Try correcting the name to match an existing function, or define a method or function named 'LatLng'. - invocation_of_non_function
+  error - screens\driver_tracking_screen.dart:1037:40 - The name 'LatLng' is defined in the libraries 'package:google_maps_flutter_platform_interface/src/types/location.dart (via package:google_maps_flutter/google_maps_flutter.dart)' and 'package:latlong2/latlong.dart'. Try using 'as prefix' for one of the import directives, or hiding the name from all but one of the imports. - ambiguous_import
+  error - screens\driver_tracking_screen.dart:1037:47 - Undefined name 'lat'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\driver_tracking_screen.dart:1037:52 - Undefined name 'lng'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\driver_tracking_screen.dart:1047:33 - Undefined name '_routePoints'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\driver_tracking_screen.dart:1048:31 - 'Polyline' isn't a function. Try correcting the name to match an existing function, or define a method or function named 'Polyline'. - invocation_of_non_function
+  error - screens\driver_tracking_screen.dart:1048:31 - The name 'Polyline' is defined in the libraries 'package:flutter_map/src/layer/polyline_layer.dart (via package:flutter_map/flutter_map.dart)' and 'package:google_maps_flutter_platform_interface/src/types/polyline.dart (via package:google_maps_flutter/google_maps_flutter.dart)'. Try using 'as prefix' for one of the import directives, or hiding the name from all but one of the imports. - ambiguous_import
+  error - screens\driver_tracking_screen.dart:1049:41 - Undefined name '_routePoints'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\driver_tracking_screen.dart:1058:33 - Undefined name '_pickupLatLng'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\driver_tracking_screen.dart:1059:31 - 'Marker' isn't a function. Try correcting the name to match an existing function, or define a method or function named 'Marker'. - invocation_of_non_function
+  error - screens\driver_tracking_screen.dart:1059:31 - The name 'Marker' is defined in the libraries 'package:flutter_map/src/layer/marker_layer.dart (via package:flutter_map/flutter_map.dart)' and 'package:google_maps_flutter_platform_interface/src/types/marker.dart (via package:google_maps_flutter/google_maps_flutter.dart)'. Try using 'as prefix' for one of the import directives, or hiding the name from all but one of the imports. - ambiguous_import
+  error - screens\driver_tracking_screen.dart:1060:40 - Undefined name '_pickupLatLng'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\driver_tracking_screen.dart:1070:29 - 'Marker' isn't a function. Try correcting the name to match an existing function, or define a method or function named 'Marker'. - invocation_of_non_function
+  error - screens\driver_tracking_screen.dart:1070:29 - The name 'Marker' is defined in the libraries 'package:flutter_map/src/layer/marker_layer.dart (via package:flutter_map/flutter_map.dart)' and 'package:google_maps_flutter_platform_interface/src/types/marker.dart (via package:google_maps_flutter/google_maps_flutter.dart)'. Try using 'as prefix' for one of the import directives, or hiding the name from all but one of the imports. - ambiguous_import
+  error - screens\driver_tracking_screen.dart:1071:38 - 'LatLng' isn't a function. Try correcting the name to match an existing function, or define a method or function named 'LatLng'. - invocation_of_non_function
+  error - screens\driver_tracking_screen.dart:1071:38 - The name 'LatLng' is defined in the libraries 'package:google_maps_flutter_platform_interface/src/types/location.dart (via package:google_maps_flutter/google_maps_flutter.dart)' and 'package:latlong2/latlong.dart'. Try using 'as prefix' for one of the import directives, or hiding the name from all but one of the imports. - ambiguous_import
+  error - screens\driver_tracking_screen.dart:1071:45 - Undefined name 'lat'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\driver_tracking_screen.dart:1071:50 - Undefined name 'lng'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\driver_tracking_screen.dart:1150:7 - Expected to find ';'. - expected_token
+  error - screens\driver_tracking_screen.dart:1150:7 - Expected to find '}'. - expected_token
+  error - screens\driver_tracking_screen.dart:1151:5 - Expected an identifier. - missing_identifier
+  error - screens\driver_tracking_screen.dart:1151:5 - Unexpected text ';'. Try removing the text. - unexpected_token
+  error - screens\driver_tracking_screen.dart:1164:7 - The name 'Marker' is defined in the libraries 'package:flutter_map/src/layer/marker_layer.dart (via package:flutter_map/flutter_map.dart)' and 'package:google_maps_flutter_platform_interface/src/types/marker.dart (via package:google_maps_flutter/google_maps_flutter.dart)'. Try using 'as prefix' for one of the import directives, or hiding the name from all but one of the imports. - ambiguous_import
+  error - screens\driver_tracking_screen.dart:1165:22 - The name 'Marker' is defined in the libraries 'package:flutter_map/src/layer/marker_layer.dart (via package:flutter_map/flutter_map.dart)' and 'package:google_maps_flutter_platform_interface/src/types/marker.dart (via package:google_maps_flutter/google_maps_flutter.dart)'. Try using 'as prefix' for one of the import directives, or hiding the name from all but one of the imports. - ambiguous_import
+  error - screens\driver_tracking_screen.dart:1170:9 - 'Marker' isn't a function. Try correcting the name to match an existing function, or define a method or function named 'Marker'. - invocation_of_non_function
+  error - screens\driver_tracking_screen.dart:1170:9 - The name 'Marker' is defined in the libraries 'package:flutter_map/src/layer/marker_layer.dart (via package:flutter_map/flutter_map.dart)' and 'package:google_maps_flutter_platform_interface/src/types/marker.dart (via package:google_maps_flutter/google_maps_flutter.dart)'. Try using 'as prefix' for one of the import directives, or hiding the name from all but one of the imports. - ambiguous_import
+  error - screens\driver_tracking_screen.dart:1187:9 - 'Marker' isn't a function. Try correcting the name to match an existing function, or define a method or function named 'Marker'. - invocation_of_non_function
+  error - screens\driver_tracking_screen.dart:1187:9 - The name 'Marker' is defined in the libraries 'package:flutter_map/src/layer/marker_layer.dart (via package:flutter_map/flutter_map.dart)' and 'package:google_maps_flutter_platform_interface/src/types/marker.dart (via package:google_maps_flutter/google_maps_flutter.dart)'. Try using 'as prefix' for one of the import directives, or hiding the name from all but one of the imports. - ambiguous_import
+  error - screens\driver_tracking_screen.dart:1204:7 - The name 'Polyline' is defined in the libraries 'package:flutter_map/src/layer/polyline_layer.dart (via package:flutter_map/flutter_map.dart)' and 'package:google_maps_flutter_platform_interface/src/types/polyline.dart (via package:google_maps_flutter/google_maps_flutter.dart)'. Try using 'as prefix' for one of the import directives, or hiding the name from all but one of the imports. - ambiguous_import
+  error - screens\driver_tracking_screen.dart:1210:7 - 'Polyline' isn't a function. Try correcting the name to match an existing function, or define a method or function named 'Polyline'. - invocation_of_non_function
+  error - screens\driver_tracking_screen.dart:1210:7 - The name 'Polyline' is defined in the libraries 'package:flutter_map/src/layer/polyline_layer.dart (via package:flutter_map/flutter_map.dart)' and 'package:google_maps_flutter_platform_interface/src/types/polyline.dart (via package:google_maps_flutter/google_maps_flutter.dart)'. Try using 'as prefix' for one of the import directives, or hiding the name from all but one of the imports. - ambiguous_import
+  error - screens\driver_tracking_screen.dart:1252:35 - Undefined name 'ChatService'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\responsive_user_dashboard_screen.dart:252:11 - The named parameter 'initialBookingData' is required, but there's no corresponding argument. Try adding the required argument. - missing_required_argument
+  error - screens\responsive_user_dashboard_screen.dart:254:13 - The named parameter 'bookingData' isn't defined. Try correcting the name to an existing named parameter's name, or defining a named parameter with the name 'bookingData'. - undefined_named_parameter
+  error - screens\service_booking_screen.dart:20:1 - Expected a method, getter, setter or operator declaration. This appears to be incomplete code. Try removing it or completing it. - expected_executable
+  error - screens\service_booking_screen.dart:20:1 - The '===' operator is not supported. - unsupported_operator
+  error - screens\service_booking_screen.dart:20:4 - Expected a method, getter, setter or operator declaration. This appears to be incomplete code. Try removing it or completing it. - expected_executable
+  error - screens\service_booking_screen.dart:20:4 - The '===' operator is not supported. - unsupported_operator
+  error - screens\service_booking_screen.dart:20:7 - Expected a method, getter, setter or operator declaration. This appears to be incomplete code. Try removing it or completing it. - expected_executable
+  error - screens\service_booking_screen.dart:21:1 - Directives must appear before any declarations. Try moving the directive before any declarations. - directive_after_declaration
+  error - screens\service_booking_screen.dart:22:1 - Directives must appear before any declarations. Try moving the directive before any declarations. - directive_after_declaration
+  error - screens\service_booking_screen.dart:23:1 - Expected a method, getter, setter or operator declaration. This appears to be incomplete code. Try removing it or completing it. - expected_executable
+  error - screens\service_booking_screen.dart:23:4 - Expected a method, getter, setter or operator declaration. This appears to be incomplete code. Try removing it or completing it. - expected_executable
+  error - screens\service_booking_screen.dart:23:7 - Expected a method, getter, setter or operator declaration. This appears to be incomplete code. Try removing it or completing it. - expected_executable
+  error - screens\service_booking_screen.dart:23:9 - Expected a method, getter, setter or operator declaration. This appears to be incomplete code. Try removing it or completing it. - expected_executable
+  error - screens\service_booking_screen.dart:23:11 - Expected to find ';'. - expected_token
+  error - screens\service_booking_screen.dart:23:11 - Variables must be declared using the keywords 'const', 'final', 'var' or a type name. Try adding the name of the type of the variable or the keyword 'var'. - missing_const_final_var_or_type
+  error - screens\service_booking_screen.dart:85:35 - Undefined name '_detectingLocation'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\service_booking_screen.dart:86:1 - Expected an identifier. - missing_identifier
+  error - screens\service_booking_screen.dart:86:1 - The '===' operator is not supported. - unsupported_operator
+  error - screens\service_booking_screen.dart:86:4 - Illegal assignment to non-assignable expression. - illegal_assignment_to_non_assignable
+  error - screens\service_booking_screen.dart:86:4 - Missing selector such as '.identifier' or '[0]'. Try adding a selector. - missing_assignable_selector
+  error - screens\service_booking_screen.dart:86:4 - The '===' operator is not supported. - unsupported_operator
+  error - screens\service_booking_screen.dart:86:7 - Expected an identifier. - missing_identifier
+  error - screens\service_booking_screen.dart:86:7 - Expected to find ';'. - expected_token
+  error - screens\service_booking_screen.dart:87:7 - Expected an identifier. - missing_identifier
+  error - screens\service_booking_screen.dart:92:1 - Expected an identifier. - missing_identifier
+  error - screens\service_booking_screen.dart:92:4 - Expected an identifier. - missing_identifier
+  error - screens\service_booking_screen.dart:92:7 - Expected an identifier. - missing_identifier
+  error - screens\service_booking_screen.dart:92:9 - Expected to find ';'. - expected_token
+  error - screens\service_booking_screen.dart:92:11 - Expected to find ';'. - expected_token
+  error - screens\service_booking_screen.dart:270:19 - Too many positional arguments: 0 expected, but 2 found. Try removing the extra positional arguments, or specifying the name for named arguments. - extra_positional_arguments_could_be_named
+  error - screens\service_booking_screen.dart:277:35 - The method '_detectCurrentLocation' isn't defined for the type '_ServiceBookingScreenState'. Try correcting the name to the name of an existing method, or defining a method named '_detectCurrentLocation'. - undefined_method
+  error - screens\service_booking_screen.dart:309:17 - Expected to find ')'. - expected_token
+  error - screens\service_booking_screen.dart:311:15 - Too many positional arguments: 0 expected, but 6 found. Try removing the extra positional arguments, or specifying the name for named arguments. - extra_positional_arguments_could_be_named
+  error - screens\service_booking_screen.dart:318:17 - The named parameter 'validator' isn't defined. Try correcting the name to an existing named parameter's name, or defining a named parameter with the name 'validator'. - undefined_named_parameter
+  error - screens\service_booking_screen.dart:385:17 - Expected an identifier. - missing_identifier
+  error - screens\service_booking_screen.dart:385:17 - Expected to find ')'. - expected_token
+  error - screens\service_booking_screen.dart:394:17 - The named parameter 'validator' isn't defined. Try correcting the name to an existing named parameter's name, or defining a named parameter with the name 'validator'. - undefined_named_parameter
+  error - screens\service_booking_screen.dart:575:15 - Expected an identifier. - missing_identifier
+  error - screens\service_booking_screen.dart:575:15 - Expected to find ')'. - expected_token
+  error - screens\signin_screen.dart:303:57 - The name 'AuthWrapper' isn't a class. Try correcting the name to match an existing class. - creation_with_non_type
+  error - screens\splash.dart:179:19 - Undefined name '_buttonSlideAnimation'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\splash.dart:183:39 - Undefined name '_buttonSlideAnimation'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\user_dashboard_screen.dart:25:47 - The class '_UserDashboardScreenState' doesn't have an unnamed constructor. Try using one of the named constructors defined in '_UserDashboardScreenState'. - new_with_undefined_constructor_default
+  error - screens\user_dashboard_screen.dart:117:35 - The named parameter 'initialBookingData' is required, but there's no corresponding argument. Try adding the required argument. - missing_required_argument
+  error - screens\user_dashboard_screen.dart:119:15 - The named parameter 'bookingData' isn't defined. Try correcting the name to an existing named parameter's name, or defining a named parameter with the name 'bookingData'. - undefined_named_parameter
+  error - screens\user_dashboard_screen.dart:326:52 - The method 'sendSOS' isn't defined for the type 'UserService'. Try correcting the name to the name of an existing method, or defining a method named 'sendSOS'. - undefined_method
+  error - screens\user_dashboard_screen.dart:592:17 - Too many positional arguments: 1 expected, but 2 found. Try removing the extra positional arguments, or specifying the name for named arguments. - extra_positional_arguments_could_be_named
+  error - screens\user_dashboard_screen.dart:599:15 - Expected to find ')'. - expected_token
+  error - screens\user_dashboard_screen.dart:601:11 - Expected to find ';'. - expected_token
+  error - screens\user_dashboard_screen.dart:601:12 - Expected an identifier. - missing_identifier
+  error - screens\user_dashboard_screen.dart:601:12 - Unexpected text ';'. Try removing the text. - unexpected_token
+  error - screens\user_dashboard_screen.dart:602:71 - Expected to find ';'. - expected_token
+  error - screens\user_dashboard_screen.dart:602:72 - Expected an identifier. - missing_identifier
+  error - screens\user_dashboard_screen.dart:602:72 - Unexpected text ';'. Try removing the text. - unexpected_token
+  error - screens\user_dashboard_screen.dart:626:13 - Expected to find ';'. - expected_token
+  error - screens\user_dashboard_screen.dart:626:14 - Expected an identifier. - missing_identifier
+  error - screens\user_dashboard_screen.dart:626:14 - Unexpected text ';'. Try removing the text. - unexpected_token
+  error - screens\user_dashboard_screen.dart:628:72 - Expected to find ';'. - expected_token
+  error - screens\user_dashboard_screen.dart:628:73 - Expected an identifier. - missing_identifier
+  error - screens\user_dashboard_screen.dart:628:73 - Unexpected text ';'. Try removing the text. - unexpected_token
+  error - screens\user_dashboard_screen.dart:730:19 - Expected to find ';'. - expected_token
+  error - screens\user_dashboard_screen.dart:730:20 - Expected an identifier. - missing_identifier
+  error - screens\user_dashboard_screen.dart:730:20 - Unexpected text ','. Try removing the text. - unexpected_token
+  error - screens\user_dashboard_screen.dart:731:17 - Expected to find '}'. - expected_token
+  error - screens\user_dashboard_screen.dart:734:15 - Expected a class member. Try placing this code inside a class member. - expected_class_member
+  error - screens\user_dashboard_screen.dart:734:22 - The name of a constructor must match the name of the enclosing class. - invalid_constructor_name
+  error - screens\user_dashboard_screen.dart:735:27 - Named parameters must be enclosed in curly braces ('{' and '}'). Try surrounding the named parameters in curly braces. - named_parameter_outside_group
+  error - screens\user_dashboard_screen.dart:735:27 - Using a colon as the separator before a default value is no longer supported. Try replacing the colon with an equal sign. - obsolete_colon_for_default_value
+  error - screens\user_dashboard_screen.dart:736:24 - Named parameters must be enclosed in curly braces ('{' and '}'). Try surrounding the named parameters in curly braces. - named_parameter_outside_group
+  error - screens\user_dashboard_screen.dart:736:24 - Using a colon as the separator before a default value is no longer supported. Try replacing the colon with an equal sign. - obsolete_colon_for_default_value
+  error - screens\user_dashboard_screen.dart:737:26 - Named parameters must be enclosed in curly braces ('{' and '}'). Try surrounding the named parameters in curly braces. - named_parameter_outside_group
+  error - screens\user_dashboard_screen.dart:737:26 - Using a colon as the separator before a default value is no longer supported. Try replacing the colon with an equal sign. - obsolete_colon_for_default_value
+  error - screens\user_dashboard_screen.dart:737:28 - Undefined name 'drivers'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\user_dashboard_screen.dart:738:28 - Named parameters must be enclosed in curly braces ('{' and '}'). Try surrounding the named parameters in curly braces. - named_parameter_outside_group
+  error - screens\user_dashboard_screen.dart:738:28 - Using a colon as the separator before a default value is no longer supported. Try replacing the colon with an equal sign. - obsolete_colon_for_default_value
+  error - screens\user_dashboard_screen.dart:738:30 - The default value of an optional parameter must be constant. - non_constant_default_value
+  error - screens\user_dashboard_screen.dart:739:29 - Undefined name 'drivers'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\user_dashboard_screen.dart:777:14 - Expected a method, getter, setter or operator declaration. This appears to be incomplete code. Try removing it or completing it. - expected_executable
+  error - screens\user_dashboard_screen.dart:778:11 - Expected a method, getter, setter or operator declaration. This appears to be incomplete code. Try removing it or completing it. - expected_executable
+  error - screens\user_dashboard_screen.dart:778:12 - Expected a method, getter, setter or operator declaration. This appears to be incomplete code. Try removing it or completing it. - expected_executable
+  error - screens\user_dashboard_screen.dart:779:9 - Expected a method, getter, setter or operator declaration. This appears to be incomplete code. Try removing it or completing it. - expected_executable
+  error - screens\user_dashboard_screen.dart:779:10 - Expected a method, getter, setter or operator declaration. This appears to be incomplete code. Try removing it or completing it. - expected_executable
+  error - screens\user_dashboard_screen.dart:780:7 - Expected a method, getter, setter or operator declaration. This appears to be incomplete code. Try removing it or completing it. - expected_executable
+  error - screens\user_dashboard_screen.dart:780:8 - Expected a method, getter, setter or operator declaration. This appears to be incomplete code. Try removing it or completing it. - expected_executable
+  error - screens\user_dashboard_screen.dart:781:5 - Expected a method, getter, setter or operator declaration. This appears to be incomplete code. Try removing it or completing it. - expected_executable
+  error - screens\user_dashboard_screen.dart:781:6 - Unexpected text ';'. Try removing the text. - unexpected_token
+  error - screens\user_dashboard_screen.dart:782:3 - Expected a method, getter, setter or operator declaration. This appears to be incomplete code. Try removing it or completing it. - expected_executable
+  error - screens\user_dashboard_screen.dart:807:16 - Undefined name 'context'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\user_dashboard_screen.dart:1036:16 - Undefined name 'context'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\user_dashboard_screen.dart:1100:7 - Undefined name 'context'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\user_dashboard_screen.dart:1119:10 - Undefined name 'mounted'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\user_dashboard_screen.dart:1122:9 - Undefined name 'context'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\user_dashboard_screen.dart:1124:33 - The named parameter 'initialBookingData' is required, but there's no corresponding argument. Try adding the required argument. - missing_required_argument
+  error - screens\user_dashboard_screen.dart:1126:13 - The named parameter 'bookingData' isn't defined. Try correcting the name to an existing named parameter's name, or defining a named parameter with the name 'bookingData'. - undefined_named_parameter
+  error - screens\user_dashboard_screen.dart:1131:28 - Undefined name 'context'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\user_dashboard_screen.dart:1138:28 - Undefined name 'context'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\user_dashboard_screen.dart:1149:16 - Undefined name 'context'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\user_dashboard_screen.dart:1181:21 - The function 'setState' isn't defined. Try importing the library that defines 'setState', correcting the name to the name of an existing function, or defining a function named 'setState'. - undefined_function
+  error - screens\user_dashboard_screen.dart:1182:23 - Undefined name '_selectedIndex'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\user_dashboard_screen.dart:1221:16 - Undefined name 'context'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\user_dashboard_screen.dart:1260:23 - The function 'setState' isn't defined. Try importing the library that defines 'setState', correcting the name to the name of an existing function, or defining a function named 'setState'. - undefined_function
+  error - screens\user_dashboard_screen.dart:1261:25 - Undefined name '_selectedIndex'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\user_dashboard_screen.dart:1262:25 - Undefined name '_driverSearchQuery'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\user_dashboard_screen.dart:1263:25 - Undefined name '_searchController'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\user_dashboard_screen.dart:1264:25 - Undefined name '_selectedServiceType'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\user_dashboard_screen.dart:1287:16 - Undefined name 'context'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\user_dashboard_screen.dart:1366:11 - Undefined name 'mounted'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\user_dashboard_screen.dart:1367:30 - Undefined name 'context'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\user_dashboard_screen.dart:1384:53 - Undefined name 'context'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\user_dashboard_screen.dart:1387:63 - Undefined name 'context'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\user_dashboard_screen.dart:1395:63 - Undefined name 'context'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\user_dashboard_screen.dart:1582:25 - Undefined name 'context'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\user_dashboard_screen.dart:1585:27 - Undefined name 'context'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\user_dashboard_screen.dart:1623:35 - Undefined name 'context'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\user_dashboard_screen.dart:1663:50 - Undefined name 'context'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\user_dashboard_screen.dart:1723:29 - Undefined name 'context'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\user_dashboard_screen.dart:1749:29 - Undefined name 'context'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\user_dashboard_screen.dart:1779:53 - Undefined name 'context'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\user_dashboard_screen.dart:1782:63 - Undefined name 'context'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\user_dashboard_screen.dart:1783:70 - Undefined name 'context'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\user_dashboard_screen.dart:1784:63 - Undefined name 'context'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\user_dashboard_screen.dart:2008:15 - The function 'setState' isn't defined. Try importing the library that defines 'setState', correcting the name to the name of an existing function, or defining a function named 'setState'. - undefined_function
+  error - screens\user_dashboard_screen.dart:2008:30 - Undefined name '_selectedIndex'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\user_dashboard_screen.dart:2664:16 - Undefined name 'context'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\user_dashboard_screen.dart:2796:16 - Undefined name 'context'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\user_dashboard_screen.dart:2947:25 - Undefined name 'context'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\user_dashboard_screen.dart:2951:29 - Undefined name 'context'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - screens\user_dashboard_screen.dart:2974:1 - Expected a method, getter, setter or operator declaration. This appears to be incomplete code. Try removing it or completing it. - expected_executable
+  error - screens\user_profile_screen.dart:9:1 - Expected a method, getter, setter or operator declaration. This appears to be incomplete code. Try removing it or completing it. - expected_executable
+  error - screens\user_profile_screen.dart:9:1 - The '===' operator is not supported. - unsupported_operator
+  error - screens\user_profile_screen.dart:9:4 - Expected a method, getter, setter or operator declaration. This appears to be incomplete code. Try removing it or completing it. - expected_executable
+  error - screens\user_profile_screen.dart:9:4 - The '===' operator is not supported. - unsupported_operator
+  error - screens\user_profile_screen.dart:9:7 - Expected a method, getter, setter or operator declaration. This appears to be incomplete code. Try removing it or completing it. - expected_executable
+  error - screens\user_profile_screen.dart:12:1 - Expected a method, getter, setter or operator declaration. This appears to be incomplete code. Try removing it or completing it. - expected_executable
+  error - screens\user_profile_screen.dart:12:4 - Expected a method, getter, setter or operator declaration. This appears to be incomplete code. Try removing it or completing it. - expected_executable
+  error - screens\user_profile_screen.dart:12:7 - Expected a method, getter, setter or operator declaration. This appears to be incomplete code. Try removing it or completing it. - expected_executable
+  error - screens\user_profile_screen.dart:12:9 - Expected a method, getter, setter or operator declaration. This appears to be incomplete code. Try removing it or completing it. - expected_executable
+  error - screens\user_profile_screen.dart:12:11 - Expected to find ';'. - expected_token
+  error - screens\user_profile_screen.dart:12:11 - Variables must be declared using the keywords 'const', 'final', 'var' or a type name. Try adding the name of the type of the variable or the keyword 'var'. - missing_const_final_var_or_type
+  error - screens\user_profile_screen.dart:36:27 - The name 'User' isn't a type, so it can't be used as a type argument. Try correcting the name to an existing type, or defining a type named 'User'. - non_type_as_type_argument
+  error - screens\user_profile_screen.dart:169:29 - Too many positional arguments: 0 expected, but 2 found. Try removing the extra positional arguments, or specifying the name for named arguments. - extra_positional_arguments_could_be_named
+  error - screens\user_profile_screen.dart:188:27 - Expected to find ')'. - expected_token
+  error - screens\user_profile_screen.dart:199:27 - The named parameter 'currentLicense' is required, but there's no corresponding argument. Try adding the required argument. - missing_required_argument
+  error - screens\user_profile_screen.dart:233:25 - Expected to find ')'. - expected_token
+  error - screens\user_profile_screen.dart:235:21 - Expected to find ';'. - expected_token
+  error - screens\user_profile_screen.dart:235:22 - Expected an identifier. - missing_identifier
+  error - screens\user_profile_screen.dart:235:22 - Unexpected text ';'. Try removing the text. - unexpected_token
+  error - screens\user_profile_screen.dart:236:46 - Expected to find ';'. - expected_token
+  error - screens\user_profile_screen.dart:236:47 - Expected an identifier. - missing_identifier
+  error - screens\user_profile_screen.dart:236:47 - Unexpected text ';'. Try removing the text. - unexpected_token
+  error - screens\user_profile_screen.dart:251:21 - Expected to find ';'. - expected_token
+  error - screens\user_profile_screen.dart:251:22 - Expected an identifier. - missing_identifier
+  error - screens\user_profile_screen.dart:251:22 - Unexpected text ';'. Try removing the text. - unexpected_token
+  error - screens\user_profile_screen.dart:260:57 - The name 'RideHistoryScreen' isn't a class. Try correcting the name to match an existing class. - creation_with_non_type
+  error - screens\user_profile_screen.dart:264:21 - Expected to find ';'. - expected_token
+  error - screens\user_profile_screen.dart:264:22 - Expected an identifier. - missing_identifier
+  error - screens\user_profile_screen.dart:264:22 - Unexpected text ';'. Try removing the text. - unexpected_token
+  error - screens\user_profile_screen.dart:272:21 - Expected to find ';'. - expected_token
+  error - screens\user_profile_screen.dart:272:22 - Expected an identifier. - missing_identifier
+  error - screens\user_profile_screen.dart:272:22 - Unexpected text ';'. Try removing the text. - unexpected_token
+  error - screens\user_profile_screen.dart:280:21 - Expected to find ';'. - expected_token
+  error - screens\user_profile_screen.dart:280:22 - Expected an identifier. - missing_identifier
+  error - screens\user_profile_screen.dart:280:22 - Unexpected text ';'. Try removing the text. - unexpected_token
+  error - screens\user_profile_screen.dart:281:46 - Expected to find ';'. - expected_token
+  error - screens\user_profile_screen.dart:281:47 - Expected an identifier. - missing_identifier
+  error - screens\user_profile_screen.dart:281:47 - Unexpected text ';'. Try removing the text. - unexpected_token
+  error - screens\user_profile_screen.dart:307:21 - Expected to find ';'. - expected_token
+  error - screens\user_profile_screen.dart:307:22 - Expected an identifier. - missing_identifier
+  error - screens\user_profile_screen.dart:307:22 - Unexpected text ';'. Try removing the text. - unexpected_token
+  error - screens\user_profile_screen.dart:308:46 - Expected to find ';'. - expected_token
+  error - screens\user_profile_screen.dart:308:47 - Expected an identifier. - missing_identifier
+  error - screens\user_profile_screen.dart:308:47 - Unexpected text ';'. Try removing the text. - unexpected_token
+  error - screens\user_profile_screen.dart:310:35 - Expected an identifier. - missing_identifier
+  error - screens\user_profile_screen.dart:320:24 - Expected to find ']'. - expected_token
+  error - screens\user_profile_screen.dart:336:21 - Expected to find ';'. - expected_token
+  error - screens\user_profile_screen.dart:336:22 - Expected an identifier. - missing_identifier
+  error - screens\user_profile_screen.dart:336:22 - Expected to find ';'. - expected_token
+  error - screens\user_profile_screen.dart:336:22 - Unexpected text ';'. Try removing the text. - unexpected_token
+  error - screens\user_profile_screen.dart:337:19 - Expected an identifier. - missing_identifier
+  error - screens\user_profile_screen.dart:337:19 - Expected to find ';'. - expected_token
+  error - screens\user_profile_screen.dart:337:19 - Unexpected text ';'. Try removing the text. - unexpected_token
+  error - screens\user_profile_screen.dart:337:20 - Expected an identifier. - missing_identifier
+  error - screens\user_profile_screen.dart:337:20 - Expected to find ';'. - expected_token
+  error - screens\user_profile_screen.dart:337:20 - Unexpected text ';'. Try removing the text. - unexpected_token
+  error - screens\user_profile_screen.dart:338:17 - Expected an identifier. - missing_identifier
+  error - screens\user_profile_screen.dart:338:17 - Expected to find ';'. - expected_token
+  error - screens\user_profile_screen.dart:338:17 - Unexpected text ';'. Try removing the text. - unexpected_token
+  error - screens\user_profile_screen.dart:338:18 - Expected an identifier. - missing_identifier
+  error - screens\user_profile_screen.dart:338:18 - Expected to find ';'. - expected_token
+  error - screens\user_profile_screen.dart:338:18 - Unexpected text ';'. Try removing the text. - unexpected_token
+  error - screens\user_profile_screen.dart:339:15 - Expected an identifier. - missing_identifier
+  error - screens\user_profile_screen.dart:339:15 - Unexpected text ';'. Try removing the text. - unexpected_token
+  error - services\admin_service.dart:114:26 - The method 'sendDriverRejectionEmail' isn't defined for the type 'EmailService'. Try correcting the name to the name of an existing method, or defining a method named 'sendDriverRejectionEmail'. - undefined_method
+  error - services\driver_service.dart:331:56 - Undefined name 'resolvedDriverName'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - services\user_service.dart:556:26 - Undefined name 'bookingData'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - services\user_service.dart:557:17 - Undefined name 'bookingData'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - services\user_service.dart:558:27 - Undefined name 'bookingData'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - widgets\auth_wrapper.dart:123:44 - Undefined name 'kIsWeb'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - widgets\auth_wrapper.dart:124:22 - The method '_buildPlatformRestrictionScreen' isn't defined for the type 'AuthWrapper'. Try correcting the name to the name of an existing method, or defining a method named '_buildPlatformRestrictionScreen'. - undefined_method
+  error - widgets\auth_wrapper.dart:131:71 - Undefined name 'kIsWeb'. Try correcting the name to one that is defined, or defining the name. - undefined_identifier
+  error - widgets\auth_wrapper.dart:132:22 - The method '_buildPlatformRestrictionScreen' isn't defined for the type 'AuthWrapper'. Try correcting the name to the name of an existing method, or defining a method named '_buildPlatformRestrictionScreen'. - undefined_method
+  error - widgets\auth_wrapper.dart:142:30 - The name 'UserDashboardScreen' isn't a class. Try correcting the name to match an existing class. - creation_with_non_type
+  error - widgets\auth_wrapper.dart:149:32 - The name 'DriverDashboardScreen' isn't a class. Try correcting the name to match an existing class. - creation_with_non_type
+  error - widgets\auth_wrapper.dart:161:30 - The name 'UserDashboardScreen' isn't a class. Try correcting the name to match an existing class. - creation_with_non_type
+warning - screens\admin_driver_details_screen.dart:24:11 - The value of the local variable 'statusColor' isn't used. Try removing the variable or using it. - unused_local_variable
+warning - screens\admin_login_screen.dart:245:18 - The value of the local variable 'email' isn't used. Try removing the variable or using it. - unused_local_variable
+warning - screens\admin_login_screen.dart:246:18 - The value of the local variable 'password' isn't used. Try removing the variable or using it. - unused_local_variable
+warning - screens\driver_notifications_screen.dart:6:8 - Unused import: 'package:relygo/services/ride_completion_service.dart'. Try removing the import directive. - unused_import
+warning - screens\driver_profile_screen.dart:1478:16 - Dead code. Try removing the code, or fixing the code before it so that it can be reached. - dead_code
+warning - screens\driver_profile_screen.dart:1499:11 - The label 'actions' isn't used. Try removing the label, or using it in either a 'break' or 'continue' statement. - unused_label
+warning - screens\driver_tracking_screen.dart:1154:10 - The declaration '_buildTrackingStat' isn't referenced. Try removing the declaration of '_buildTrackingStat'. - unused_element
+warning - screens\ride_history_screen.dart:103:35 - Unnecessary type check; the result is always 'true'. Try correcting the type check, or removing the type check. - unnecessary_type_check
+warning - screens\ride_history_screen.dart:105:42 - Unnecessary type check; the result is always 'true'. Try correcting the type check, or removing the type check. - unnecessary_type_check
+warning - screens\ride_history_screen.dart:696:30 - The declaration '_getFilteredRides' isn't referenced. Try removing the declaration of '_getFilteredRides'. - unused_element
+warning - screens\splash.dart:26:26 - The value of the field '_buttonScaleAnimation' isn't used. Try removing the field, or using it. - unused_field
+warning - screens\user_dashboard_screen.dart:224:8 - The declaration '_showEmergencyDialog' isn't referenced. Try removing the declaration of '_showEmergencyDialog'. - unused_element
+warning - screens\user_dashboard_screen.dart:601:12 - Dead code. Try removing the code, or fixing the code before it so that it can be reached. - dead_code
+warning - screens\user_dashboard_screen.dart:735:17 - A value for optional parameter 'shrinkWrap' isn't ever given. Try removing the unused parameter. - unused_element_parameter
+warning - screens\user_dashboard_screen.dart:736:17 - A value for optional parameter 'physics' isn't ever given. Try removing the unused parameter. - unused_element_parameter
+warning - screens\user_dashboard_screen.dart:737:17 - A value for optional parameter 'itemCount' isn't ever given. Try removing the unused parameter. - unused_element_parameter
+warning - screens\user_dashboard_screen.dart:738:17 - A value for optional parameter 'itemBuilder' isn't ever given. Try removing the unused parameter. - unused_element_parameter
+warning - screens\user_dashboard_screen.dart:2942:10 - The declaration '_buildSuggestedCard' isn't referenced. Try removing the declaration of '_buildSuggestedCard'. - unused_element
+warning - screens\user_profile_screen.dart:87:28 - The value of the local variable 'vehicleType' isn't used. Try removing the variable or using it. - unused_local_variable
+warning - screens\user_profile_screen.dart:89:28 - The value of the local variable 'vehicleNumber' isn't used. Try removing the variable or using it. - unused_local_variable
+warning - screens\user_profile_screen.dart:235:22 - Dead code. Try removing the code, or fixing the code before it so that it can be reached. - dead_code
+warning - screens\user_profile_screen.dart:903:10 - The declaration '_buildDocTile' isn't referenced. Try removing the declaration of '_buildDocTile'. - unused_element
+warning - services\admin_service.dart:53:13 - The value of the local variable 'data' isn't used. Try removing the variable or using it. - unused_local_variable
+warning - services\driver_location_service.dart:9:25 - The value of the field '_location' isn't used. Try removing the field, or using it. - unused_field
+warning - services\driver_location_service.dart:78:22 - Unnecessary cast. Try removing the cast. - unnecessary_cast
+   info - constants.dart:196:27 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - constants.dart:208:27 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - job.dart:97:32 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - job.dart:108:41 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - main.dart:51:9 - Don't invoke 'print' in production code. Try using a logging framework. - avoid_print
+   info - main.dart:64:7 - Don't invoke 'print' in production code. Try using a logging framework. - avoid_print
+   info - screens\admin_analytics_screen.dart:247:22 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_analytics_screen.dart:249:41 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_analytics_screen.dart:292:32 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_analytics_screen.dart:306:32 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_booking_details_screen.dart:59:7 - Don't invoke 'print' in production code. Try using a logging framework. - avoid_print
+   info - screens\admin_booking_details_screen.dart:93:7 - Don't invoke 'print' in production code. Try using a logging framework. - avoid_print
+   info - screens\admin_booking_details_screen.dart:177:41 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_booking_details_screen.dart:188:42 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_booking_details_screen.dart:227:42 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_booking_details_screen.dart:252:41 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_booking_details_screen.dart:274:47 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_booking_details_screen.dart:313:49 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_booking_details_screen.dart:359:41 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_booking_details_screen.dart:420:43 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_booking_details_screen.dart:493:41 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_booking_details_screen.dart:560:41 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_complaints_screen.dart:184:33 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_complaints_screen.dart:197:53 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_complaints_screen.dart:282:22 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_complaints_screen.dart:391:42 - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check. Guard a 'State.context' use with a 'mounted' check on the State, and other BuildContext use with a 'mounted' check on the BuildContext. - use_build_context_synchronously
+   info - screens\admin_dashboard_screen.dart:300:22 - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check. Guard a 'State.context' use with a 'mounted' check on the State, and other BuildContext use with a 'mounted' check on the BuildContext. - use_build_context_synchronously
+   info - screens\admin_dashboard_screen.dart:306:11 - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check. Guard a 'State.context' use with a 'mounted' check on the State, and other BuildContext use with a 'mounted' check on the BuildContext. - use_build_context_synchronously
+   info - screens\admin_dashboard_screen.dart:314:22 - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check. Guard a 'State.context' use with a 'mounted' check on the State, and other BuildContext use with a 'mounted' check on the BuildContext. - use_build_context_synchronously
+   info - screens\admin_dashboard_screen.dart:319:30 - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check. Guard a 'State.context' use with a 'mounted' check on the State, and other BuildContext use with a 'mounted' check on the BuildContext. - use_build_context_synchronously
+   info - screens\admin_dashboard_screen.dart:415:45 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_dashboard_screen.dart:418:47 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_dashboard_screen.dart:461:54 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_dashboard_screen.dart:1556:22 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_dashboard_screen.dart:1565:41 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_dashboard_screen.dart:1751:32 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_dashboard_screen.dart:1767:28 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_dashboard_screen.dart:1853:47 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_dashboard_screen.dart:1917:47 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_dashboard_screen.dart:1940:36 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_dashboard_screen.dart:2001:50 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_dashboard_screen.dart:2102:32 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_dashboard_screen.dart:2125:42 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_dashboard_screen.dart:2198:59 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_dashboard_screen.dart:2242:56 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_dashboard_screen.dart:2556:34 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_driver_approval_screen.dart:114:22 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_driver_approval_screen.dart:116:41 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_driver_approval_screen.dart:241:32 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_driver_approval_screen.dart:253:53 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_driver_approval_screen.dart:288:38 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_driver_chat_screen.dart:43:45 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_driver_chat_screen.dart:70:43 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_driver_chat_screen.dart:163:38 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_driver_chat_screen.dart:233:81 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_driver_chat_screen.dart:257:36 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_driver_details_screen.dart:71:45 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_driver_details_screen.dart:81:49 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_driver_details_screen.dart:105:41 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_driver_details_screen.dart:113:41 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_driver_details_screen.dart:123:41 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_driver_details_screen.dart:419:32 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_driver_details_screen.dart:472:32 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_driver_details_screen.dart:486:32 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_landing_page.dart:68:41 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_landing_page.dart:144:47 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_landing_page.dart:162:53 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_landing_page.dart:165:55 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_landing_page.dart:388:33 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_landing_page.dart:400:41 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_landing_page.dart:498:37 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_user_chat_screen.dart:43:45 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_user_chat_screen.dart:70:43 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_user_chat_screen.dart:163:38 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_user_chat_screen.dart:268:36 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_user_details_screen.dart:54:45 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_user_details_screen.dart:64:49 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_user_details_screen.dart:88:41 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_user_details_screen.dart:96:41 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_user_details_screen.dart:106:41 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_user_details_screen.dart:255:32 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_user_details_screen.dart:278:38 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_user_details_screen.dart:440:32 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_user_details_screen.dart:465:38 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_user_details_screen.dart:650:38 - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check. Guard a 'State.context' use with a 'mounted' check on the State, and other BuildContext use with a 'mounted' check on the BuildContext. - use_build_context_synchronously
+   info - screens\admin_web_dashboard_screen.dart:174:33 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_web_dashboard_screen.dart:301:36 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_web_dashboard_screen.dart:305:54 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_web_dashboard_screen.dart:367:33 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_web_dashboard_screen.dart:403:55 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_web_dashboard_screen.dart:421:59 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_web_dashboard_screen.dart:466:59 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_web_dashboard_screen.dart:816:33 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_web_dashboard_screen.dart:834:28 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_web_dashboard_screen.dart:901:33 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_web_dashboard_screen.dart:980:27 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_web_dashboard_screen.dart:1002:27 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_web_dashboard_screen.dart:1023:33 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_web_dashboard_screen.dart:1089:24 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_web_dashboard_screen.dart:1270:55 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_web_dashboard_screen.dart:1338:60 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_web_dashboard_screen.dart:1357:64 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_web_dashboard_screen.dart:1484:29 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_web_dashboard_screen.dart:1509:29 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\admin_web_dashboard_screen.dart:1573:43 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\chat_detail_screen.dart:54:51 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\chat_detail_screen.dart:172:35 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\choosescreen.dart:327:28 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\choosescreen.dart:343:45 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\complaint_submission_screen.dart:340:43 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\document_checklist_screen.dart:206:34 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\document_checklist_screen.dart:219:38 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\document_checklist_screen.dart:220:42 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\driver_booking_requests_screen.dart:109:36 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\driver_booking_requests_screen.dart:113:33 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\driver_booking_requests_screen.dart:126:41 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\driver_booking_requests_screen.dart:172:43 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\driver_booking_requests_screen.dart:173:41 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\driver_chatbot_screen.dart:304:43 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\driver_chatbot_screen.dart:395:41 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\driver_chatbot_screen.dart:427:33 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\driver_dashboard_screen.dart:65:11 - Don't invoke 'print' in production code. Try using a logging framework. - avoid_print
+   info - screens\driver_dashboard_screen.dart:72:11 - Don't invoke 'print' in production code. Try using a logging framework. - avoid_print
+   info - screens\driver_dashboard_screen.dart:241:46 - Unnecessary braces in a string interpolation. Try removing the braces. - unnecessary_brace_in_string_interps
+   info - screens\driver_dashboard_screen.dart:274:21 - 'activeColor' is deprecated and shouldn't be used. Use activeThumbColor instead. This feature was deprecated after v3.31.0-2.0.pre. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\driver_dashboard_screen.dart:321:49 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\driver_dashboard_screen.dart:323:68 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\driver_dashboard_screen.dart:355:26 - Unnecessary use of 'toList' in a spread. Try removing the invocation of 'toList'. - unnecessary_to_list_in_spreads
+   info - screens\driver_dashboard_screen.dart:367:43 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\driver_dashboard_screen.dart:369:62 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\driver_dashboard_screen.dart:397:56 - Don't use 'BuildContext's across async gaps. Try rewriting the code to not use the 'BuildContext', or guard the use with a 'mounted' check. - use_build_context_synchronously
+   info - screens\driver_dashboard_screen.dart:1155:29 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\driver_dashboard_screen.dart:1200:35 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\driver_dashboard_screen.dart:1220:24 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\driver_dashboard_screen.dart:1229:43 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\driver_dashboard_screen.dart:1289:50 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\driver_dashboard_screen.dart:1292:32 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\driver_dashboard_screen.dart:1379:43 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\driver_dashboard_screen.dart:1657:32 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\driver_dashboard_screen.dart:1689:51 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\driver_dashboard_screen.dart:1775:44 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\driver_dashboard_screen.dart:1831:45 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\driver_dashboard_screen.dart:1946:42 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\driver_earnings_screen.dart:77:33 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\driver_earnings_screen.dart:97:63 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\driver_earnings_screen.dart:154:29 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\driver_earnings_screen.dart:166:35 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\driver_earnings_screen.dart:182:35 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\driver_earnings_screen.dart:202:33 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\driver_earnings_screen.dart:316:32 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\driver_earnings_screen.dart:333:38 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\driver_management_screen.dart:218:32 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\driver_management_screen.dart:235:57 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\driver_management_screen.dart:275:42 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\driver_notifications_screen.dart:218:22 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\driver_profile_screen.dart:132:50 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\driver_profile_screen.dart:140:57 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\driver_profile_screen.dart:155:48 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\driver_profile_screen.dart:167:65 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\driver_profile_screen.dart:196:65 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\driver_profile_screen.dart:220:55 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\driver_profile_screen.dart:245:47 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\driver_profile_screen.dart:266:51 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\driver_profile_screen.dart:477:47 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\driver_profile_screen.dart:696:39 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\driver_profile_screen.dart:811:32 - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check. Guard a 'State.context' use with a 'mounted' check on the State, and other BuildContext use with a 'mounted' check on the BuildContext. - use_build_context_synchronously
+   info - screens\driver_profile_screen.dart:812:40 - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check. Guard a 'State.context' use with a 'mounted' check on the State, and other BuildContext use with a 'mounted' check on the BuildContext. - use_build_context_synchronously
+   info - screens\driver_profile_screen.dart:905:32 - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check. Guard a 'State.context' use with a 'mounted' check on the State, and other BuildContext use with a 'mounted' check on the BuildContext. - use_build_context_synchronously
+   info - screens\driver_profile_screen.dart:906:40 - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check. Guard a 'State.context' use with a 'mounted' check on the State, and other BuildContext use with a 'mounted' check on the BuildContext. - use_build_context_synchronously
+   info - screens\driver_profile_screen.dart:1023:34 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\driver_profile_screen.dart:1088:15 - The 'child' argument should be last in widget constructor invocations. Try moving the argument to the end of the argument list. - sort_child_properties_last
+   info - screens\driver_profile_screen.dart:1165:22 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\driver_profile_screen.dart:1255:32 - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check. Guard a 'State.context' use with a 'mounted' check on the State, and other BuildContext use with a 'mounted' check on the BuildContext. - use_build_context_synchronously
+   info - screens\driver_profile_screen.dart:1256:40 - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check. Guard a 'State.context' use with a 'mounted' check on the State, and other BuildContext use with a 'mounted' check on the BuildContext. - use_build_context_synchronously
+   info - screens\driver_profile_screen.dart:1295:17 - 'activeColor' is deprecated and shouldn't be used. Use activeThumbColor instead. This feature was deprecated after v3.31.0-2.0.pre. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\driver_profile_screen.dart:1301:17 - 'activeColor' is deprecated and shouldn't be used. Use activeThumbColor instead. This feature was deprecated after v3.31.0-2.0.pre. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\driver_profile_screen.dart:1307:17 - 'activeColor' is deprecated and shouldn't be used. Use activeThumbColor instead. This feature was deprecated after v3.31.0-2.0.pre. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\driver_profile_screen.dart:1313:17 - 'activeColor' is deprecated and shouldn't be used. Use activeThumbColor instead. This feature was deprecated after v3.31.0-2.0.pre. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\driver_profile_screen.dart:1494:19 - 'activeColor' is deprecated and shouldn't be used. Use activeThumbColor instead. This feature was deprecated after v3.31.0-2.0.pre. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\driver_profile_screen.dart:1510:14 - Unnecessary empty statement. Try removing the empty statement or restructuring the code. - empty_statements
+   info - screens\driver_profile_screen.dart:1588:43 - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check. Guard a 'State.context' use with a 'mounted' check on the State, and other BuildContext use with a 'mounted' check on the BuildContext. - use_build_context_synchronously
+   info - screens\driver_profile_screen.dart:1589:38 - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check. Guard a 'State.context' use with a 'mounted' check on the State, and other BuildContext use with a 'mounted' check on the BuildContext. - use_build_context_synchronously
+   info - screens\driver_profile_screen.dart:1712:45 - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check. Guard a 'State.context' use with a 'mounted' check on the State, and other BuildContext use with a 'mounted' check on the BuildContext. - use_build_context_synchronously
+   info - screens\driver_profile_screen.dart:1713:40 - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check. Guard a 'State.context' use with a 'mounted' check on the State, and other BuildContext use with a 'mounted' check on the BuildContext. - use_build_context_synchronously
+   info - screens\driver_profile_screen.dart:1720:40 - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check. Guard a 'State.context' use with a 'mounted' check on the State, and other BuildContext use with a 'mounted' check on the BuildContext. - use_build_context_synchronously
+   info - screens\driver_registration_screen.dart:390:19 - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\driver_reviews_screen.dart:77:33 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\driver_reviews_screen.dart:97:57 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\driver_reviews_screen.dart:136:49 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\driver_reviews_screen.dart:181:59 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\driver_reviews_screen.dart:234:33 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\driver_reviews_screen.dart:314:32 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\driver_reviews_screen.dart:328:53 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\driver_ride_history_screen.dart:223:32 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\driver_ride_history_screen.dart:234:28 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\driver_tracking_screen.dart:44:10 - The private field _defaultLocation could be 'final'. Try making the field 'final'. - prefer_final_fields
+   info - screens\driver_tracking_screen.dart:149:7 - Don't invoke 'print' in production code. Try using a logging framework. - avoid_print
+   info - screens\driver_tracking_screen.dart:207:30 - Don't use 'BuildContext's across async gaps. Try rewriting the code to not use the 'BuildContext', or guard the use with a 'mounted' check. - use_build_context_synchronously
+   info - screens\driver_tracking_screen.dart:215:28 - Don't use 'BuildContext's across async gaps. Try rewriting the code to not use the 'BuildContext', or guard the use with a 'mounted' check. - use_build_context_synchronously
+   info - screens\driver_tracking_screen.dart:320:28 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\driver_tracking_screen.dart:324:47 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\driver_tracking_screen.dart:411:32 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\driver_tracking_screen.dart:424:53 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\driver_tracking_screen.dart:562:32 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\driver_tracking_screen.dart:734:34 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\driver_tracking_screen.dart:822:32 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\driver_tracking_screen.dart:900:43 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\driver_tracking_screen.dart:933:47 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\driver_tracking_screen.dart:981:44 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\driver_tracking_screen.dart:1080:59 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\driver_tracking_screen.dart:1110:86 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\driver_tracking_screen.dart:1151:6 - Unnecessary empty statement. Try removing the empty statement or restructuring the code. - empty_statements
+   info - screens\driver_tracking_screen.dart:1237:30 - Don't use 'BuildContext's across async gaps. Try rewriting the code to not use the 'BuildContext', or guard the use with a 'mounted' check. - use_build_context_synchronously
+   info - screens\driver_tracking_screen.dart:1245:28 - Don't use 'BuildContext's across async gaps. Try rewriting the code to not use the 'BuildContext', or guard the use with a 'mounted' check. - use_build_context_synchronously
+   info - screens\earnings_screen.dart:75:44 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\earnings_screen.dart:83:51 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\earnings_screen.dart:95:47 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\earnings_screen.dart:332:40 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\earnings_screen.dart:346:33 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\earnings_screen.dart:369:32 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\earnings_screen.dart:380:28 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\feedback_screen.dart:263:32 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\feedback_screen.dart:303:38 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\forgot_password_screen.dart:161:45 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\forgot_password_screen.dart:264:28 - Don't use 'BuildContext's across async gaps. Try rewriting the code to not use the 'BuildContext', or guard the use with a 'mounted' check. - use_build_context_synchronously
+   info - screens\forgot_password_screen.dart:277:28 - Don't use 'BuildContext's across async gaps. Try rewriting the code to not use the 'BuildContext', or guard the use with a 'mounted' check. - use_build_context_synchronously
+   info - screens\landing_page.dart:67:39 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\landing_page.dart:241:40 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\landing_page.dart:242:40 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\landing_page.dart:980:33 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\landing_page.dart:1054:22 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\landing_page.dart:1057:24 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\map_picker_screen.dart:129:9 - 'desiredAccuracy' is deprecated and shouldn't be used. use settings parameter with AndroidSettings, AppleSettings, WebSettings, or LocationSettings. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\payment_screen.dart:131:45 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\payment_screen.dart:134:47 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\payment_screen.dart:248:36 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\payment_screen.dart:361:43 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\rating_review_screen.dart:40:51 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\responsive_driver_dashboard_screen.dart:80:11 - Don't invoke 'print' in production code. Try using a logging framework. - avoid_print
+   info - screens\responsive_driver_dashboard_screen.dart:87:11 - Don't invoke 'print' in production code. Try using a logging framework. - avoid_print
+   info - screens\responsive_driver_dashboard_screen.dart:212:57 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\responsive_driver_dashboard_screen.dart:264:54 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\responsive_driver_dashboard_screen.dart:393:28 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\responsive_driver_dashboard_screen.dart:499:61 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\responsive_driver_dashboard_screen.dart:580:61 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\responsive_driver_dashboard_screen.dart:738:31 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\responsive_driver_dashboard_screen.dart:793:31 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\responsive_user_dashboard_screen.dart:112:43 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\responsive_user_dashboard_screen.dart:375:57 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\responsive_user_dashboard_screen.dart:427:49 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\responsive_user_dashboard_screen.dart:507:61 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\responsive_user_dashboard_screen.dart:588:61 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\responsive_user_dashboard_screen.dart:743:63 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\responsive_user_dashboard_screen.dart:797:51 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\responsive_user_dashboard_screen.dart:928:31 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\responsive_user_dashboard_screen.dart:985:31 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\responsive_user_dashboard_screen.dart:1090:57 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\responsive_user_dashboard_screen.dart:1179:63 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\responsive_user_dashboard_screen.dart:1217:51 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\review_submission_screen.dart:73:59 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\review_submission_screen.dart:339:43 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\ride_history_screen.dart:268:32 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\ride_history_screen.dart:318:53 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\service_booking_screen.dart:23:11 - An uninitialized variable should have an explicit type annotation. Try adding a type annotation. - prefer_typing_uninitialized_variables
+   info - screens\service_booking_screen.dart:201:47 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\service_booking_screen.dart:204:49 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\service_booking_screen.dart:287:57 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\service_booking_screen.dart:371:57 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\service_booking_screen.dart:539:51 - Unnecessary braces in a string interpolation. Try removing the braces. - unnecessary_brace_in_string_interps
+   info - screens\service_selection_screen.dart:157:37 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\service_selection_screen.dart:164:38 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\service_selection_screen.dart:171:47 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\service_selection_screen.dart:186:42 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\service_selection_screen.dart:216:42 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\terms_conditions_screen.dart:103:54 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\terms_conditions_screen.dart:106:55 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\track_driver.dart:10:9 - Constructors for public widgets should have a named 'key' parameter. Try adding a named parameter to the constructor. - use_key_in_widget_constructors
+   info - screens\track_driver.dart:80:45 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\track_driver.dart:137:9 - The 'child' argument should be last in widget constructor invocations. Try moving the argument to the end of the argument list. - sort_child_properties_last
+   info - screens\user_dashboard_screen.dart:158:45 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\user_dashboard_screen.dart:160:64 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\user_dashboard_screen.dart:296:21 - 'desiredAccuracy' is deprecated and shouldn't be used. use settings parameter with AndroidSettings, AppleSettings, WebSettings, or LocationSettings. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\user_dashboard_screen.dart:448:57 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\user_dashboard_screen.dart:606:13 - Statements in an if should be enclosed in a block. Try wrapping the statement in a block. - curly_braces_in_flow_control_structures
+   info - screens\user_dashboard_screen.dart:628:13 - Statements in an if should be enclosed in a block. Try wrapping the statement in a block. - curly_braces_in_flow_control_structures
+   info - screens\user_dashboard_screen.dart:660:51 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\user_dashboard_screen.dart:666:51 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\user_dashboard_screen.dart:675:78 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\user_dashboard_screen.dart:829:61 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\user_dashboard_screen.dart:911:36 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\user_dashboard_screen.dart:916:38 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\user_dashboard_screen.dart:1410:55 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\user_dashboard_screen.dart:1410:90 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\user_dashboard_screen.dart:1412:74 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\user_dashboard_screen.dart:1412:109 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\user_dashboard_screen.dart:1589:33 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\user_dashboard_screen.dart:1606:38 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\user_dashboard_screen.dart:2072:24 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\user_dashboard_screen.dart:2081:43 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\user_dashboard_screen.dart:2141:32 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\user_dashboard_screen.dart:2164:41 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\user_dashboard_screen.dart:2315:32 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\user_dashboard_screen.dart:2335:49 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\user_dashboard_screen.dart:2427:38 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\user_dashboard_screen.dart:2534:32 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\user_dashboard_screen.dart:2554:49 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\user_dashboard_screen.dart:2762:30 - Don't use 'BuildContext's across async gaps. Try rewriting the code to not use the 'BuildContext', or guard the use with a 'mounted' check. - use_build_context_synchronously
+   info - screens\user_dashboard_screen.dart:2764:38 - Don't use 'BuildContext's across async gaps. Try rewriting the code to not use the 'BuildContext', or guard the use with a 'mounted' check. - use_build_context_synchronously
+   info - screens\user_dashboard_screen.dart:2830:17 - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\user_dashboard_screen.dart:2917:30 - Don't use 'BuildContext's across async gaps. Try rewriting the code to not use the 'BuildContext', or guard the use with a 'mounted' check. - use_build_context_synchronously
+   info - screens\user_dashboard_screen.dart:2919:38 - Don't use 'BuildContext's across async gaps. Try rewriting the code to not use the 'BuildContext', or guard the use with a 'mounted' check. - use_build_context_synchronously
+   info - screens\user_dashboard_screen.dart:2952:32 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\user_dashboard_screen.dart:2953:32 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\user_profile_screen.dart:12:11 - An uninitialized variable should have an explicit type annotation. Try adding a type annotation. - prefer_typing_uninitialized_variables
+   info - screens\user_profile_screen.dart:107:48 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\user_profile_screen.dart:115:55 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\user_profile_screen.dart:125:59 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\user_profile_screen.dart:148:51 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\user_profile_screen.dart:158:51 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\user_profile_screen.dart:176:53 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\user_profile_screen.dart:310:38 - Statements in an if should be enclosed in a block. Try wrapping the statement in a block. - curly_braces_in_flow_control_structures
+   info - screens\user_profile_screen.dart:339:16 - Unnecessary empty statement. Try removing the empty statement or restructuring the code. - empty_statements
+   info - screens\user_profile_screen.dart:360:39 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\user_profile_screen.dart:476:40 - Don't use 'BuildContext's across async gaps. Try rewriting the code to not use the 'BuildContext', or guard the use with a 'mounted' check. - use_build_context_synchronously
+   info - screens\verification_status_screen.dart:100:47 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\verification_status_screen.dart:103:49 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\welcome_screen.dart:228:41 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\welcome_screen.dart:253:37 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\welcome_screen.dart:331:32 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - screens\welcome_screen.dart:332:31 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - services\admin_service.dart:22:7 - Don't invoke 'print' in production code. Try using a logging framework. - avoid_print
+   info - services\admin_service.dart:41:7 - Don't invoke 'print' in production code. Try using a logging framework. - avoid_print
+   info - services\admin_service.dart:82:9 - Don't invoke 'print' in production code. Try using a logging framework. - avoid_print
+   info - services\admin_service.dart:155:7 - Don't invoke 'print' in production code. Try using a logging framework. - avoid_print
+   info - services\admin_service.dart:191:7 - Don't invoke 'print' in production code. Try using a logging framework. - avoid_print
+   info - services\admin_service.dart:518:7 - Don't invoke 'print' in production code. Try using a logging framework. - avoid_print
+   info - services\admin_service.dart:630:9 - Don't invoke 'print' in production code. Try using a logging framework. - avoid_print
+   info - services\admin_service.dart:690:7 - Don't invoke 'print' in production code. Try using a logging framework. - avoid_print
+   info - services\admin_service.dart:805:11 - Don't invoke 'print' in production code. Try using a logging framework. - avoid_print
+   info - services\admin_service.dart:894:7 - Don't invoke 'print' in production code. Try using a logging framework. - avoid_print
+   info - services\admin_service.dart:947:15 - Don't invoke 'print' in production code. Try using a logging framework. - avoid_print
+   info - services\admin_service.dart:1109:7 - Don't invoke 'print' in production code. Try using a logging framework. - avoid_print
+   info - services\admin_service.dart:1186:15 - Don't invoke 'print' in production code. Try using a logging framework. - avoid_print
+   info - services\ai_services.dart:49:9 - Don't invoke 'print' in production code. Try using a logging framework. - avoid_print
+   info - services\ai_services.dart:53:7 - Don't invoke 'print' in production code. Try using a logging framework. - avoid_print
+   info - services\auth_service.dart:311:7 - Don't invoke 'print' in production code. Try using a logging framework. - avoid_print
+   info - services\auth_test.dart:1:8 - The imported package 'flutter_test' isn't a dependency of the importing package. Try adding a dependency for 'flutter_test' in the 'pubspec.yaml' file. - depend_on_referenced_packages
+   info - services\cloudinary_service.dart:38:9 - Don't invoke 'print' in production code. Try using a logging framework. - avoid_print
+   info - services\cloudinary_service.dart:42:7 - Don't invoke 'print' in production code. Try using a logging framework. - avoid_print
+   info - services\cloudinary_service.dart:67:9 - Don't invoke 'print' in production code. Try using a logging framework. - avoid_print
+   info - services\cloudinary_service.dart:71:7 - Don't invoke 'print' in production code. Try using a logging framework. - avoid_print
+   info - services\cloudinary_service.dart:108:7 - Don't invoke 'print' in production code. Try using a logging framework. - avoid_print
+   info - services\cloudinary_service.dart:129:7 - Don't invoke 'print' in production code. Try using a logging framework. - avoid_print
+   info - services\cloudinary_service.dart:147:7 - Don't invoke 'print' in production code. Try using a logging framework. - avoid_print
+   info - services\driver_location_service.dart:33:5 - Don't invoke 'print' in production code. Try using a logging framework. - avoid_print
+   info - services\driver_location_service.dart:41:5 - Don't invoke 'print' in production code. Try using a logging framework. - avoid_print
+   info - services\driver_location_service.dart:60:9 - Don't invoke 'print' in production code. Try using a logging framework. - avoid_print
+   info - services\driver_location_service.dart:65:7 - Don't invoke 'print' in production code. Try using a logging framework. - avoid_print
+   info - services\driver_location_service.dart:101:7 - Don't invoke 'print' in production code. Try using a logging framework. - avoid_print
+   info - services\driver_location_service.dart:114:7 - Don't invoke 'print' in production code. Try using a logging framework. - avoid_print
+   info - services\driver_service.dart:322:9 - Don't invoke 'print' in production code. Try using a logging framework. - avoid_print
+   info - services\email_service.dart:45:9 - Don't invoke 'print' in production code. Try using a logging framework. - avoid_print
+   info - services\email_service.dart:48:9 - Don't invoke 'print' in production code. Try using a logging framework. - avoid_print
+   info - services\email_service.dart:52:7 - Don't invoke 'print' in production code. Try using a logging framework. - avoid_print
+   info - services\location_service.dart:29:7 - Don't invoke 'print' in production code. Try using a logging framework. - avoid_print
+   info - services\ride_completion_service.dart:104:11 - Don't invoke 'print' in production code. Try using a logging framework. - avoid_print
+   info - services\ride_completion_service.dart:115:9 - Don't invoke 'print' in production code. Try using a logging framework. - avoid_print
+   info - services\ride_completion_service.dart:139:11 - Don't invoke 'print' in production code. Try using a logging framework. - avoid_print
+   info - services\ride_completion_service.dart:155:7 - Don't invoke 'print' in production code. Try using a logging framework. - avoid_print
+   info - services\user_service.dart:77:7 - Statements in an if should be enclosed in a block. Try wrapping the statement in a block. - curly_braces_in_flow_control_structures
+   info - services\user_service.dart:563:15 - Don't invoke 'print' in production code. Try using a logging framework. - avoid_print
+   info - services\user_service.dart:611:15 - Don't invoke 'print' in production code. Try using a logging framework. - avoid_print
+   info - services\user_service.dart:654:7 - Don't invoke 'print' in production code. Try using a logging framework. - avoid_print
+   info - services\user_service.dart:701:7 - Don't invoke 'print' in production code. Try using a logging framework. - avoid_print
+   info - services\user_service.dart:738:19 - Don't invoke 'print' in production code. Try using a logging framework. - avoid_print
+   info - services\user_service.dart:776:21 - Don't invoke 'print' in production code. Try using a logging framework. - avoid_print
+   info - services\user_service.dart:783:13 - Don't invoke 'print' in production code. Try using a logging framework. - avoid_print
+   info - utils\app_design_system.dart:43:31 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - utils\app_design_system.dart:176:43 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - utils\app_design_system.dart:187:43 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - utils\app_design_system.dart:259:35 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - widgets\animated_bottom_nav_bar.dart:63:32 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - widgets\animated_bottom_nav_bar.dart:64:32 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - widgets\animated_bottom_nav_bar.dart:124:48 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - widgets\animated_bottom_nav_bar.dart:153:52 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - widgets\animated_bottom_nav_bar.dart:154:51 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - widgets\animated_bottom_nav_bar.dart:159:65 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - widgets\animated_bottom_nav_bar.dart:321:42 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - widgets\animated_bottom_nav_bar.dart:329:49 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - widgets\auth_wrapper.dart:21:9 - Don't invoke 'print' in production code. Try using a logging framework. - avoid_print
+   info - widgets\auth_wrapper.dart:34:11 - Don't invoke 'print' in production code. Try using a logging framework. - avoid_print
+   info - widgets\auth_wrapper.dart:84:15 - Don't invoke 'print' in production code. Try using a logging framework. - avoid_print
+   info - widgets\auth_wrapper.dart:89:13 - Don't invoke 'print' in production code. Try using a logging framework. - avoid_print
+   info - widgets\auth_wrapper.dart:100:15 - Don't invoke 'print' in production code. Try using a logging framework. - avoid_print
+   info - widgets\auth_wrapper.dart:181:40 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - widgets\auth_wrapper.dart:239:37 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - widgets\auth_wrapper.dart:320:45 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - widgets\driver_ai_assistant.dart:9:9 - Parameter 'key' could be a super parameter. Trying converting 'key' to a super parameter. - use_super_parameters
+   info - widgets\driver_ai_assistant.dart:20:30 - The private field _messages could be 'final'. Try making the field 'final'. - prefer_final_fields
+   info - widgets\driver_ai_assistant.dart:80:58 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - widgets\driver_ai_assistant.dart:118:48 - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+
+919 issues found.

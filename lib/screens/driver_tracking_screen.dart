@@ -13,9 +13,9 @@ import 'package:relygo/utils/responsive.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:geocoding/geocoding.dart';
-import 'package:flutter_map/flutter_map.dart';
-import 'package:latlong2/latlong.dart';
+
+
+
 
 class DriverTrackingScreen extends StatefulWidget {
   final String bookingId;
@@ -56,7 +56,7 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
   }
 
   Future<void> _initializeTracking() async {
-    final driverId = widget.bookingData['driverId'];
+    final driverId = widget.initialBookingData['driverId'];
     if (driverId == null) {
       setState(() {
         _isLoadingDriverLocation = false;
@@ -648,7 +648,7 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
           SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 16, tablet: 18, desktop: 20)),
 
           // Fare
-          if (widget.bookingData['fare'] != null)
+          if (widget.initialBookingData['fare'] != null)
             Row(
               children: [
                 Icon(
@@ -658,7 +658,7 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
                 ),
                 SizedBox(width: ResponsiveUtils.getResponsiveSpacing(context, mobile: 12, tablet: 14, desktop: 16)),
                 Text(
-                  'Fare: ₹${widget.bookingData['fare']}',
+                  'Fare: ₹${widget.initialBookingData['fare']}',
                   style: GoogleFonts.poppins(
                     fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 16, tablet: 17, desktop: 18),
                     fontWeight: FontWeight.bold,
@@ -673,8 +673,8 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
   }
 
   Widget _buildLiveTrackingCard() {
-    final status = widget.bookingData['status'] ?? 'unknown';
-    final isPaid = widget.bookingData['isPaid'] ?? false;
+    final status = widget.initialBookingData['status'] ?? 'unknown';
+    final isPaid = widget.initialBookingData['isPaid'] ?? false;
     final statusLower = status.toLowerCase();
     // Active if: accepted, ongoing, paid, OR (completed and paid)
     final isActive = statusLower == 'accepted' ||
@@ -1021,106 +1021,7 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
                 const SizedBox(height: 16),
               ],
 
-              // Map View with live coordinates
-              if (lat != null && lng != null)
-                Container(
-                  height: 300,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.grey.shade300),
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: FlutterMap(
-                      mapController: _mapController,
-                      options: MapOptions(
-                        initialCenter: LatLng(lat, lng),
-                        initialZoom: 15.0,
-                      ),
-                      children: [
-                        TileLayer(
-                          urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                          userAgentPackageName: 'com.example.relygo',
-                        ),
-                        PolylineLayer(
-                          polylines: [
-                            if (_routePoints.isNotEmpty)
-                              Polyline(
-                                points: _routePoints,
-                                color: Mycolors.basecolor,
-                                strokeWidth: 4.0,
-                              ),
-                          ],
-                        ),
-                        MarkerLayer(
-                          markers: [
-                            // Pickup Location Marker
-                            if (_pickupLatLng != null)
-                              Marker(
-                                point: _pickupLatLng!,
-                                width: 40,
-                                height: 40,
-                                child: const Icon(
-                                  Icons.location_on,
-                                  color: Colors.red,
-                                  size: 40,
-                                ),
-                              ),
-                            // Driver Location Marker
-                            Marker(
-                              point: LatLng(lat, lng),
-                              width: 60,
-                              height: 60,
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  shape: BoxShape.circle,
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.2),
-                                      blurRadius: 6,
-                                      offset: const Offset(0, 3),
-                                    ),
-                                  ],
-                                ),
-                                child: Icon(
-                                  Icons.local_taxi,
-                                  color: Mycolors.basecolor,
-                                  size: 35,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                )
-              else
-                Container(
-                  height: 200,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[200],
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.location_off, size: 48, color: Mycolors.basecolor.withOpacity(0.5)),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Waiting for GPS signal...',
-                          style: GoogleFonts.poppins(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.grey[700],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+              ,
 
               const SizedBox(height: 16),
 
@@ -1148,16 +1049,6 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
           ),
         );
       }
-    );
-  }
-
-  Widget _buildTrackingStat(String label, String value) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey)),
-        Text(value, style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.bold)),
-      ],
     );
   }
 
