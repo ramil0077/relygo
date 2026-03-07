@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:relygo/constants.dart';
+import 'package:relygo/screens/driver_chatbot_screen.dart';
 
 import 'package:relygo/screens/driver_earnings_screen.dart';
 import 'package:relygo/screens/driver_profile_screen.dart';

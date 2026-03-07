@@ -212,8 +212,8 @@ class _ResponsiveUserDashboardScreenState
                                 destination:
                                     requestData['destination'] ?? 'Destination',
                                 amount: (requestData['fare'] is num)
-                                  ? (requestData['fare'] as num).toDouble()
-                                  : 150.0,
+                                    ? (requestData['fare'] as num).toDouble()
+                                    : 150.0,
                               ),
                             ),
                           );
@@ -251,7 +251,7 @@ class _ResponsiveUserDashboardScreenState
         AnimationUtils.createSlideRoute(
           DriverTrackingScreen(
             bookingId: ride['id'] ?? '',
-            bookingData: ride,
+            initialBookingData: ride,
           ),
         ),
       );
@@ -1397,7 +1397,10 @@ class _ResponsiveUserDashboardScreenState
                   title: Text('Choose Driver', style: GoogleFonts.poppins()),
                   subtitle: Text(
                     'Browse and select a driver',
-                    style: GoogleFonts.poppins(fontSize: 12, color: Mycolors.gray),
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      color: Mycolors.gray,
+                    ),
                   ),
                   onTap: () {
                     Navigator.of(context).pop();
@@ -1415,10 +1418,16 @@ class _ResponsiveUserDashboardScreenState
                 ),
                 ListTile(
                   leading: Icon(Icons.local_taxi, color: Mycolors.orange),
-                  title: Text('Choose Service Type', style: GoogleFonts.poppins()),
+                  title: Text(
+                    'Choose Service Type',
+                    style: GoogleFonts.poppins(),
+                  ),
                   subtitle: Text(
                     'Auto, Sedan, SUV, Delivery, etc.',
-                    style: GoogleFonts.poppins(fontSize: 12, color: Mycolors.gray),
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      color: Mycolors.gray,
+                    ),
                   ),
                   onTap: () {
                     Navigator.of(context).pop();
@@ -1430,13 +1439,18 @@ class _ResponsiveUserDashboardScreenState
                   title: Text('Direct Booking', style: GoogleFonts.poppins()),
                   subtitle: Text(
                     'Go to booking screen directly',
-                    style: GoogleFonts.poppins(fontSize: 12, color: Mycolors.gray),
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      color: Mycolors.gray,
+                    ),
                   ),
                   onTap: () {
                     Navigator.of(context).pop();
                     Navigator.push(
                       context,
-                      AnimationUtils.createSlideRoute(const ServiceBookingScreen()),
+                      AnimationUtils.createSlideRoute(
+                        const ServiceBookingScreen(),
+                      ),
                     );
                   },
                 ),
@@ -1476,19 +1490,25 @@ class _ResponsiveUserDashboardScreenState
                   ),
                 ),
                 const SizedBox(height: 12),
-                ...types.map((t) => ListTile(
-                      leading: Icon(t['icon'] as IconData, color: Mycolors.basecolor),
-                      title: Text(t['label'] as String, style: GoogleFonts.poppins()),
-                      onTap: () {
-                        Navigator.of(context).pop();
-                        Navigator.push(
-                          context,
-                          AnimationUtils.createSlideRoute(
-                            ServiceBookingScreen(),
-                          ),
-                        );
-                      },
-                    )),
+                ...types.map(
+                  (t) => ListTile(
+                    leading: Icon(
+                      t['icon'] as IconData,
+                      color: Mycolors.basecolor,
+                    ),
+                    title: Text(
+                      t['label'] as String,
+                      style: GoogleFonts.poppins(),
+                    ),
+                    onTap: () {
+                      Navigator.of(context).pop();
+                      Navigator.push(
+                        context,
+                        AnimationUtils.createSlideRoute(ServiceBookingScreen()),
+                      );
+                    },
+                  ),
+                ),
               ],
             ),
           ),

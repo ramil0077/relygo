@@ -116,7 +116,7 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
           MaterialPageRoute(
             builder: (context) => DriverTrackingScreen(
               bookingId: requestId,
-              bookingData: requestData,
+              initialBookingData: requestData,
             ),
           ),
         )
@@ -589,14 +589,7 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                   tablet: 26,
                   desktop: 28,
                 ),
-                Text(
-                  "Search for nearby drivers and services",
-                  style: GoogleFonts.poppins(
-                    fontSize: 16,
-                    color: Mycolors.gray,
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
           SizedBox(height: ResponsiveSpacing.getMediumSpacing(context)),
@@ -1123,7 +1116,7 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
         MaterialPageRoute(
           builder: (context) => DriverTrackingScreen(
             bookingId: ride['id'] ?? '',
-            bookingData: ride,
+            initialBookingData: ride,
           ),
         ),
       );

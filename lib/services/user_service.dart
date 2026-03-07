@@ -55,7 +55,8 @@ class UserService {
     if (name != null) update['name'] = name;
     if (email != null) update['email'] = email;
     if (phone != null) update['phone'] = phone;
-    if (licenseNumber != null) update['documents.licenseNumber'] = licenseNumber;
+    if (licenseNumber != null)
+      update['documents.licenseNumber'] = licenseNumber;
     if (photoUrl != null) update['photoUrl'] = photoUrl;
     if (update.isEmpty) return;
     update['updatedAt'] = FieldValue.serverTimestamp();
@@ -553,10 +554,8 @@ class UserService {
                 if (driverDoc.exists) {
                   rideData['driverDetails'] = driverDoc.data();
                 }
-              } else if (bookingData['driverName'] != null) {
-                bookingData['driverDetails'] = {
-                  'name': bookingData['driverName'],
-                };
+              } else if (rideData['driverName'] != null) {
+                rideData['driverDetails'] = {'name': rideData['driverName']};
               }
               ridesWithDetails.add(rideData);
             } catch (e) {
@@ -661,7 +660,9 @@ class UserService {
   }
 
   /// One-time fetch of user's active booking (bookings + ride_requests) for Track Driver
-  static Future<Map<String, dynamic>?> getActiveBookingOnce(String userId) async {
+  static Future<Map<String, dynamic>?> getActiveBookingOnce(
+    String userId,
+  ) async {
     try {
       final bookingsSnapshot = await _firestore
           .collection('bookings')
@@ -821,68 +822,65 @@ class UserService {
 
   /// Stream driver's comprehensive earnings summary
   static Stream<Map<String, double>> streamDriverEarningsSummary(
-      String driverId) {
+    String driverId,
+  ) {
     return _firestore
         .collection('ride_requests')
         .where('driverId', isEqualTo: driverId)
         .where('status', isEqualTo: 'completed')
         .snapshots()
         .map((snapshot) {
-      double today = 0;
-      double week = 0;
-      double month = 0;
-      double total = 0;
+          double today = 0;
+          double week = 0;
+          double month = 0;
+          double total = 0;
 
-      final now = DateTime.now();
-      final startOfToday = DateTime(now.year, now.month, now.day);
-      final startOfWeek = now.subtract(Duration(days: now.weekday - 1));
-      final startOfMonth = DateTime(now.year, now.month, 1);
+          final now = DateTime.now();
+          final startOfToday = DateTime(now.year, now.month, now.day);
+          final startOfWeek = now.subtract(Duration(days: now.weekday - 1));
+          final startOfMonth = DateTime(now.year, now.month, 1);
 
-      for (var doc in snapshot.docs) {
-        final data = doc.data();
-        final fare = (data['fare'] ?? 0).toDouble();
-        final createdAt = (data['createdAt'] as Timestamp?)?.toDate();
+          for (var doc in snapshot.docs) {
+            final data = doc.data();
+            final fare = (data['fare'] ?? 0).toDouble();
+            final createdAt = (data['createdAt'] as Timestamp?)?.toDate();
 
-        if (createdAt == null) continue;
+            if (createdAt == null) continue;
 
-        total += fare;
-        if (createdAt.isAfter(startOfToday)) today += fare;
-        if (createdAt.isAfter(startOfWeek)) week += fare;
-        if (createdAt.isAfter(startOfMonth)) month += fare;
-      }
+            total += fare;
+            if (createdAt.isAfter(startOfToday)) today += fare;
+            if (createdAt.isAfter(startOfWeek)) week += fare;
+            if (createdAt.isAfter(startOfMonth)) month += fare;
+          }
 
-      return {
-        'today': today,
-        'week': week,
-        'month': month,
-        'total': total,
-      };
-    });
+          return {'today': today, 'week': week, 'month': month, 'total': total};
+        });
   }
 
   /// Stream driver's ride history
   static Stream<List<Map<String, dynamic>>> getDriverRideHistoryStream(
-      String driverId) {
+    String driverId,
+  ) {
     return _firestore
         .collection('ride_requests')
         .where('driverId', isEqualTo: driverId)
         .snapshots()
         .map((snapshot) {
-      final rides = snapshot.docs.map((doc) {
-        final data = doc.data();
-        data['id'] = doc.id;
-        return data;
-      }).toList();
+          final rides = snapshot.docs.map((doc) {
+            final data = doc.data();
+            data['id'] = doc.id;
+            return data;
+          }).toList();
 
-      rides.sort((a, b) {
-        final aTime = a['createdAt'] as Timestamp?;
-        final bTime = b['createdAt'] as Timestamp?;
-        if (aTime == null || bTime == null) return 0;
-        return bTime.compareTo(aTime);
-      });
+          rides.sort((a, b) {
+            final aTime = a['createdAt'] as Timestamp?;
+            final bTime = b['createdAt'] as Timestamp?;
+            if (aTime == null || bTime == null) return 0;
+            return bTime.compareTo(aTime);
+          });
 
-      return rides;
-    });
+          return rides;
+        });
   }
 
   /// Update driver's online status

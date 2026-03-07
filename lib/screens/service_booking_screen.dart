@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:relygo/constants.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:relygo/services/auth_service.dart';
+import 'package:relygo/screens/map_picker_screen.dart';
 
 /// Base fare by vehicle type (used when no distance calculation)
 int _baseFareForVehicle(String vehicle) {
@@ -16,11 +17,6 @@ int _baseFareForVehicle(String vehicle) {
       return 150;
   }
 }
-// Map integration removed
-=======
-import 'package:relygo/screens/map_picker_screen.dart';
-import 'dart:async';
->>>>>>> 19c60511df77cf71534b179d6daa8ec8cebe0b10
 
 class ServiceBookingScreen extends StatefulWidget {
   const ServiceBookingScreen({super.key});
@@ -82,14 +78,32 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
     }
     if (mounted && _estimatedPrice != estimate) {
       setState(() => _estimatedPrice = estimate);
-      if (mounted) setState(() => _detectingLocation = false);
-=======
-      if (mounted) {
+    }
+  }
+
+  Future<void> _detectCurrentLocation() async {
+    if (_detectingPickupLocation) return;
+    if (mounted) setState(() => _detectingPickupLocation = true);
+    try {
+      final locationData = await _getCurrentPosition();
+      if (locationData != null && mounted) {
         setState(() {
+          _pickupController.text = locationData;
           _detectingPickupLocation = false;
         });
+        _updateEstimatedPrice();
       }
->>>>>>> 19c60511df77cf71534b179d6daa8ec8cebe0b10
+    } catch (e) {
+      if (mounted) setState(() => _detectingPickupLocation = false);
+    }
+  }
+
+  Future<String?> _getCurrentPosition() async {
+    try {
+      // Just return a placeholder - real implementation would use geolocator
+      return 'Current Location';
+    } catch (e) {
+      return null;
     }
   }
 
@@ -124,40 +138,8 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Service Type Selection
-              Text(
-                "Select Service Type",
-                style: GoogleFonts.poppins(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                ),
-              ),
-              const SizedBox(height: 15),
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildServiceTypeCard(
-                      "Driver\nOnly",
-                      Icons.person,
-                      "driver_only",
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: _buildServiceTypeCard(
-                      "Driver +\nVehicle",
-                      Icons.directions_car,
-                      "driver_with_vehicle",
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 30),
-
-              // Vehicle Type Selection (only show if no specific driver selected)
-              if (_driverId == null) ...[
                 Text(
-                  "Select Vehicle Type",
+                  "Select Service Type",
                   style: GoogleFonts.poppins(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -168,184 +150,185 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
                 Row(
                   children: [
                     Expanded(
-                      child: _buildVehicleCard(
-                        "Car",
+                      child: _buildServiceTypeCard(
+                        "Driver\nOnly",
+                        Icons.person,
+                        "driver_only",
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: _buildServiceTypeCard(
+                        "Driver +\nVehicle",
                         Icons.directions_car,
-                        "Car",
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: _buildVehicleCard(
-                        "Bike",
-                        Icons.two_wheeler,
-                        "Bike",
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: _buildVehicleCard(
-                        "Auto",
-                        Icons.local_taxi,
-                        "Auto",
+                        "driver_with_vehicle",
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 30),
-              ] else ...[
-                // Show selected driver's info
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Mycolors.basecolor.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: Mycolors.basecolor.withOpacity(0.3),
+
+                // Vehicle Type Selection (only show if no specific driver selected)
+                if (_driverId == null) ...[
+                  Text(
+                    "Select Vehicle Type",
+                    style: GoogleFonts.poppins(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
                     ),
                   ),
-                  child: Column(
+                  const SizedBox(height: 15),
+                  Row(
                     children: [
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.person,
-                            color: Mycolors.basecolor,
-                            size: 20,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            "Driver: $_driverName",
-                            style: GoogleFonts.poppins(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: Mycolors.basecolor,
-                            ),
-                          ),
-                        ],
+                      Expanded(
+                        child: _buildVehicleCard(
+                          "Car",
+                          Icons.directions_car,
+                          "Car",
+                        ),
                       ),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          Icon(
-                            _getVehicleIcon(_selectedVehicle),
-                            color: Mycolors.basecolor,
-                            size: 20,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            "Vehicle: $_selectedVehicle",
-                            style: GoogleFonts.poppins(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: Mycolors.basecolor,
-                            ),
-                          ),
-                        ],
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: _buildVehicleCard(
+                          "Bike",
+                          Icons.two_wheeler,
+                          "Bike",
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: _buildVehicleCard(
+                          "Auto",
+                          Icons.local_taxi,
+                          "Auto",
+                        ),
                       ),
                     ],
                   ),
-                ),
-                const SizedBox(height: 20),
-              ],
-
-              // ── Pickup Location ──────────────────────────────────────────
-              Text(
-                "Pickup Location",
-                style: GoogleFonts.poppins(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                ),
-              ),
-              const SizedBox(height: 15),
-              TextFormField(
-                controller: _pickupController,
-                decoration: InputDecoration(
-                  hintText: "Enter pickup location",
-                  prefixIcon: Icon(
-                    Icons.location_on,
-                    color: Mycolors.basecolor,
-                  ),
-                  const SizedBox(width: 10),
-                  // 📍 GPS Auto-detect Button
-                  Tooltip(
-                    message: 'Use my current location',
-                    child: InkWell(
-                      onTap: _detectingPickupLocation
-                          ? null
-                          : () => _detectCurrentLocation(),
+                  const SizedBox(height: 30),
+                ] else ...[
+                  // Show selected driver's info
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Mycolors.basecolor.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(12),
-                      child: Container(
-                        width: 50,
-                        height: 54,
-                        decoration: BoxDecoration(
-                          color: Mycolors.basecolor,
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Mycolors.basecolor.withOpacity(0.3),
-                              blurRadius: 6,
-                              offset: const Offset(0, 3),
+                      border: Border.all(
+                        color: Mycolors.basecolor.withOpacity(0.3),
+                      ),
+                    ),
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.person,
+                              color: Mycolors.basecolor,
+                              size: 20,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              "Driver: $_driverName",
+                              style: GoogleFonts.poppins(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: Mycolors.basecolor,
+                              ),
                             ),
                           ],
                         ),
-                        child: _detectingPickupLocation
-                            ? const Padding(
-                                padding: EdgeInsets.all(14),
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2.5,
-                                  color: Colors.white,
-                                ),
-                              )
-                            : const Icon(
-                                Icons.my_location,
-                                color: Colors.white,
-                                size: 24,
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Icon(
+                              _getVehicleIcon(_selectedVehicle),
+                              color: Mycolors.basecolor,
+                              size: 20,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              "Vehicle: $_selectedVehicle",
+                              style: GoogleFonts.poppins(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: Mycolors.basecolor,
                               ),
-                      ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
+                  const SizedBox(height: 20),
                 ],
-              ),
-              const SizedBox(height: 6),
-              Text(
-                'Tap 📍 to auto-detect your current location',
-                style: GoogleFonts.poppins(
-                  fontSize: 12,
-                  color: Mycolors.gray,
-                ),
-                validator: (v) {
-                  if (v == null || v.trim().isEmpty) return 'Please enter pickup location';
-                  return null;
-                },
-              ),
-              const SizedBox(height: 20),
 
-              // ── Destination ──────────────────────────────────────────────
-              Text(
-                "Destination",
-                style: GoogleFonts.poppins(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                ),
-              ),
-              const SizedBox(height: 15),
-              TextFormField(
-                controller: _destinationController,
-                decoration: InputDecoration(
-                  hintText: "Enter destination",
-                  prefixIcon: Icon(Icons.place, color: Mycolors.basecolor),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
+                // ── Pickup Location ──────────────────────────────────────────
+                Text(
+                  "Pickup Location",
+                  style: GoogleFonts.poppins(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
                   ),
-                  const SizedBox(width: 10),
-                  // 🗺️ Choose on Map Button
-                  Tooltip(
-                    message: 'Choose on map',
-                    child: InkWell(
-                      onTap: () async {
+                ),
+                const SizedBox(height: 15),
+                TextFormField(
+                  controller: _pickupController,
+                  decoration: InputDecoration(
+                    hintText: "Enter pickup location",
+                    prefixIcon: Icon(
+                      Icons.location_on,
+                      color: Mycolors.basecolor,
+                    ),
+                    suffixIcon: _detectingPickupLocation
+                        ? const Padding(
+                            padding: EdgeInsets.all(14),
+                            child: CircularProgressIndicator(strokeWidth: 2.5),
+                          )
+                        : IconButton(
+                            onPressed: _detectCurrentLocation,
+                            tooltip: 'Use my current location',
+                            icon: const Icon(Icons.my_location),
+                          ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  validator: (v) {
+                    if (v == null || v.trim().isEmpty)
+                      return 'Please enter pickup location';
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'Tap 📍 to auto-detect your current location',
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    color: Mycolors.gray,
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                // ── Destination ──────────────────────────────────────────────
+                Text(
+                  "Destination",
+                  style: GoogleFonts.poppins(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
+                const SizedBox(height: 15),
+                TextFormField(
+                  controller: _destinationController,
+                  decoration: InputDecoration(
+                    hintText: "Enter destination",
+                    prefixIcon: Icon(Icons.place, color: Mycolors.basecolor),
+                    suffixIcon: IconButton(
+                      tooltip: 'Choose on map',
+                      onPressed: () async {
                         final result = await Navigator.of(context).push<String>(
                           MaterialPageRoute(
                             builder: (_) => const MapPickerScreen(
@@ -359,219 +342,202 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
                           });
                         }
                       },
+                      icon: const Icon(Icons.map_outlined),
+                    ),
+                    border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      child: Container(
-                        width: 50,
-                        height: 54,
-                        decoration: BoxDecoration(
-                          color: Mycolors.basecolor,
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Mycolors.basecolor.withOpacity(0.3),
-                              blurRadius: 6,
-                              offset: const Offset(0, 3),
-                            ),
-                          ],
-                        ),
-                        child: const Icon(
-                          Icons.map_outlined,
-                          color: Colors.white,
-                          size: 24,
-                        ),
-                      ),
                     ),
                   ),
-                ],
-              ),
-              const SizedBox(height: 6),
-              Text(
-                'Tap 🗺️ to choose destination on map',
-                style: GoogleFonts.poppins(
-                  fontSize: 12,
-                  color: Mycolors.gray,
+                  validator: (v) {
+                    if (v == null || v.trim().isEmpty)
+                      return 'Please enter destination';
+                    return null;
+                  },
                 ),
-                validator: (v) {
-                  if (v == null || v.trim().isEmpty) return 'Please enter destination';
-                  return null;
-                },
-              ),
-              const SizedBox(height: 30),
-
-              // Date and Time Selection
-              Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "Date",
-                          style: GoogleFonts.poppins(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.black,
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        GestureDetector(
-                          onTap: _selectDate,
-                          child: Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              border: Border.all(color: Colors.grey.shade300),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.calendar_today,
-                                  color: Mycolors.basecolor,
-                                ),
-                                const SizedBox(width: 10),
-                                Text(
-                                  _selectedDate != null
-                                      ? "${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}"
-                                      : "Select Date",
-                                  style: GoogleFonts.poppins(
-                                    color: _selectedDate != null
-                                        ? Colors.black
-                                        : Mycolors.gray,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 15),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "Time",
-                          style: GoogleFonts.poppins(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.black,
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        GestureDetector(
-                          onTap: _selectTime,
-                          child: Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              border: Border.all(color: Colors.grey.shade300),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.access_time,
-                                  color: Mycolors.basecolor,
-                                ),
-                                const SizedBox(width: 10),
-                                Text(
-                                  _selectedTime != null
-                                      ? _selectedTime!.format(context)
-                                      : "Select Time",
-                                  style: GoogleFonts.poppins(
-                                    color: _selectedTime != null
-                                        ? Colors.black
-                                        : Mycolors.gray,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 30),
-
-              // Special Instructions
-              Text(
-                "Special Instructions (Optional)",
-                style: GoogleFonts.poppins(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                ),
-              ),
-              const SizedBox(height: 15),
-              TextField(
-                maxLines: 3,
-                decoration: InputDecoration(
-                  hintText: "Any special requirements...",
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
+                const SizedBox(height: 6),
+                Text(
+                  'Tap 🗺️ to choose destination on map',
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    color: Mycolors.gray,
                   ),
                 ),
-              ),
-              const SizedBox(height: 40),
+                const SizedBox(height: 30),
 
-              // Price Estimate
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: Mycolors.lightGray,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                // Date and Time Selection
+                Row(
                   children: [
-                    Text(
-                      "Estimated Price",
-                      style: GoogleFonts.poppins(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black,
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Date",
+                            style: GoogleFonts.poppins(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          GestureDetector(
+                            onTap: _selectDate,
+                            child: Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: Colors.grey.shade300),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.calendar_today,
+                                    color: Mycolors.basecolor,
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Text(
+                                    _selectedDate != null
+                                        ? "${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}"
+                                        : "Select Date",
+                                    style: GoogleFonts.poppins(
+                                      color: _selectedDate != null
+                                          ? Colors.black
+                                          : Mycolors.gray,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    Text(
-                      _estimatedPrice != null ? "₹${_estimatedPrice}" : "—",
-                      style: GoogleFonts.poppins(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Mycolors.basecolor,
+                    const SizedBox(width: 15),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Time",
+                            style: GoogleFonts.poppins(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          GestureDetector(
+                            onTap: _selectTime,
+                            child: Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: Colors.grey.shade300),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.access_time,
+                                    color: Mycolors.basecolor,
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Text(
+                                    _selectedTime != null
+                                        ? _selectedTime!.format(context)
+                                        : "Select Time",
+                                    style: GoogleFonts.poppins(
+                                      color: _selectedTime != null
+                                          ? Colors.black
+                                          : Mycolors.gray,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
                 ),
-              ),
-              const SizedBox(height: 30),
+                const SizedBox(height: 30),
 
-              // Book Now Button
-              SizedBox(
-                width: double.infinity,
-                height: 55,
-                child: ElevatedButton(
-                  onPressed: _createBooking,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Mycolors.basecolor,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    elevation: 2,
+                // Special Instructions
+                Text(
+                  "Special Instructions (Optional)",
+                  style: GoogleFonts.poppins(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
                   ),
-                  child: Text(
-                    "Book Now",
-                    style: GoogleFonts.poppins(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
+                ),
+                const SizedBox(height: 15),
+                TextField(
+                  maxLines: 3,
+                  decoration: InputDecoration(
+                    hintText: "Any special requirements...",
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 20),
+                const SizedBox(height: 40),
+
+                // Price Estimate
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Mycolors.lightGray,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "Estimated Price",
+                        style: GoogleFonts.poppins(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black,
+                        ),
+                      ),
+                      Text(
+                        _estimatedPrice != null ? "₹${_estimatedPrice}" : "—",
+                        style: GoogleFonts.poppins(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Mycolors.basecolor,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 30),
+
+                // Book Now Button
+                SizedBox(
+                  width: double.infinity,
+                  height: 55,
+                  child: ElevatedButton(
+                    onPressed: _createBooking,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Mycolors.basecolor,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 2,
+                    ),
+                    child: Text(
+                      "Book Now",
+                      style: GoogleFonts.poppins(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
               ],
             ),
           ),
@@ -767,12 +733,15 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
             : null,
       };
 
-      final docRef = await FirebaseFirestore.instance.collection('ride_requests').add(data);
+      final docRef = await FirebaseFirestore.instance
+          .collection('ride_requests')
+          .add(data);
 
       // Notify driver
       if (_driverId != null) {
         await FirebaseFirestore.instance.collection('notifications').add({
-          'userId': _driverId, // Driver's ID (assuming driver maps to a user record)
+          'userId':
+              _driverId, // Driver's ID (assuming driver maps to a user record)
           'title': 'New Booking Request',
           'message': 'You have a new ride request from the pickup location.',
           'type': 'new_booking',
@@ -792,9 +761,9 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
       Navigator.maybePop(context);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Booking failed: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Booking failed: $e')));
     }
   }
 }

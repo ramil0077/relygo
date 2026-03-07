@@ -6,10 +6,9 @@ import 'package:relygo/screens/signin_screen.dart';
 import 'package:relygo/screens/complaint_submission_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:relygo/utils/phone_validation.dart';
-=======
 import 'package:url_launcher/url_launcher.dart';
 import 'package:relygo/services/user_service.dart';
->>>>>>> 19c60511df77cf71534b179d6daa8ec8cebe0b10
+import 'package:relygo/screens/ride_history_screen.dart';
 // AppSettings are defined in constants.dart
 
 class UserProfileScreen extends StatefulWidget {
@@ -33,11 +32,13 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             : null,
         title: const Text("Profile"),
       ),
-      body: StreamBuilder<User?>(
-        stream: AuthService.authStateChanges,
-        builder: (context, authSnapshot) {
-          final uid = authSnapshot.data?.uid ?? AuthService.currentUserId;
-          if (uid == null) {
+      body: StreamBuilder<DocumentSnapshot>(
+        stream: FirebaseFirestore.instance
+            .collection('users')
+            .doc(AuthService.currentUserId ?? '')
+            .snapshots(),
+        builder: (context, snapshot) {
+          if (AuthService.currentUserId == null) {
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -55,292 +56,211 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               ),
             );
           }
-          return StreamBuilder<DocumentSnapshot>(
-            stream: FirebaseFirestore.instance
-                .collection('users')
-                .doc(uid)
-                .snapshots(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              }
-              if (!snapshot.hasData || !snapshot.data!.exists) {
-                return Center(
-                  child: Text(
-                    'Profile not found',
-                    style: GoogleFonts.poppins(color: Mycolors.red),
-                  ),
-                );
-              }
-              // NOTE: closing brace for this builder is below, followed by
-              // closing of the outer authStateChanges StreamBuilder.
-              final data = snapshot.data!.data() as Map<String, dynamic>;
-              final String name = (data['name'] ?? 'User').toString();
-              final String email = (data['email'] ?? '').toString();
-              final Map<String, dynamic> docs =
-                  (data['documents'] is Map<String, dynamic>)
-                  ? (data['documents'] as Map<String, dynamic>)
-                  : {};
-              final bool isDriver =
-                  (data['userType']?.toString().toLowerCase() == 'driver') ||
-                  docs.isNotEmpty;
-              final String vehicleType =
-                  (data['vehicleType'] ?? docs['vehicleType'] ?? '').toString();
-              final String vehicleNumber =
-                  (data['vehicleNumber'] ?? docs['vehicleNumber'] ?? '')
-                      .toString();
-              final String licenseNumber =
-                  (data['licenseNumber'] ?? docs['licenseNumber'] ?? '')
-                      .toString();
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (!snapshot.hasData || !snapshot.data!.exists) {
+            return Center(
+              child: Text(
+                'Profile not found',
+                style: GoogleFonts.poppins(color: Mycolors.red),
+              ),
+            );
+          }
+          final data = snapshot.data!.data() as Map<String, dynamic>;
+          final String name = (data['name'] ?? 'User').toString();
+          final String email = (data['email'] ?? '').toString();
+          final Map<String, dynamic> docs =
+              (data['documents'] is Map<String, dynamic>)
+              ? (data['documents'] as Map<String, dynamic>)
+              : {};
+          final bool isDriver =
+              (data['userType']?.toString().toLowerCase() == 'driver') ||
+              docs.isNotEmpty;
+          final String vehicleType =
+              (data['vehicleType'] ?? docs['vehicleType'] ?? '').toString();
+          final String vehicleNumber =
+              (data['vehicleNumber'] ?? docs['vehicleNumber'] ?? '').toString();
+          final String licenseNumber =
+              (data['licenseNumber'] ?? docs['licenseNumber'] ?? '').toString();
 
-              return SingleChildScrollView(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  children: [
-                    // Profile Header (dynamic)
-                    Container(
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            Mycolors.basecolor,
-                            Mycolors.basecolor.withOpacity(0.8),
-                          ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Mycolors.basecolor.withOpacity(0.3),
-                            blurRadius: 10,
-                            offset: const Offset(0, 5),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        children: [
-                          CircleAvatar(
-                            radius: 50,
-                            backgroundColor: Colors.white.withOpacity(0.2),
-                            child: Text(
-                              name.isNotEmpty ? name[0] : 'U',
-                              style: GoogleFonts.poppins(
-                                fontSize: 32,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 15),
-                          Text(
-                            name,
-                            style: GoogleFonts.poppins(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
-                          Text(
-                            email,
-                            style: GoogleFonts.poppins(
-                              fontSize: 16,
-                              color: Colors.white.withOpacity(0.9),
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 6,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Text(
-                              isDriver ? 'Driver' : 'User',
-                              style: GoogleFonts.poppins(
-                                fontSize: 14,
-                                color: Colors.white,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            const SizedBox(height: 10),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 6,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.2),
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Text(
-                                isDriver ? 'Driver' : 'User',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 14,
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 30),
-
-                      // Profile Options
-                      _buildProfileOption(
-                        "Personal Information",
-                        "Update your personal details",
-                        Icons.person_outline,
-                        () {
-                          _showPersonalInfoDialog(
-                            currentName: name,
-                            currentEmail: email,
-                            currentPhone: (data['phone'] ?? '').toString(),
-                          );
-                        },
-                      ),
-                      _buildProfileOption(
-                        "Help & Support",
-                        "Get help and contact support",
-                        Icons.help,
-                        () {
-                          _showHelpSupportDialog();
-                        },
-                      ),
-                      const SizedBox(height: 20),
-
-                      // Logout Button
-                      SizedBox(
-                        width: double.infinity,
-                        height: 50,
-                        child: OutlinedButton.icon(
-                          onPressed: () {
-                            _showLogoutDialog();
-                          },
-                          icon: Icon(Icons.logout, color: Mycolors.red),
-                          label: Text(
-                            "Logout",
-                            style: GoogleFonts.poppins(
-                              fontSize: 16,
-                              color: Mycolors.red,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              children: [
+                // Profile Header
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Mycolors.basecolor,
+                        Mycolors.basecolor.withOpacity(0.8),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
                     ),
-                    const SizedBox(height: 30),
-
-                    // Profile Options
-                    _buildProfileOption(
-                      "Personal Information",
-                      "Update your personal details",
-                      Icons.person_outline,
-                      () {
-                        _showPersonalInfoDialog(
-                          currentName: name,
-                          currentEmail: email,
-                          currentPhone: (data['phone'] ?? '').toString(),
-                          currentLicense: licenseNumber,
-                        );
-                      },
-                    ),
-                    _buildProfileOption(
-                      "Ride History",
-                      "View your ride history",
-                      Icons.history,
-                      () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const RideHistoryScreen(),
-                          ),
-                        );
-                      },
-                    ),
-                    _buildProfileOption(
-                      "Help & Support",
-                      "Get help and contact support",
-                      Icons.help,
-                      () {
-                        _showHelpSupportDialog();
-                      },
-                    ),
-                    _buildProfileOption(
-                      "Settings",
-                      "App settings and preferences",
-                      Icons.settings,
-                      () {
-                        _showSettingsDialog(data['isLocationEnabled'] ?? true);
-                      },
-                    ),
-                    const SizedBox(height: 20),
-
-                    // Logout Button
-                    SizedBox(
-                      width: double.infinity,
-                      height: 50,
-                      child: OutlinedButton.icon(
-                        onPressed: () {
-                          _showLogoutDialog();
-                        },
-                        icon: Icon(Icons.logout, color: Mycolors.red),
-                        label: Text(
-                          "Logout",
-                          style: GoogleFonts.poppins(
-                            fontSize: 16,
-                            color: Mycolors.red,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        style: OutlinedButton.styleFrom(
-                          side: BorderSide(color: Mycolors.red),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Mycolors.basecolor.withOpacity(0.3),
+                        blurRadius: 10,
+                        offset: const Offset(0, 5),
                       ),
-                    ),
-                    const SizedBox(height: 20),
-
-                    if (isDriver) ...[
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          "Driver Documents",
-                          style: GoogleFonts.poppins(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      _buildDocTile(
-                        'License',
-                        docs['license'] ?? licenseNumber,
-                      ),
-                      _buildDocTile(
-                        'Vehicle Registration',
-                        docs['vehicleRegistration'] ?? vehicleNumber,
-                      ),
-                      _buildDocTile('Insurance', docs['insurance'] ?? ''),
-                      if (vehicleType.isNotEmpty || vehicleNumber.isNotEmpty)
-                        _buildDocTile(
-                          'Vehicle',
-                          '$vehicleType - $vehicleNumber',
-                        ),
                     ],
-                  ],
+                  ),
+                  child: Column(
+                    children: [
+                      CircleAvatar(
+                        radius: 50,
+                        backgroundColor: Colors.white.withOpacity(0.2),
+                        child: Text(
+                          name.isNotEmpty ? name[0] : 'U',
+                          style: GoogleFonts.poppins(
+                            fontSize: 32,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 15),
+                      Text(
+                        name,
+                        style: GoogleFonts.poppins(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      Text(
+                        email,
+                        style: GoogleFonts.poppins(
+                          fontSize: 16,
+                          color: Colors.white.withOpacity(0.9),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          isDriver ? 'Driver' : 'User',
+                          style: GoogleFonts.poppins(
+                            fontSize: 14,
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              );
-            }, // closes inner StreamBuilder builder
-          ); // closes inner StreamBuilder widget
-        }, // closes outer authStateChanges builder
-      ), // closes outer StreamBuilder widget
+                const SizedBox(height: 30),
+
+                // Profile Options
+                _buildProfileOption(
+                  "Personal Information",
+                  "Update your personal details",
+                  Icons.person_outline,
+                  () {
+                    _showPersonalInfoDialog(
+                      currentName: name,
+                      currentEmail: email,
+                      currentPhone: (data['phone'] ?? '').toString(),
+                      currentLicense: licenseNumber,
+                    );
+                  },
+                ),
+                _buildProfileOption(
+                  "Ride History",
+                  "View your ride history",
+                  Icons.history,
+                  () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const RideHistoryScreen(),
+                      ),
+                    );
+                  },
+                ),
+                _buildProfileOption(
+                  "Help & Support",
+                  "Get help and contact support",
+                  Icons.help,
+                  () {
+                    _showHelpSupportDialog();
+                  },
+                ),
+                _buildProfileOption(
+                  "Settings",
+                  "App settings and preferences",
+                  Icons.settings,
+                  () {
+                    _showSettingsDialog(data['isLocationEnabled'] ?? true);
+                  },
+                ),
+                const SizedBox(height: 20),
+
+                // Logout Button
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      _showLogoutDialog();
+                    },
+                    icon: Icon(Icons.logout, color: Mycolors.red),
+                    label: Text(
+                      "Logout",
+                      style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        color: Mycolors.red,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      side: BorderSide(color: Mycolors.red),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                if (isDriver) ...[
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      "Driver Documents",
+                      style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  _buildDocTile('License', docs['license'] ?? licenseNumber),
+                  _buildDocTile(
+                    'Vehicle Registration',
+                    docs['vehicleRegistration'] ?? vehicleNumber,
+                  ),
+                  _buildDocTile('Insurance', docs['insurance'] ?? ''),
+                  if (vehicleType.isNotEmpty || vehicleNumber.isNotEmpty)
+                    _buildDocTile('Vehicle', '$vehicleType - $vehicleNumber'),
+                ],
+              ],
+            ),
+          );
+        },
+      ),
     );
   }
 
@@ -364,10 +284,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         ),
         title: Text(
           title,
-          style: GoogleFonts.poppins(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-          ),
+          style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600),
         ),
         subtitle: Text(
           subtitle,
@@ -468,9 +385,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     userId: uid,
                     name: nameController.text.trim(),
                     phone: phoneController.text.trim(),
-                    documents: {
-                      'licenseNumber': currentLicense.trim(),
-                    },
+                    documents: {'licenseNumber': currentLicense.trim()},
                   );
                   final ok = res['success'] == true;
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -750,10 +665,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     return ExpansionTile(
       title: Text(
         question,
-        style: GoogleFonts.poppins(
-          fontSize: 14,
-          fontWeight: FontWeight.w600,
-        ),
+        style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w600),
       ),
       children: [
         Padding(
@@ -775,7 +687,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         return StatefulBuilder(
           builder: (context, setDialogState) {
             final isDark = AppSettings.themeMode.value == ThemeMode.dark;
-            
+
             return AlertDialog(
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
@@ -804,15 +716,21 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     activeTrackColor: Mycolors.basecolor,
                     onChanged: (value) {
                       setDialogState(() {
-                        AppSettings.themeMode.value =
-                            value ? ThemeMode.dark : ThemeMode.light;
+                        AppSettings.themeMode.value = value
+                            ? ThemeMode.dark
+                            : ThemeMode.light;
                       });
                     },
                   ),
                   SwitchListTile(
-                    secondary: Icon(Icons.location_on, color: Mycolors.basecolor),
-                    title:
-                        Text("Location Services", style: GoogleFonts.poppins()),
+                    secondary: Icon(
+                      Icons.location_on,
+                      color: Mycolors.basecolor,
+                    ),
+                    title: Text(
+                      "Location Services",
+                      style: GoogleFonts.poppins(),
+                    ),
                     subtitle: Text(
                       isLocationEnabled ? "Enabled" : "Disabled",
                       style: GoogleFonts.poppins(

@@ -7,6 +7,7 @@ import 'package:relygo/screens/forgot_password_screen.dart';
 import 'package:relygo/services/auth_service.dart';
 import 'package:relygo/utils/responsive.dart';
 import 'package:relygo/utils/app_design_system.dart';
+import 'package:relygo/widgets/auth_wrapper.dart';
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});

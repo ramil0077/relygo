@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:relygo/screens/driver_dashboard_screen.dart';
 import 'package:relygo/screens/signin_screen.dart';
 import 'package:relygo/screens/responsive_user_dashboard_screen.dart';
 import 'package:relygo/screens/responsive_driver_dashboard_screen.dart';
 import 'package:relygo/screens/admin_web_dashboard_screen.dart';
+import 'package:relygo/screens/user_dashboard_screen.dart';
 import 'package:relygo/services/auth_service.dart';
 import 'package:relygo/utils/platform_utils.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -120,7 +122,7 @@ class AuthWrapper extends StatelessWidget {
             final status = userData?['status'] ?? 'approved';
 
             // Enforce platform restrictions
-            if (userTypeStr == 'admin' && !kIsWeb) {
+            if (userTypeStr == 'admin' && !PlatformUtils.isWeb) {
               return _buildPlatformRestrictionScreen(
                 context,
                 'Admin access is only available on the web application. Please log in using a web browser.',
@@ -128,7 +130,8 @@ class AuthWrapper extends StatelessWidget {
               );
             }
 
-            if ((userTypeStr == 'user' || userTypeStr == 'driver') && kIsWeb) {
+            if ((userTypeStr == 'user' || userTypeStr == 'driver') &&
+                PlatformUtils.isWeb) {
               return _buildPlatformRestrictionScreen(
                 context,
                 'User and Driver dashboards are only available on the mobile app. Please use your smartphone.',
@@ -306,6 +309,18 @@ class AuthWrapper extends StatelessWidget {
   }
 
   Widget _buildAdminMobileRestrictionScreen(BuildContext context) {
+    return _buildPlatformRestrictionScreen(
+      context,
+      'The admin dashboard is designed for web browsers only. Please access it from a desktop or laptop computer.',
+      Icons.computer,
+    );
+  }
+
+  Widget _buildPlatformRestrictionScreen(
+    BuildContext context,
+    String message,
+    IconData icon,
+  ) {
     return Scaffold(
       body: SafeArea(
         child: Padding(
@@ -320,15 +335,11 @@ class AuthWrapper extends StatelessWidget {
                   color: Mycolors.basecolor.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(60),
                 ),
-                child: Icon(
-                  Icons.computer,
-                  size: 60,
-                  color: Mycolors.basecolor,
-                ),
+                child: Icon(icon, size: 60, color: Mycolors.basecolor),
               ),
               const SizedBox(height: 32),
               Text(
-                'Admin Dashboard Available on Web Only',
+                'Platform Restriction',
                 style: GoogleFonts.poppins(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
@@ -338,7 +349,7 @@ class AuthWrapper extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               Text(
-                'The admin dashboard is designed for web browsers only. Please access it from a desktop or laptop computer.',
+                message,
                 textAlign: TextAlign.center,
                 style: GoogleFonts.poppins(
                   fontSize: 16,

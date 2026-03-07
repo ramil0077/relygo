@@ -7,15 +7,13 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:location/location.dart';
 import 'package:relygo/constants.dart';
 import 'package:relygo/screens/chat_detail_screen.dart';
+import 'package:relygo/services/chat_service.dart';
 import 'package:relygo/services/location_service.dart';
 import 'package:relygo/utils/platform_utils.dart';
 import 'package:relygo/utils/responsive.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-
-
-
 
 class DriverTrackingScreen extends StatefulWidget {
   final String bookingId;
@@ -74,66 +72,68 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
         .doc(driverId)
         .snapshots()
         .listen((snapshot) {
-      if (snapshot.exists && mounted) {
-        final data = snapshot.data()!;
-        final lat = data['latitude'];
-        final lng = data['longitude'];
-        final isActive = data['isActive'] ?? true; // Default to true if not set
-        
-        // Only update if location is available and tracking is active
-        if (lat != null && lng != null && isActive) {
-          setState(() {
-            _driverPosition = LatLng(lat, lng);
-            _isLoadingDriverLocation = false;
-          });
+          if (snapshot.exists && mounted) {
+            final data = snapshot.data()!;
+            final lat = data['latitude'];
+            final lng = data['longitude'];
+            final isActive =
+                data['isActive'] ?? true; // Default to true if not set
 
-          // Calculate distance and ETA if user location is available
-          if (_userPosition != null) {
-            _distance = LocationService.calculateDistance(
-              _userPosition!.latitude,
-              _userPosition!.longitude,
-              lat,
-              lng,
-            );
-            _eta = LocationService.calculateETA(_distance);
-          }
+            // Only update if location is available and tracking is active
+            if (lat != null && lng != null && isActive) {
+              setState(() {
+                _driverPosition = LatLng(lat, lng);
+                _isLoadingDriverLocation = false;
+              });
 
-          // Update map camera
-          _updateMapCamera();
-        } else if (lat != null && lng != null) {
-          // Location exists but isActive is false - still show it
-          setState(() {
-            _driverPosition = LatLng(lat, lng);
-            _isLoadingDriverLocation = false;
-          });
-          if (_userPosition != null) {
-            _distance = LocationService.calculateDistance(
-              _userPosition!.latitude,
-              _userPosition!.longitude,
-              lat,
-              lng,
-            );
-            _eta = LocationService.calculateETA(_distance);
+              // Calculate distance and ETA if user location is available
+              if (_userPosition != null) {
+                _distance = LocationService.calculateDistance(
+                  _userPosition!.latitude,
+                  _userPosition!.longitude,
+                  lat,
+                  lng,
+                );
+                _eta = LocationService.calculateETA(_distance);
+              }
+
+              // Update map camera
+              _updateMapCamera();
+            } else if (lat != null && lng != null) {
+              // Location exists but isActive is false - still show it
+              setState(() {
+                _driverPosition = LatLng(lat, lng);
+                _isLoadingDriverLocation = false;
+              });
+              if (_userPosition != null) {
+                _distance = LocationService.calculateDistance(
+                  _userPosition!.latitude,
+                  _userPosition!.longitude,
+                  lat,
+                  lng,
+                );
+                _eta = LocationService.calculateETA(_distance);
+              }
+              _updateMapCamera();
+            } else {
+              setState(() {
+                _isLoadingDriverLocation = false;
+              });
+            }
+          } else if (mounted) {
+            setState(() {
+              _isLoadingDriverLocation = false;
+            });
           }
-          _updateMapCamera();
-        } else {
-          setState(() {
-            _isLoadingDriverLocation = false;
-          });
-        }
-      } else if (mounted) {
-        setState(() {
-          _isLoadingDriverLocation = false;
         });
-      }
-    });
   }
 
   Future<void> _getUserLocation() async {
     try {
       _currentUserLocation = await LocationService.getCurrentLocation();
       if (_currentUserLocation?.latitude != null &&
-          _currentUserLocation?.longitude != null && mounted) {
+          _currentUserLocation?.longitude != null &&
+          mounted) {
         setState(() {
           _userPosition = LatLng(
             _currentUserLocation!.latitude!,
@@ -152,7 +152,7 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
 
   void _updateMapCamera() {
     if (_mapController == null) return;
-    
+
     if (_driverPosition != null && _userPosition != null) {
       // Fit both markers in view
       try {
@@ -166,7 +166,9 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
             math.max(_driverPosition!.longitude, _userPosition!.longitude),
           ),
         );
-        _mapController!.animateCamera(CameraUpdate.newLatLngBounds(bounds, 100));
+        _mapController!.animateCamera(
+          CameraUpdate.newLatLngBounds(bounds, 100),
+        );
       } catch (e) {
         // Fallback to driver position if bounds calculation fails
         _mapController!.animateCamera(
@@ -213,10 +215,7 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error: $e'),
-          backgroundColor: Colors.red,
-        ),
+        SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
       );
     }
   }
@@ -231,7 +230,12 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
         title: Text(
           'Track Your Driver',
           style: GoogleFonts.poppins(
-            fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 20, tablet: 22, desktop: 24),
+            fontSize: ResponsiveUtils.getResponsiveFontSize(
+              context,
+              mobile: 20,
+              tablet: 22,
+              desktop: 24,
+            ),
             fontWeight: FontWeight.w600,
             color: Colors.black,
           ),
@@ -248,29 +252,58 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
           children: [
             // Booking Status Card
             _buildBookingStatusCard(),
-            SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 20, tablet: 24, desktop: 28)),
+            SizedBox(
+              height: ResponsiveUtils.getResponsiveSpacing(
+                context,
+                mobile: 20,
+                tablet: 24,
+                desktop: 28,
+              ),
+            ),
 
             // Driver Information Card
             _buildDriverInfoCard(),
-            SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 20, tablet: 24, desktop: 28)),
+            SizedBox(
+              height: ResponsiveUtils.getResponsiveSpacing(
+                context,
+                mobile: 20,
+                tablet: 24,
+                desktop: 28,
+              ),
+            ),
 
             // Contact Actions
             _buildContactActions(),
-            SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 20, tablet: 24, desktop: 28)),
+            SizedBox(
+              height: ResponsiveUtils.getResponsiveSpacing(
+                context,
+                mobile: 20,
+                tablet: 24,
+                desktop: 28,
+              ),
+            ),
 
             // Ride Details
             _buildRideDetailsCard(),
-            SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 20, tablet: 24, desktop: 28)),
+            SizedBox(
+              height: ResponsiveUtils.getResponsiveSpacing(
+                context,
+                mobile: 20,
+                tablet: 24,
+                desktop: 28,
+              ),
+            ),
 
-          // Live Tracking with Map
-          _buildLiveTrackingCard(),
+            // Live Tracking with Map
+            _buildLiveTrackingCard(),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildBookingStatusCard(Map<String, dynamic> bookingData) {
+  Widget _buildBookingStatusCard() {
+    final bookingData = widget.initialBookingData;
     final status = bookingData['status'] ?? 'unknown';
     final isPaid = bookingData['isPaid'] ?? false;
     Color statusColor;
@@ -319,7 +352,12 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
       decoration: BoxDecoration(
         color: statusColor.withOpacity(0.1),
         borderRadius: BorderRadius.circular(
-          ResponsiveUtils.getResponsiveBorderRadius(context, mobile: 12, tablet: 14, desktop: 16),
+          ResponsiveUtils.getResponsiveBorderRadius(
+            context,
+            mobile: 12,
+            tablet: 14,
+            desktop: 16,
+          ),
         ),
         border: Border.all(color: statusColor.withOpacity(0.3)),
       ),
@@ -328,9 +366,21 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
           Icon(
             statusIcon,
             color: statusColor,
-            size: ResponsiveUtils.getResponsiveIconSize(context, mobile: 32, tablet: 36, desktop: 40),
+            size: ResponsiveUtils.getResponsiveIconSize(
+              context,
+              mobile: 32,
+              tablet: 36,
+              desktop: 40,
+            ),
           ),
-          SizedBox(width: ResponsiveUtils.getResponsiveSpacing(context, mobile: 16, tablet: 18, desktop: 20)),
+          SizedBox(
+            width: ResponsiveUtils.getResponsiveSpacing(
+              context,
+              mobile: 16,
+              tablet: 18,
+              desktop: 20,
+            ),
+          ),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -338,16 +388,33 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
                 Text(
                   statusText,
                   style: GoogleFonts.poppins(
-                    fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 18, tablet: 20, desktop: 22),
+                    fontSize: ResponsiveUtils.getResponsiveFontSize(
+                      context,
+                      mobile: 18,
+                      tablet: 20,
+                      desktop: 22,
+                    ),
                     fontWeight: FontWeight.bold,
                     color: statusColor,
                   ),
                 ),
-                SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 4, tablet: 5, desktop: 6)),
+                SizedBox(
+                  height: ResponsiveUtils.getResponsiveSpacing(
+                    context,
+                    mobile: 4,
+                    tablet: 5,
+                    desktop: 6,
+                  ),
+                ),
                 Text(
                   'Booking ID: ${widget.bookingId.substring(0, 8)}...',
                   style: GoogleFonts.poppins(
-                    fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 14, tablet: 15, desktop: 16),
+                    fontSize: ResponsiveUtils.getResponsiveFontSize(
+                      context,
+                      mobile: 14,
+                      tablet: 15,
+                      desktop: 16,
+                    ),
                     color: Colors.grey[600],
                   ),
                 ),
@@ -359,9 +426,9 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
     );
   }
 
-  Widget _buildDriverInfoCard(Map<String, dynamic> bookingData) {
-    final driverDetails =
-        bookingData['driverDetails'] as Map<String, dynamic>?;
+  Widget _buildDriverInfoCard() {
+    final bookingData = widget.initialBookingData;
+    final driverDetails = bookingData['driverDetails'] as Map<String, dynamic>?;
 
     if (driverDetails == null) {
       return Container(
@@ -369,7 +436,12 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
         decoration: BoxDecoration(
           color: Colors.grey[100],
           borderRadius: BorderRadius.circular(
-            ResponsiveUtils.getResponsiveBorderRadius(context, mobile: 12, tablet: 14, desktop: 16),
+            ResponsiveUtils.getResponsiveBorderRadius(
+              context,
+              mobile: 12,
+              tablet: 14,
+              desktop: 16,
+            ),
           ),
         ),
         child: Row(
@@ -377,14 +449,31 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
             Icon(
               Icons.person,
               color: Colors.grey[600],
-              size: ResponsiveUtils.getResponsiveIconSize(context, mobile: 32, tablet: 36, desktop: 40),
+              size: ResponsiveUtils.getResponsiveIconSize(
+                context,
+                mobile: 32,
+                tablet: 36,
+                desktop: 40,
+              ),
             ),
-            SizedBox(width: ResponsiveUtils.getResponsiveSpacing(context, mobile: 16, tablet: 18, desktop: 20)),
+            SizedBox(
+              width: ResponsiveUtils.getResponsiveSpacing(
+                context,
+                mobile: 16,
+                tablet: 18,
+                desktop: 20,
+              ),
+            ),
             Expanded(
               child: Text(
                 'Driver details will be available once booking is accepted',
                 style: GoogleFonts.poppins(
-                  fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 16, tablet: 17, desktop: 18),
+                  fontSize: ResponsiveUtils.getResponsiveFontSize(
+                    context,
+                    mobile: 16,
+                    tablet: 17,
+                    desktop: 18,
+                  ),
                   color: Colors.grey[600],
                 ),
               ),
@@ -404,12 +493,22 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(
-          ResponsiveUtils.getResponsiveBorderRadius(context, mobile: 12, tablet: 14, desktop: 16),
+          ResponsiveUtils.getResponsiveBorderRadius(
+            context,
+            mobile: 12,
+            tablet: 14,
+            desktop: 16,
+          ),
         ),
         boxShadow: [
           BoxShadow(
             color: Colors.grey.withOpacity(0.1),
-            blurRadius: ResponsiveUtils.getResponsiveElevation(context, mobile: 8, tablet: 10, desktop: 12),
+            blurRadius: ResponsiveUtils.getResponsiveElevation(
+              context,
+              mobile: 8,
+              tablet: 10,
+              desktop: 12,
+            ),
             offset: const Offset(0, 2),
           ),
         ],
@@ -420,18 +519,35 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
           Row(
             children: [
               CircleAvatar(
-                radius: ResponsiveUtils.getResponsiveSpacing(context, mobile: 30, tablet: 35, desktop: 40),
+                radius: ResponsiveUtils.getResponsiveSpacing(
+                  context,
+                  mobile: 30,
+                  tablet: 35,
+                  desktop: 40,
+                ),
                 backgroundColor: Mycolors.basecolor.withOpacity(0.1),
                 child: Text(
                   driverName.isNotEmpty ? driverName[0] : 'D',
                   style: GoogleFonts.poppins(
-                    fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 24, tablet: 28, desktop: 32),
+                    fontSize: ResponsiveUtils.getResponsiveFontSize(
+                      context,
+                      mobile: 24,
+                      tablet: 28,
+                      desktop: 32,
+                    ),
                     fontWeight: FontWeight.bold,
                     color: Mycolors.basecolor,
                   ),
                 ),
               ),
-              SizedBox(width: ResponsiveUtils.getResponsiveSpacing(context, mobile: 16, tablet: 18, desktop: 20)),
+              SizedBox(
+                width: ResponsiveUtils.getResponsiveSpacing(
+                  context,
+                  mobile: 16,
+                  tablet: 18,
+                  desktop: 20,
+                ),
+              ),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -439,7 +555,12 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
                     Text(
                       driverName,
                       style: GoogleFonts.poppins(
-                        fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 20, tablet: 22, desktop: 24),
+                        fontSize: ResponsiveUtils.getResponsiveFontSize(
+                          context,
+                          mobile: 20,
+                          tablet: 22,
+                          desktop: 24,
+                        ),
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -449,7 +570,12 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
                             ? '$vehicleType • $vehicleNumber'
                             : vehicleType,
                         style: GoogleFonts.poppins(
-                          fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 14, tablet: 15, desktop: 16),
+                          fontSize: ResponsiveUtils.getResponsiveFontSize(
+                            context,
+                            mobile: 14,
+                            tablet: 15,
+                            desktop: 16,
+                          ),
                           color: Colors.grey[600],
                         ),
                       ),
@@ -458,20 +584,44 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
               ),
             ],
           ),
-          SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 16, tablet: 18, desktop: 20)),
+          SizedBox(
+            height: ResponsiveUtils.getResponsiveSpacing(
+              context,
+              mobile: 16,
+              tablet: 18,
+              desktop: 20,
+            ),
+          ),
           if (driverPhone.isNotEmpty)
             Row(
               children: [
                 Icon(
                   Icons.phone,
                   color: Mycolors.green,
-                  size: ResponsiveUtils.getResponsiveIconSize(context, mobile: 20, tablet: 22, desktop: 24),
+                  size: ResponsiveUtils.getResponsiveIconSize(
+                    context,
+                    mobile: 20,
+                    tablet: 22,
+                    desktop: 24,
+                  ),
                 ),
-                SizedBox(width: ResponsiveUtils.getResponsiveSpacing(context, mobile: 8, tablet: 10, desktop: 12)),
+                SizedBox(
+                  width: ResponsiveUtils.getResponsiveSpacing(
+                    context,
+                    mobile: 8,
+                    tablet: 10,
+                    desktop: 12,
+                  ),
+                ),
                 Text(
                   driverPhone,
                   style: GoogleFonts.poppins(
-                    fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 16, tablet: 17, desktop: 18),
+                    fontSize: ResponsiveUtils.getResponsiveFontSize(
+                      context,
+                      mobile: 16,
+                      tablet: 17,
+                      desktop: 18,
+                    ),
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -482,9 +632,9 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
     );
   }
 
-  Widget _buildContactActions(Map<String, dynamic> bookingData) {
-    final driverDetails =
-        bookingData['driverDetails'] as Map<String, dynamic>?;
+  Widget _buildContactActions() {
+    final bookingData = widget.initialBookingData;
+    final driverDetails = bookingData['driverDetails'] as Map<String, dynamic>?;
     final driverId = bookingData['driverId'];
     final driverName = driverDetails?['name'] ?? 'Driver';
     final driverPhone = driverDetails?['phone'] ?? '';
@@ -499,11 +649,23 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
         Text(
           'Contact Driver',
           style: GoogleFonts.poppins(
-            fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 18, tablet: 20, desktop: 22),
+            fontSize: ResponsiveUtils.getResponsiveFontSize(
+              context,
+              mobile: 18,
+              tablet: 20,
+              desktop: 22,
+            ),
             fontWeight: FontWeight.bold,
           ),
         ),
-        SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 12, tablet: 14, desktop: 16)),
+        SizedBox(
+          height: ResponsiveUtils.getResponsiveSpacing(
+            context,
+            mobile: 12,
+            tablet: 14,
+            desktop: 16,
+          ),
+        ),
         Row(
           children: [
             Expanded(
@@ -512,33 +674,60 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
                 icon: Icon(
                   Icons.phone,
                   color: Colors.white,
-                  size: ResponsiveUtils.getResponsiveIconSize(context, mobile: 20, tablet: 22, desktop: 24),
+                  size: ResponsiveUtils.getResponsiveIconSize(
+                    context,
+                    mobile: 20,
+                    tablet: 22,
+                    desktop: 24,
+                  ),
                 ),
                 label: Text('Call'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Mycolors.green,
                   foregroundColor: Colors.white,
                   padding: EdgeInsets.symmetric(
-                    vertical: ResponsiveUtils.getResponsiveSpacing(context, mobile: 12, tablet: 14, desktop: 16),
+                    vertical: ResponsiveUtils.getResponsiveSpacing(
+                      context,
+                      mobile: 12,
+                      tablet: 14,
+                      desktop: 16,
+                    ),
                   ),
                 ),
               ),
             ),
-            SizedBox(width: ResponsiveUtils.getResponsiveSpacing(context, mobile: 12, tablet: 14, desktop: 16)),
+            SizedBox(
+              width: ResponsiveUtils.getResponsiveSpacing(
+                context,
+                mobile: 12,
+                tablet: 14,
+                desktop: 16,
+              ),
+            ),
             Expanded(
               child: ElevatedButton.icon(
                 onPressed: () => _openChat(driverId, driverName),
                 icon: Icon(
                   Icons.chat,
                   color: Colors.white,
-                  size: ResponsiveUtils.getResponsiveIconSize(context, mobile: 20, tablet: 22, desktop: 24),
+                  size: ResponsiveUtils.getResponsiveIconSize(
+                    context,
+                    mobile: 20,
+                    tablet: 22,
+                    desktop: 24,
+                  ),
                 ),
                 label: Text('Chat'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Mycolors.basecolor,
                   foregroundColor: Colors.white,
                   padding: EdgeInsets.symmetric(
-                    vertical: ResponsiveUtils.getResponsiveSpacing(context, mobile: 12, tablet: 14, desktop: 16),
+                    vertical: ResponsiveUtils.getResponsiveSpacing(
+                      context,
+                      mobile: 12,
+                      tablet: 14,
+                      desktop: 16,
+                    ),
                   ),
                 ),
               ),
@@ -549,18 +738,29 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
     );
   }
 
-  Widget _buildRideDetailsCard(Map<String, dynamic> bookingData) {
+  Widget _buildRideDetailsCard() {
+    final bookingData = widget.initialBookingData;
     return Container(
       padding: ResponsiveUtils.getResponsivePadding(context),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(
-          ResponsiveUtils.getResponsiveBorderRadius(context, mobile: 12, tablet: 14, desktop: 16),
+          ResponsiveUtils.getResponsiveBorderRadius(
+            context,
+            mobile: 12,
+            tablet: 14,
+            desktop: 16,
+          ),
         ),
         boxShadow: [
           BoxShadow(
             color: Colors.grey.withOpacity(0.1),
-            blurRadius: ResponsiveUtils.getResponsiveElevation(context, mobile: 8, tablet: 10, desktop: 12),
+            blurRadius: ResponsiveUtils.getResponsiveElevation(
+              context,
+              mobile: 8,
+              tablet: 10,
+              desktop: 12,
+            ),
             offset: const Offset(0, 2),
           ),
         ],
@@ -571,11 +771,23 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
           Text(
             'Ride Details',
             style: GoogleFonts.poppins(
-              fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 18, tablet: 20, desktop: 22),
+              fontSize: ResponsiveUtils.getResponsiveFontSize(
+                context,
+                mobile: 18,
+                tablet: 20,
+                desktop: 22,
+              ),
               fontWeight: FontWeight.bold,
             ),
           ),
-          SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 16, tablet: 18, desktop: 20)),
+          SizedBox(
+            height: ResponsiveUtils.getResponsiveSpacing(
+              context,
+              mobile: 16,
+              tablet: 18,
+              desktop: 20,
+            ),
+          ),
 
           // Pickup Location
           Row(
@@ -583,9 +795,21 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
               Icon(
                 Icons.location_on,
                 color: Mycolors.red,
-                size: ResponsiveUtils.getResponsiveIconSize(context, mobile: 20, tablet: 22, desktop: 24),
+                size: ResponsiveUtils.getResponsiveIconSize(
+                  context,
+                  mobile: 20,
+                  tablet: 22,
+                  desktop: 24,
+                ),
               ),
-              SizedBox(width: ResponsiveUtils.getResponsiveSpacing(context, mobile: 12, tablet: 14, desktop: 16)),
+              SizedBox(
+                width: ResponsiveUtils.getResponsiveSpacing(
+                  context,
+                  mobile: 12,
+                  tablet: 14,
+                  desktop: 16,
+                ),
+              ),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -593,14 +817,24 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
                     Text(
                       'Pickup',
                       style: GoogleFonts.poppins(
-                        fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 12, tablet: 13, desktop: 14),
+                        fontSize: ResponsiveUtils.getResponsiveFontSize(
+                          context,
+                          mobile: 12,
+                          tablet: 13,
+                          desktop: 14,
+                        ),
                         color: Colors.grey[600],
                       ),
                     ),
                     Text(
                       bookingData['pickupLocation'] ?? 'Unknown',
                       style: GoogleFonts.poppins(
-                        fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 16, tablet: 17, desktop: 18),
+                        fontSize: ResponsiveUtils.getResponsiveFontSize(
+                          context,
+                          mobile: 16,
+                          tablet: 17,
+                          desktop: 18,
+                        ),
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -610,7 +844,14 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
             ],
           ),
 
-          SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 16, tablet: 18, desktop: 20)),
+          SizedBox(
+            height: ResponsiveUtils.getResponsiveSpacing(
+              context,
+              mobile: 16,
+              tablet: 18,
+              desktop: 20,
+            ),
+          ),
 
           // Dropoff Location
           Row(
@@ -618,9 +859,21 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
               Icon(
                 Icons.location_on,
                 color: Mycolors.green,
-                size: ResponsiveUtils.getResponsiveIconSize(context, mobile: 20, tablet: 22, desktop: 24),
+                size: ResponsiveUtils.getResponsiveIconSize(
+                  context,
+                  mobile: 20,
+                  tablet: 22,
+                  desktop: 24,
+                ),
               ),
-              SizedBox(width: ResponsiveUtils.getResponsiveSpacing(context, mobile: 12, tablet: 14, desktop: 16)),
+              SizedBox(
+                width: ResponsiveUtils.getResponsiveSpacing(
+                  context,
+                  mobile: 12,
+                  tablet: 14,
+                  desktop: 16,
+                ),
+              ),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -628,14 +881,24 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
                     Text(
                       'Dropoff',
                       style: GoogleFonts.poppins(
-                        fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 12, tablet: 13, desktop: 14),
+                        fontSize: ResponsiveUtils.getResponsiveFontSize(
+                          context,
+                          mobile: 12,
+                          tablet: 13,
+                          desktop: 14,
+                        ),
                         color: Colors.grey[600],
                       ),
                     ),
                     Text(
                       bookingData['dropoffLocation'] ?? 'Unknown',
                       style: GoogleFonts.poppins(
-                        fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 16, tablet: 17, desktop: 18),
+                        fontSize: ResponsiveUtils.getResponsiveFontSize(
+                          context,
+                          mobile: 16,
+                          tablet: 17,
+                          desktop: 18,
+                        ),
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -645,7 +908,14 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
             ],
           ),
 
-          SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 16, tablet: 18, desktop: 20)),
+          SizedBox(
+            height: ResponsiveUtils.getResponsiveSpacing(
+              context,
+              mobile: 16,
+              tablet: 18,
+              desktop: 20,
+            ),
+          ),
 
           // Fare
           if (widget.initialBookingData['fare'] != null)
@@ -654,13 +924,30 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
                 Icon(
                   Icons.attach_money,
                   color: Mycolors.orange,
-                  size: ResponsiveUtils.getResponsiveIconSize(context, mobile: 20, tablet: 22, desktop: 24),
+                  size: ResponsiveUtils.getResponsiveIconSize(
+                    context,
+                    mobile: 20,
+                    tablet: 22,
+                    desktop: 24,
+                  ),
                 ),
-                SizedBox(width: ResponsiveUtils.getResponsiveSpacing(context, mobile: 12, tablet: 14, desktop: 16)),
+                SizedBox(
+                  width: ResponsiveUtils.getResponsiveSpacing(
+                    context,
+                    mobile: 12,
+                    tablet: 14,
+                    desktop: 16,
+                  ),
+                ),
                 Text(
                   'Fare: ₹${widget.initialBookingData['fare']}',
                   style: GoogleFonts.poppins(
-                    fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 16, tablet: 17, desktop: 18),
+                    fontSize: ResponsiveUtils.getResponsiveFontSize(
+                      context,
+                      mobile: 16,
+                      tablet: 17,
+                      desktop: 18,
+                    ),
                     fontWeight: FontWeight.bold,
                     color: Mycolors.orange,
                   ),
@@ -677,22 +964,24 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
     final isPaid = widget.initialBookingData['isPaid'] ?? false;
     final statusLower = status.toLowerCase();
     // Active if: accepted, ongoing, paid, OR (completed and paid)
-    final isActive = statusLower == 'accepted' ||
+    final isActive =
+        statusLower == 'accepted' ||
         statusLower == 'ongoing' ||
         statusLower == 'paid' ||
         (statusLower == 'completed' && isPaid);
 
     if (!isActive) {
-    if (status != 'started' || driverId == null) {
-=======
-    if (!['accepted', 'ongoing', 'started'].contains(status) || driverId == null) {
->>>>>>> 19c60511df77cf71534b179d6daa8ec8cebe0b10
       return Container(
         padding: ResponsiveUtils.getResponsivePadding(context),
         decoration: BoxDecoration(
           color: Colors.grey[100],
           borderRadius: BorderRadius.circular(
-            ResponsiveUtils.getResponsiveBorderRadius(context, mobile: 12, tablet: 14, desktop: 16),
+            ResponsiveUtils.getResponsiveBorderRadius(
+              context,
+              mobile: 12,
+              tablet: 14,
+              desktop: 16,
+            ),
           ),
         ),
         child: Row(
@@ -700,17 +989,31 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
             Icon(
               Icons.location_searching,
               color: Colors.grey[600],
-              size: ResponsiveUtils.getResponsiveIconSize(context, mobile: 32, tablet: 36, desktop: 40),
+              size: ResponsiveUtils.getResponsiveIconSize(
+                context,
+                mobile: 32,
+                tablet: 36,
+                desktop: 40,
+              ),
             ),
-            SizedBox(width: ResponsiveUtils.getResponsiveSpacing(context, mobile: 16, tablet: 18, desktop: 20)),
+            SizedBox(
+              width: ResponsiveUtils.getResponsiveSpacing(
+                context,
+                mobile: 16,
+                tablet: 18,
+                desktop: 20,
+              ),
+            ),
             Expanded(
               child: Text(
                 'Live tracking will be available when driver accepts the ride',
-=======
-                'Live tracking will be available once the driver accepts the ride.',
->>>>>>> 19c60511df77cf71534b179d6daa8ec8cebe0b10
                 style: GoogleFonts.poppins(
-                  fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 16, tablet: 17, desktop: 18),
+                  fontSize: ResponsiveUtils.getResponsiveFontSize(
+                    context,
+                    mobile: 16,
+                    tablet: 17,
+                    desktop: 18,
+                  ),
                   color: Colors.grey[600],
                 ),
               ),
@@ -727,12 +1030,22 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(
-            ResponsiveUtils.getResponsiveBorderRadius(context, mobile: 12, tablet: 14, desktop: 16),
+            ResponsiveUtils.getResponsiveBorderRadius(
+              context,
+              mobile: 12,
+              tablet: 14,
+              desktop: 16,
+            ),
           ),
           boxShadow: [
             BoxShadow(
               color: Colors.grey.withOpacity(0.1),
-              blurRadius: ResponsiveUtils.getResponsiveElevation(context, mobile: 8, tablet: 10, desktop: 12),
+              blurRadius: ResponsiveUtils.getResponsiveElevation(
+                context,
+                mobile: 8,
+                tablet: 10,
+                desktop: 12,
+              ),
               offset: const Offset(0, 2),
             ),
           ],
@@ -745,25 +1058,54 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
                 Icon(
                   Icons.location_searching,
                   color: Mycolors.basecolor,
-                  size: ResponsiveUtils.getResponsiveIconSize(context, mobile: 24, tablet: 26, desktop: 28),
+                  size: ResponsiveUtils.getResponsiveIconSize(
+                    context,
+                    mobile: 24,
+                    tablet: 26,
+                    desktop: 28,
+                  ),
                 ),
-                SizedBox(width: ResponsiveUtils.getResponsiveSpacing(context, mobile: 12, tablet: 14, desktop: 16)),
+                SizedBox(
+                  width: ResponsiveUtils.getResponsiveSpacing(
+                    context,
+                    mobile: 12,
+                    tablet: 14,
+                    desktop: 16,
+                  ),
+                ),
                 Text(
                   'Live Tracking',
                   style: GoogleFonts.poppins(
-                    fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 18, tablet: 20, desktop: 22),
+                    fontSize: ResponsiveUtils.getResponsiveFontSize(
+                      context,
+                      mobile: 18,
+                      tablet: 20,
+                      desktop: 22,
+                    ),
                     fontWeight: FontWeight.bold,
                   ),
                 ),
               ],
             ),
-            SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 16, tablet: 18, desktop: 20)),
+            SizedBox(
+              height: ResponsiveUtils.getResponsiveSpacing(
+                context,
+                mobile: 16,
+                tablet: 18,
+                desktop: 20,
+              ),
+            ),
             Container(
               padding: ResponsiveUtils.getResponsivePadding(context),
               decoration: BoxDecoration(
                 color: Colors.blue[50],
                 borderRadius: BorderRadius.circular(
-                  ResponsiveUtils.getResponsiveBorderRadius(context, mobile: 8, tablet: 10, desktop: 12),
+                  ResponsiveUtils.getResponsiveBorderRadius(
+                    context,
+                    mobile: 8,
+                    tablet: 10,
+                    desktop: 12,
+                  ),
                 ),
               ),
               child: Row(
@@ -771,14 +1113,31 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
                   Icon(
                     Icons.info_outline,
                     color: Colors.blue[700],
-                    size: ResponsiveUtils.getResponsiveIconSize(context, mobile: 20, tablet: 22, desktop: 24),
+                    size: ResponsiveUtils.getResponsiveIconSize(
+                      context,
+                      mobile: 20,
+                      tablet: 22,
+                      desktop: 24,
+                    ),
                   ),
-                  SizedBox(width: ResponsiveUtils.getResponsiveSpacing(context, mobile: 12, tablet: 14, desktop: 16)),
+                  SizedBox(
+                    width: ResponsiveUtils.getResponsiveSpacing(
+                      context,
+                      mobile: 12,
+                      tablet: 14,
+                      desktop: 16,
+                    ),
+                  ),
                   Expanded(
                     child: Text(
                       'Map view is available on mobile devices. Use the button below to open driver location in Google Maps.',
                       style: GoogleFonts.poppins(
-                        fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 14, tablet: 15, desktop: 16),
+                        fontSize: ResponsiveUtils.getResponsiveFontSize(
+                          context,
+                          mobile: 14,
+                          tablet: 15,
+                          desktop: 16,
+                        ),
                         color: Colors.blue[900],
                       ),
                     ),
@@ -787,20 +1146,37 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
               ),
             ),
             if (_driverPosition != null) ...[
-              SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 16, tablet: 18, desktop: 20)),
+              SizedBox(
+                height: ResponsiveUtils.getResponsiveSpacing(
+                  context,
+                  mobile: 16,
+                  tablet: 18,
+                  desktop: 20,
+                ),
+              ),
               ElevatedButton.icon(
                 onPressed: _openInExternalMaps,
                 icon: Icon(
                   Icons.map,
                   color: Colors.white,
-                  size: ResponsiveUtils.getResponsiveIconSize(context, mobile: 20, tablet: 22, desktop: 24),
+                  size: ResponsiveUtils.getResponsiveIconSize(
+                    context,
+                    mobile: 20,
+                    tablet: 22,
+                    desktop: 24,
+                  ),
                 ),
                 label: Text('Open in Google Maps'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Mycolors.basecolor,
                   foregroundColor: Colors.white,
                   padding: EdgeInsets.symmetric(
-                    vertical: ResponsiveUtils.getResponsiveSpacing(context, mobile: 12, tablet: 14, desktop: 16),
+                    vertical: ResponsiveUtils.getResponsiveSpacing(
+                      context,
+                      mobile: 12,
+                      tablet: 14,
+                      desktop: 16,
+                    ),
                   ),
                 ),
               ),
@@ -815,12 +1191,22 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(
-          ResponsiveUtils.getResponsiveBorderRadius(context, mobile: 12, tablet: 14, desktop: 16),
+          ResponsiveUtils.getResponsiveBorderRadius(
+            context,
+            mobile: 12,
+            tablet: 14,
+            desktop: 16,
+          ),
         ),
         boxShadow: [
           BoxShadow(
             color: Colors.grey.withOpacity(0.1),
-            blurRadius: ResponsiveUtils.getResponsiveElevation(context, mobile: 8, tablet: 10, desktop: 12),
+            blurRadius: ResponsiveUtils.getResponsiveElevation(
+              context,
+              mobile: 8,
+              tablet: 10,
+              desktop: 12,
+            ),
             offset: const Offset(0, 2),
           ),
         ],
@@ -833,13 +1219,30 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
               Icon(
                 Icons.location_searching,
                 color: Mycolors.basecolor,
-                size: ResponsiveUtils.getResponsiveIconSize(context, mobile: 24, tablet: 26, desktop: 28),
+                size: ResponsiveUtils.getResponsiveIconSize(
+                  context,
+                  mobile: 24,
+                  tablet: 26,
+                  desktop: 28,
+                ),
               ),
-              SizedBox(width: ResponsiveUtils.getResponsiveSpacing(context, mobile: 12, tablet: 14, desktop: 16)),
+              SizedBox(
+                width: ResponsiveUtils.getResponsiveSpacing(
+                  context,
+                  mobile: 12,
+                  tablet: 14,
+                  desktop: 16,
+                ),
+              ),
               Text(
                 'Live Tracking',
                 style: GoogleFonts.poppins(
-                  fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 18, tablet: 20, desktop: 22),
+                  fontSize: ResponsiveUtils.getResponsiveFontSize(
+                    context,
+                    mobile: 18,
+                    tablet: 20,
+                    desktop: 22,
+                  ),
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -848,7 +1251,12 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
                 IconButton(
                   icon: Icon(
                     Icons.open_in_new,
-                    size: ResponsiveUtils.getResponsiveIconSize(context, mobile: 24, tablet: 26, desktop: 28),
+                    size: ResponsiveUtils.getResponsiveIconSize(
+                      context,
+                      mobile: 24,
+                      tablet: 26,
+                      desktop: 28,
+                    ),
                   ),
                   onPressed: _openInExternalMaps,
                   tooltip: 'Open in Maps',
@@ -856,29 +1264,52 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
                 ),
             ],
           ),
-          SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 16, tablet: 18, desktop: 20)),
+          SizedBox(
+            height: ResponsiveUtils.getResponsiveSpacing(
+              context,
+              mobile: 16,
+              tablet: 18,
+              desktop: 20,
+            ),
+          ),
 
           // Real map view
           Container(
-            height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 300, tablet: 400, desktop: 500),
+            height: ResponsiveUtils.getResponsiveSpacing(
+              context,
+              mobile: 300,
+              tablet: 400,
+              desktop: 500,
+            ),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(
-                ResponsiveUtils.getResponsiveBorderRadius(context, mobile: 8, tablet: 10, desktop: 12),
+                ResponsiveUtils.getResponsiveBorderRadius(
+                  context,
+                  mobile: 8,
+                  tablet: 10,
+                  desktop: 12,
+                ),
               ),
               border: Border.all(color: Colors.grey[300]!),
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(
-                ResponsiveUtils.getResponsiveBorderRadius(context, mobile: 8, tablet: 10, desktop: 12),
+                ResponsiveUtils.getResponsiveBorderRadius(
+                  context,
+                  mobile: 8,
+                  tablet: 10,
+                  desktop: 12,
+                ),
               ),
               child: Stack(
                 children: [
                   GoogleMap(
                     initialCameraPosition: CameraPosition(
-                      target: _driverPosition ?? 
-                              _userPosition ?? 
-                              _defaultLocation,
-                      zoom: _driverPosition != null || _userPosition != null ? 15 : 12,
+                      target:
+                          _driverPosition ?? _userPosition ?? _defaultLocation,
+                      zoom: _driverPosition != null || _userPosition != null
+                          ? 15
+                          : 12,
                     ),
                     markers: _buildMarkers(),
                     polylines: _buildPolylines(),
@@ -903,11 +1334,23 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             const CircularProgressIndicator(),
-                            SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 16, tablet: 18, desktop: 20)),
+                            SizedBox(
+                              height: ResponsiveUtils.getResponsiveSpacing(
+                                context,
+                                mobile: 16,
+                                tablet: 18,
+                                desktop: 20,
+                              ),
+                            ),
                             Text(
                               'Waiting for driver location...',
                               style: GoogleFonts.poppins(
-                                fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 14, tablet: 15, desktop: 16),
+                                fontSize: ResponsiveUtils.getResponsiveFontSize(
+                                  context,
+                                  mobile: 14,
+                                  tablet: 15,
+                                  desktop: 16,
+                                ),
                                 color: Colors.grey[600],
                               ),
                             ),
@@ -917,138 +1360,10 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
                     ),
                 ],
               ),
-              const SizedBox(height: 16),
-
-          SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 16, tablet: 18, desktop: 20)),
-
-          // Distance and ETA info
-          Row(
-            children: [
-              Expanded(
-                child: Container(
-                  padding: EdgeInsets.all(
-                    ResponsiveUtils.getResponsiveSpacing(context, mobile: 12, tablet: 14, desktop: 16),
-                  ),
-                  decoration: BoxDecoration(
-                    color: Mycolors.basecolor.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(
-                      ResponsiveUtils.getResponsiveBorderRadius(context, mobile: 8, tablet: 10, desktop: 12),
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.straighten,
-                        color: Mycolors.basecolor,
-                        size: ResponsiveUtils.getResponsiveIconSize(context, mobile: 20, tablet: 22, desktop: 24),
-                      ),
-                      SizedBox(width: ResponsiveUtils.getResponsiveSpacing(context, mobile: 8, tablet: 10, desktop: 12)),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Distance',
-                            style: GoogleFonts.poppins(
-                              fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 12, tablet: 13, desktop: 14),
-                              color: Colors.grey[600],
-                            ),
-                          ),
-                          Text(
-                            _driverPosition != null && _userPosition != null
-                                ? LocationService.formatDistance(_distance)
-                                : _isLoadingDriverLocation
-                                    ? 'Calculating...'
-                                    : 'Not available',
-                            style: GoogleFonts.poppins(
-                              fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 16, tablet: 17, desktop: 18),
-                              fontWeight: FontWeight.bold,
-                              color: Mycolors.basecolor,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              SizedBox(width: ResponsiveUtils.getResponsiveSpacing(context, mobile: 12, tablet: 14, desktop: 16)),
-              Expanded(
-                child: Container(
-                  padding: EdgeInsets.all(
-                    ResponsiveUtils.getResponsiveSpacing(context, mobile: 12, tablet: 14, desktop: 16),
-                  ),
-                  decoration: BoxDecoration(
-                    color: Mycolors.orange.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(
-                      ResponsiveUtils.getResponsiveBorderRadius(context, mobile: 8, tablet: 10, desktop: 12),
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.access_time,
-                        color: Mycolors.orange,
-                        size: ResponsiveUtils.getResponsiveIconSize(context, mobile: 20, tablet: 22, desktop: 24),
-                      ),
-                      SizedBox(width: ResponsiveUtils.getResponsiveSpacing(context, mobile: 8, tablet: 10, desktop: 12)),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'ETA',
-                            style: GoogleFonts.poppins(
-                              fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 12, tablet: 13, desktop: 14),
-                              color: Colors.grey[600],
-                            ),
-                          ),
-                          Text(
-                            _driverPosition != null && _userPosition != null
-                                ? (_eta > 0 ? '$_eta min' : 'Calculating...')
-                                : _isLoadingDriverLocation
-                                    ? 'Calculating...'
-                                    : 'Not available',
-                            style: GoogleFonts.poppins(
-                              fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 16, tablet: 17, desktop: 18),
-                              fontWeight: FontWeight.bold,
-                              color: Mycolors.orange,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
-              ],
-
-              ,
-
-              const SizedBox(height: 16),
-
-              // Estimated arrival / Status Message
-              Row(
-                children: [
-                  Icon(
-                    status == 'started' ? Icons.navigation : Icons.access_time,
-                    color: status == 'started' ? Mycolors.basecolor : Mycolors.orange,
-                    size: 20,
-                  ),
-                  const SizedBox(width: 12),
-                  Text(
-                    status == 'started'
-                        ? 'Ride is in progress'
-                        : 'Driver is coming to your pickup location',
-                    style: GoogleFonts.poppins(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        );
-      }
+            ),
+          ), // closes map Container
+        ],
+      ),
     );
   }
 
@@ -1061,9 +1376,7 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
         Marker(
           markerId: const MarkerId('driver'),
           position: _driverPosition!,
-          icon: BitmapDescriptor.defaultMarkerWithHue(
-            BitmapDescriptor.hueBlue,
-          ),
+          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
           infoWindow: const InfoWindow(
             title: 'Driver',
             snippet: 'Your driver is here',
