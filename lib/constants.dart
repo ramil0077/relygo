@@ -263,10 +263,21 @@ class ResponsiveSpacing {
 
 // EmailJS configuration - replace these with values from your EmailJS account
 class EmailJsConfig {
-  // public (user) id from EmailJS - safe to use on client for EmailJS
-  static const String userId = 'DUxMvuZFPNxopEw8A'; // e.g. user_XXXXXXXXX
-  static const String serviceId =
-      'service_418nip9'; // e.g. service_xxx
-  static const String templateId =
-      'template_2hvhyzd'; // e.g. template_xxx
+  // Public (user) id from EmailJS Dashboard → Account → API Keys
+  static const String userId = 'DUxMvuZFPNxopEw8A';
+  // Private API Key from EmailJS Dashboard → Account → API Keys
+  // IMPORTANT: This is required for REST API calls from non-browser apps.
+  // Go to: https://dashboard.emailjs.com/admin/account/security
+  static const String privateKey =
+      '4zCGFHzpCyG_h24BmScBE'; // <-- Replace this!
+  // Email service ID from EmailJS Dashboard → Email Services
+  static const String serviceId = 'service_418nip9';
+  // Template ID for driver approval emails
+  static const String approvalTemplateId =
+      'template_2hvhyzd'; // Your approval template
+  // Template ID for driver rejection emails (can be same or different template)
+  static const String rejectionTemplateId =
+      'template_2hvhyzd'; // Change if you have a separate rejection template
+  // Legacy alias kept for backward compatibility
+  static const String templateId = approvalTemplateId;
 }

@@ -68,7 +68,7 @@ class _DriverChatbotScreenState extends State<DriverChatbotScreen> {
       int todRides = 0;
       double totEarnings = 0;
       double todEarnings = 0;
-      
+
       List<Map<String, dynamic>> allRides = [];
 
       for (var doc in ridesSnap.docs) {
@@ -97,16 +97,19 @@ class _DriverChatbotScreenState extends State<DriverChatbotScreen> {
           todRides++;
           todEarnings += fare;
         }
-        
+
         allRides.add({
           'fare': fare,
           'date': createdAt?.toDate() ?? DateTime.now(),
           'pickup': data['pickupLocation'] ?? data['pickup'] ?? 'Unknown',
-          'dropoff': data['dropoffLocation'] ?? data['destination'] ?? 'Unknown',
+          'dropoff':
+              data['dropoffLocation'] ?? data['destination'] ?? 'Unknown',
         });
       }
-      
-      allRides.sort((a, b) => (b['date'] as DateTime).compareTo(a['date'] as DateTime));
+
+      allRides.sort(
+        (a, b) => (b['date'] as DateTime).compareTo(a['date'] as DateTime),
+      );
       final recentRidesList = allRides.take(10).toList();
 
       // Ratings
@@ -178,11 +181,13 @@ class _DriverChatbotScreenState extends State<DriverChatbotScreen> {
     // Build recent rides string
     String recentRidesText = "No recent rides.";
     if (_recentRides.isNotEmpty) {
-      recentRidesText = _recentRides.map((r) {
-        final date = r['date'] as DateTime;
-        final dateStr = "${date.day}/${date.month}/${date.year}";
-        return "- $dateStr: ${r['pickup']} to ${r['dropoff']} (₹${r['fare']})";
-      }).join("\n");
+      recentRidesText = _recentRides
+          .map((r) {
+            final date = r['date'] as DateTime;
+            final dateStr = "${date.day}/${date.month}/${date.year}";
+            return "- $dateStr: ${r['pickup']} to ${r['dropoff']} (₹${r['fare']})";
+          })
+          .join("\n");
     }
 
     // System prompt with live driver stats injected
@@ -238,27 +243,38 @@ If they ask a general question not related to stats, be helpful and informative.
               'Authorization': 'Bearer $groqApiKey',
             },
             body: jsonEncode({
-              "model": "llama3-8b-8192", // Fast and capable model
+              "model": "llama-3.1-8b-instant", // Fast, current Groq model
               "messages": conversationHistory,
               "temperature": 0.5,
-              "max_tokens": 150,
+              "max_tokens": 300,
             }),
           )
-          .timeout(const Duration(seconds: 15));
+          .timeout(const Duration(seconds: 30));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         final String botReply = data['choices'][0]['message']['content'];
         _addBotMessage(botReply.trim());
+      } else if (response.statusCode == 401) {
+        debugPrint("Groq API: Invalid or expired API key");
+        _addBotMessage(
+          "The AI assistant API key is invalid or expired. Please update the Groq API key.",
+        );
+      } else if (response.statusCode == 429) {
+        debugPrint("Groq API: Rate limit exceeded");
+        _addBotMessage(
+          "Too many requests. Please wait a moment and try again.",
+        );
       } else {
         debugPrint("Groq API Error: ${response.statusCode} - ${response.body}");
         _addBotMessage(
-          "Sorry, I'm having trouble connecting to my brain right now.",
+          "Sorry, I'm having trouble connecting to my brain right now. (Error ${response.statusCode})",
         );
       }
     } catch (e) {
       debugPrint("Error making Groq API call: $e");
-      String errorMessage = "Sorry, there was a network error.";
+      String errorMessage =
+          "Sorry, there was a network error. Please check your internet connection.";
       if (e.toString().contains('TimeoutException')) {
         errorMessage = "Connection timed out. Please try again.";
       }

@@ -428,6 +428,9 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                         'earnings': _todayEarnings,
                         'averageRating': _avgRating,
                       };
+                   final rides = (data['rides'] ?? 0).toString();
+                  final earnings = '₹${(data['earnings'] ?? 0.0).toStringAsFixed(0)}';
+                  final rating = (data['averageRating'] ?? 0.0).toStringAsFixed(1);
                   return Container(
                     padding: ResponsiveUtils.getResponsivePadding(context),
                     decoration: BoxDecoration(
@@ -460,15 +463,13 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                           height: ResponsiveSpacing.getMediumSpacing(context),
                         ),
                         ResponsiveWidget(
-                          mobile: _buildMobileStatsGrid(context, data),
-                          tablet: _buildTabletStatsGrid(context, data),
-                          desktop: _buildDesktopStatsGrid(context, data),
+                          mobile: _buildMobileStatsGrid(context, rides, earnings, rating),
+                          tablet: _buildTabletStatsGrid(context, rides, earnings, rating),
+                          desktop: _buildDesktopStatsGrid(context, rides, earnings, rating),
                         ),
                       ],
                     ),
-                    _buildLiveStatsGrid(context),
-                  ],
-                ),
+                  ),
               ),
               SizedBox(height: ResponsiveSpacing.getLargeSpacing(context)),
 
@@ -675,54 +676,6 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
     return const DriverProfileScreen();
   }
 
-  // Live Stats Wrapper
-  Widget _buildLiveStatsGrid(BuildContext context) {
-    final driverId = AuthService.currentUserId;
-    if (driverId == null) return const SizedBox.shrink();
-
-    return FutureBuilder<List<Map<String, dynamic>>>(
-      future: Future.wait([
-        DriverService.getDriverEarnings(driverId),
-        DriverService.getDriverRating(driverId),
-      ]),
-      builder: (context, snapshot) {
-        String ridesCount = "0";
-        String earningsAmount = "₹0";
-        String ratingValue = "0.0";
-
-        if (snapshot.hasData) {
-          final earningsData = snapshot.data![0];
-          final ratingData = snapshot.data![1];
-
-          ridesCount = (earningsData['todayRides'] ?? 0).toString();
-          earningsAmount =
-              "₹${(earningsData['todayEarnings'] ?? 0.0).toStringAsFixed(0)}";
-          ratingValue = (ratingData['averageRating'] ?? 0.0).toStringAsFixed(1);
-        }
-
-        return ResponsiveWidget(
-          mobile: _buildMobileStatsGrid(
-            context,
-            ridesCount,
-            earningsAmount,
-            ratingValue,
-          ),
-          tablet: _buildTabletStatsGrid(
-            context,
-            ridesCount,
-            earningsAmount,
-            ratingValue,
-          ),
-          desktop: _buildDesktopStatsGrid(
-            context,
-            ridesCount,
-            earningsAmount,
-            ratingValue,
-          ),
-        );
-      },
-    );
-  }
 
   // Mobile Stats Grid - adaptive for very narrow screens
   Widget _buildMobileStatsGrid(

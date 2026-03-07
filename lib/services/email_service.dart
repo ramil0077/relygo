@@ -5,9 +5,10 @@ import 'package:relygo/constants.dart';
 class EmailService {
   /// Send approval email to driver using EmailJS REST API.
   ///
-  /// Note: EmailJS allows sending from client using the public user id, but
-  /// the template must be configured in EmailJS dashboard. Replace the
-  /// EmailJsConfig values in `constants.dart` with your account values.
+  /// Note: EmailJS REST API requires the 'accessToken' (private key) in the
+  /// request body when called from non-browser environments (like a Flutter app).
+  /// Get your private key from EmailJS Dashboard → Account → API Keys.
+  /// Set it in `constants.dart` as EmailJsConfig.privateKey.
   static Future<bool> sendDriverApprovalEmail({
     required String toEmail,
     required String driverName,
@@ -30,14 +31,19 @@ class EmailService {
 
       final body = jsonEncode({
         'service_id': EmailJsConfig.serviceId,
-        'template_id': EmailJsConfig.templateId,
+        'template_id': EmailJsConfig.approvalTemplateId,
         'user_id': EmailJsConfig.userId,
+        'accessToken':
+            EmailJsConfig.privateKey, // Required for non-browser calls
         'template_params': templateParams,
       });
 
       final resp = await http.post(
         url,
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          'Origin': 'http://localhost',
+        },
         body: body,
       );
 
@@ -45,11 +51,13 @@ class EmailService {
         print('Approval email sent successfully to $toEmail');
         return true;
       } else {
-        print('EmailJS send failed: ${resp.statusCode} ${resp.body}');
+        print(
+          'EmailJS approval send failed: ${resp.statusCode} - "${resp.body}"',
+        );
         return false;
       }
     } catch (e) {
-      print('EmailJS send error: $e');
+      print('EmailJS approval send error: $e');
       return false;
     }
   }
@@ -81,14 +89,19 @@ class EmailService {
 
       final body = jsonEncode({
         'service_id': EmailJsConfig.serviceId,
-        'template_id': EmailJsConfig.templateId,
+        'template_id': EmailJsConfig.rejectionTemplateId,
         'user_id': EmailJsConfig.userId,
+        'accessToken':
+            EmailJsConfig.privateKey, // Required for non-browser calls
         'template_params': templateParams,
       });
 
       final resp = await http.post(
         url,
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          'Origin': 'http://localhost',
+        },
         body: body,
       );
 
@@ -96,11 +109,13 @@ class EmailService {
         print('Rejection email sent successfully to $driverEmail');
         return true;
       } else {
-        print('EmailJS send failed: ${resp.statusCode} ${resp.body}');
+        print(
+          'EmailJS rejection send failed: ${resp.statusCode} - "${resp.body}"',
+        );
         return false;
       }
     } catch (e) {
-      print('EmailJS send error: $e');
+      print('EmailJS rejection send error: $e');
       return false;
     }
   }
