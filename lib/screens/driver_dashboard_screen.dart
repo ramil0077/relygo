@@ -41,6 +41,10 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
 
   String?
   _currentActiveRideId; // Track current active ride for location tracking
+  int _todayRides = 0;
+  double _todayEarnings = 0.0;
+  double _avgRating = 0.0;
+  String? get _activeRideId => _currentActiveRideId;
 
   @override
   void initState() {
@@ -155,15 +159,11 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
               elevation: 0,
               title: Text(
                 'Driver Dashboard',
-                style: GoogleFonts.poppins(
-                  fontWeight: FontWeight.w600,
-                ),
+                style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
               ),
               actions: [
                 IconButton(
-                  icon: const Icon(
-                    Icons.smart_toy_outlined,
-                  ),
+                  icon: const Icon(Icons.smart_toy_outlined),
                   onPressed: () {
                     Navigator.push(
                       context,
@@ -175,9 +175,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                   tooltip: 'Chatbot Assistant',
                 ),
                 IconButton(
-                  icon: const Icon(
-                    Icons.notifications_none,
-                  ),
+                  icon: const Icon(Icons.notifications_none),
                   onPressed: () {
                     Navigator.push(
                       context,
@@ -283,7 +281,10 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                 stream: FirebaseFirestore.instance
                     .collection('ride_requests')
                     .where('driverId', isEqualTo: AuthService.currentUserId)
-                    .where('status', isEqualTo: 'ongoing') // Paid but not started
+                    .where(
+                      'status',
+                      isEqualTo: 'ongoing',
+                    ) // Paid but not started
                     .snapshots(),
                 builder: (context, snapshot) {
                   if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
@@ -295,9 +296,14 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                     final data = doc.data() as Map<String, dynamic>;
                     final scheduledDate = data['scheduledDate'] as Timestamp?;
                     if (scheduledDate == null) return false;
-                    
-                    final diff = scheduledDate.toDate().difference(now).inMinutes;
-                    return diff <= 15 && diff > -60; // Reminder 15 mins before or within an hour after
+
+                    final diff = scheduledDate
+                        .toDate()
+                        .difference(now)
+                        .inMinutes;
+                    return diff <= 15 &&
+                        diff >
+                            -60; // Reminder 15 mins before or within an hour after
                   }).toList();
 
                   if (reminders.isEmpty) return const SizedBox.shrink();
@@ -307,12 +313,15 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                     children: [
                       Text(
                         "Upcoming Ride Reminders",
-                        style: ResponsiveTextStyles.getSubtitleStyle(context).copyWith(
-                          color: Mycolors.red,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: ResponsiveTextStyles.getSubtitleStyle(context)
+                            .copyWith(
+                              color: Mycolors.red,
+                              fontWeight: FontWeight.bold,
+                            ),
                       ),
-                      SizedBox(height: ResponsiveSpacing.getSmallSpacing(context)),
+                      SizedBox(
+                        height: ResponsiveSpacing.getSmallSpacing(context),
+                      ),
                       ...reminders.map((doc) {
                         final data = doc.data() as Map<String, dynamic>;
                         return Container(
@@ -321,7 +330,9 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                           decoration: BoxDecoration(
                             color: Mycolors.red.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Mycolors.red.withOpacity(0.3)),
+                            border: Border.all(
+                              color: Mycolors.red.withOpacity(0.3),
+                            ),
                           ),
                           child: Row(
                             children: [
@@ -333,7 +344,9 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                                   children: [
                                     Text(
                                       "Ride with ${data['userName'] ?? 'User'}",
-                                      style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+                                      style: GoogleFonts.poppins(
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
                                     Text(
                                       "Pickup: ${data['pickup'] ?? 'Location'}",
@@ -343,10 +356,13 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                                 ),
                               ),
                               ElevatedButton(
-                                onPressed: () => _handleStartRide(specificRideId: doc.id),
+                                onPressed: () =>
+                                    _handleStartRide(context, doc.id),
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Mycolors.green,
-                                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                  ),
                                 ),
                                 child: const Text("Start Now"),
                               ),
@@ -354,7 +370,9 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                           ),
                         );
                       }).toList(),
-                      SizedBox(height: ResponsiveSpacing.getMediumSpacing(context)),
+                      SizedBox(
+                        height: ResponsiveSpacing.getMediumSpacing(context),
+                      ),
                     ],
                   );
                 },
@@ -392,11 +410,15 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                           Expanded(
                             child: ElevatedButton(
                               onPressed: () async {
-                                final res = await DriverService.completeBooking(_activeRideId!);
+                                final res = await DriverService.completeBooking(
+                                  _activeRideId!,
+                                );
                                 if (res['success']) {
                                   _stopLocationUpdates();
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Ride completed!'))
+                                    const SnackBar(
+                                      content: Text('Ride completed!'),
+                                    ),
                                   );
                                 }
                               },
@@ -428,9 +450,12 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                         'earnings': _todayEarnings,
                         'averageRating': _avgRating,
                       };
-                   final rides = (data['rides'] ?? 0).toString();
-                  final earnings = '₹${(data['earnings'] ?? 0.0).toStringAsFixed(0)}';
-                  final rating = (data['averageRating'] ?? 0.0).toStringAsFixed(1);
+                  final rides = (data['rides'] ?? 0).toString();
+                  final earnings =
+                      '₹${(data['earnings'] ?? 0.0).toStringAsFixed(0)}';
+                  final rating = (data['averageRating'] ?? 0.0).toStringAsFixed(
+                    1,
+                  );
                   return Container(
                     padding: ResponsiveUtils.getResponsivePadding(context),
                     decoration: BoxDecoration(
@@ -463,13 +488,29 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                           height: ResponsiveSpacing.getMediumSpacing(context),
                         ),
                         ResponsiveWidget(
-                          mobile: _buildMobileStatsGrid(context, rides, earnings, rating),
-                          tablet: _buildTabletStatsGrid(context, rides, earnings, rating),
-                          desktop: _buildDesktopStatsGrid(context, rides, earnings, rating),
+                          mobile: _buildMobileStatsGrid(
+                            context,
+                            rides,
+                            earnings,
+                            rating,
+                          ),
+                          tablet: _buildTabletStatsGrid(
+                            context,
+                            rides,
+                            earnings,
+                            rating,
+                          ),
+                          desktop: _buildDesktopStatsGrid(
+                            context,
+                            rides,
+                            earnings,
+                            rating,
+                          ),
                         ),
                       ],
                     ),
-                  ),
+                  );
+                },
               ),
               SizedBox(height: ResponsiveSpacing.getLargeSpacing(context)),
 
@@ -676,6 +717,58 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
     return const DriverProfileScreen();
   }
 
+  void _stopLocationUpdates() {
+    DriverLocationService.stopLocationTracking();
+    if (mounted) {
+      setState(() {
+        _currentActiveRideId = null;
+      });
+    }
+  }
+
+  void _showSettingsDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Settings'),
+        content: const Text('Settings functionality coming soon.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showEmergencyDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Emergency SOS'),
+        content: const Text(
+          'Calling emergency services and notifying authorities...',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              // Implement emergency call logic
+              Navigator.pop(context);
+            },
+            child: const Text(
+              'Confirm SOS',
+              style: TextStyle(color: Colors.red),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   // Mobile Stats Grid - adaptive for very narrow screens
   Widget _buildMobileStatsGrid(
@@ -926,7 +1019,11 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                 "Start Ride",
                 Icons.play_arrow,
                 Mycolors.green,
-                _handleStartRide,
+                () => _scrollController.animateTo(
+                  800,
+                  duration: const Duration(milliseconds: 500),
+                  curve: Curves.easeInOut,
+                ),
               ),
             ),
             SizedBox(width: ResponsiveSpacing.getMediumSpacing(context)),
@@ -1603,9 +1700,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
             desktop: 16,
           ),
         ),
-        border: Border.all(
-          color: Theme.of(context).dividerColor,
-        ),
+        border: Border.all(color: Theme.of(context).dividerColor),
         boxShadow: [
           BoxShadow(
             color: Colors.grey.withOpacity(0.1),
