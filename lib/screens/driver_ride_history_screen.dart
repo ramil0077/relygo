@@ -61,13 +61,8 @@ class _DriverRideHistoryScreenState extends State<DriverRideHistoryScreen> {
                     ),
                   );
                 }
-<<<<<<< HEAD
                 final bookings = snapshot.data ?? [];
                 if (bookings.isEmpty) {
-=======
-                final rides = snapshot.data ?? [];
-                if (rides.isEmpty) {
->>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
                   return Center(
                     child: Text(
                       'No rides found',
@@ -132,15 +127,9 @@ class _DriverRideHistoryScreenState extends State<DriverRideHistoryScreen> {
                     Expanded(
                       child: ListView.builder(
                   padding: const EdgeInsets.all(20),
-<<<<<<< HEAD
                         itemCount: filteredBookings.length,
                         itemBuilder: (context, index) {
                     final data = filteredBookings[index];
-=======
-                  itemCount: rides.length,
-                  itemBuilder: (context, index) {
-                    final data = rides[index];
->>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
                     final pickup =
                         (data['pickup'] ?? data['pickupLocation'] ?? 'Pickup')
                             .toString();
@@ -293,56 +282,8 @@ class _DriverRideHistoryScreenState extends State<DriverRideHistoryScreen> {
     final driverId = AuthService.currentUserId;
     if (driverId == null) return const Stream.empty();
 
-<<<<<<< HEAD
     // Use unified stream that merges both 'bookings' and 'ride_requests' collections
     return DriverService.getUnifiedDriverBookingsStream(driverId);
-=======
-    return FirebaseFirestore.instance
-        .collection('ride_requests')
-        .where('driverId', isEqualTo: driverId)
-        .snapshots()
-        .map((snapshot) {
-          final List<Map<String, dynamic>> results = snapshot.docs.map((doc) {
-            final data = doc.data();
-            data['id'] = doc.id;
-            return data;
-          }).toList();
-
-          // Filter by date client-side
-          DateTime startDate;
-          final now = DateTime.now();
-          switch (_selectedFilter) {
-            case 'Today':
-              startDate = DateTime(now.year, now.month, now.day);
-              break;
-            case 'Week':
-              startDate = now.subtract(const Duration(days: 7));
-              break;
-            case 'Month':
-              startDate = DateTime(now.year, now.month, 1);
-              break;
-            case 'All':
-            default:
-              startDate = DateTime(2020);
-          }
-
-          final filtered = results.where((item) {
-            final createdAt = item['createdAt'] as Timestamp?;
-            if (createdAt == null) return false;
-            return createdAt.toDate().isAfter(startDate);
-          }).toList();
-
-          // Sort by createdAt descending
-          filtered.sort((a, b) {
-            final aTime = a['createdAt'] as Timestamp?;
-            final bTime = b['createdAt'] as Timestamp?;
-            if (aTime == null || bTime == null) return 0;
-            return bTime.compareTo(aTime);
-          });
-
-          return filtered;
-        });
->>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
   }
 
   String _statusString(String raw) {

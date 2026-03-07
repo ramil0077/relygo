@@ -1,13 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:relygo/constants.dart';
-<<<<<<< HEAD
 import 'package:relygo/screens/admin_web_dashboard_screen.dart';
 import 'package:relygo/utils/platform_utils.dart';
 import 'package:relygo/utils/responsive.dart';
-=======
-import 'package:relygo/screens/admin_dashboard_screen.dart';
->>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
 import 'package:relygo/services/auth_service.dart';
 
 class AdminLoginScreen extends StatefulWidget {
@@ -249,7 +245,6 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
     final String email = _emailController.text.trim();
     final String password = _passwordController.text;
 
-<<<<<<< HEAD
     // Use AuthService for admin login (handles persistence)
     final result = await AuthService.signInWithEmailAndPassword(
       email: _emailController.text.trim(),
@@ -258,14 +253,6 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
 
     if (result['success'] == true && result['userType'] == 'admin') {
       // Success - redirect to web admin dashboard
-=======
-    final result = await AuthService.signInWithEmailAndPassword(
-      email: email,
-      password: password,
-    );
-
-    if (result['success'] == true) {
->>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
       if (mounted) {
         if (PlatformUtils.isWeb) {
           Navigator.pushReplacement(

@@ -3,12 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/foundation.dart'; // For kIsWeb
 
 import 'package:relygo/constants.dart';
-<<<<<<< HEAD
 import 'package:relygo/widgets/auth_wrapper.dart';
-=======
-
-import 'package:relygo/screens/signin_screen.dart';
->>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
 
 class Splashscreen extends StatefulWidget {
   const Splashscreen({super.key});
@@ -22,20 +17,13 @@ class _SplashscreenState extends State<Splashscreen>
   late AnimationController _logoController;
   late AnimationController _textController;
   late AnimationController _buttonController;
-<<<<<<< HEAD
 
   late Animation<double> _logoScaleAnimation;
-=======
->>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
   late Animation<double> _logoOpacityAnimation;
   late Animation<double> _textFadeAnimation;
   late Animation<double> _textSlideAnimation;
   late Animation<double> _buttonFadeAnimation;
-<<<<<<< HEAD
   late Animation<double> _buttonScaleAnimation;
-=======
-  late Animation<double> _buttonSlideAnimation;
->>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
 
   @override
   void initState() {
@@ -57,7 +45,6 @@ class _SplashscreenState extends State<Splashscreen>
       vsync: this,
     );
 
-<<<<<<< HEAD
     // Logo fade and subtle scale (no rotation/pulse)
     _logoScaleAnimation = Tween<double>(begin: 0.95, end: 1.05).animate(
       CurvedAnimation(parent: _logoController, curve: Curves.easeInOut),
@@ -66,13 +53,6 @@ class _SplashscreenState extends State<Splashscreen>
     _logoOpacityAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _logoController, curve: Curves.easeIn),
     );
-=======
-    // Logo Opacity and Scale
-    _logoOpacityAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(parent: _logoController, curve: Curves.easeIn));
->>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
 
     // Text animations
     _textFadeAnimation = Tween<double>(
@@ -91,13 +71,8 @@ class _SplashscreenState extends State<Splashscreen>
       end: 1.0,
     ).animate(CurvedAnimation(parent: _buttonController, curve: Curves.easeIn));
 
-<<<<<<< HEAD
     _buttonScaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
       CurvedAnimation(parent: _buttonController, curve: Curves.elasticOut),
-=======
-    _buttonSlideAnimation = Tween<double>(begin: 20.0, end: 0.0).animate(
-      CurvedAnimation(parent: _buttonController, curve: Curves.easeOut),
->>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
     );
 
     // Start animations
@@ -115,11 +90,8 @@ class _SplashscreenState extends State<Splashscreen>
     // Start button animation after text
     await Future.delayed(const Duration(milliseconds: 300));
     _buttonController.forward();
-<<<<<<< HEAD
   // Start repeating logo animation (fade in/out + subtle scale)
   _logoController.repeat(reverse: true);
-=======
->>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
   }
 
   @override
@@ -140,7 +112,6 @@ class _SplashscreenState extends State<Splashscreen>
             children: [
               const SizedBox(height: 40),
 
-<<<<<<< HEAD
               // Animated Logo (fade in/out + subtle scale, no spin or radial gradient)
               FadeTransition(
                 opacity: _logoOpacityAnimation,
@@ -153,24 +124,6 @@ class _SplashscreenState extends State<Splashscreen>
                       height: 160,
                       width: 160,
                       fit: BoxFit.contain,
-=======
-              // Animated Logo
-              AnimatedBuilder(
-                animation: _logoOpacityAnimation,
-                builder: (context, child) {
-                  return Opacity(
-                    opacity: _logoOpacityAnimation.value,
-                    child: Container(
-                      decoration: const BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.transparent, // Removed shadow/gradient
-                      ),
-                      child: Image.asset(
-                        "assets/logooo.png",
-                        height: 140,
-                        width: 140,
-                      ),
->>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
                     ),
                   ),
                 ),

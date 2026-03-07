@@ -5,12 +5,7 @@ import 'package:relygo/services/auth_service.dart';
 import 'package:relygo/screens/signin_screen.dart';
 import 'package:relygo/screens/complaint_submission_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-<<<<<<< HEAD
 import 'package:relygo/utils/phone_validation.dart';
-=======
-import 'package:firebase_auth/firebase_auth.dart';
-<<<<<<< HEAD
->>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
 =======
 import 'package:url_launcher/url_launcher.dart';
 import 'package:relygo/services/user_service.dart';
@@ -171,7 +166,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
-<<<<<<< HEAD
                             const SizedBox(height: 10),
                             Container(
                               padding: const EdgeInsets.symmetric(
@@ -235,8 +229,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                               color: Mycolors.red,
                               fontWeight: FontWeight.w600,
                             ),
-=======
->>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
                           ),
                         ],
                       ),

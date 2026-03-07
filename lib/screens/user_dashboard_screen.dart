@@ -487,18 +487,12 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                   ),
                   TextButton(
                     onPressed: () {
-<<<<<<< HEAD
                       Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (context) => RideHistoryScreen(),
                         ),
                       );
-=======
-                      setState(() {
-                        _selectedIndex = 2; // History Tab
-                      });
->>>>>>> 19c60511df77cf71534b179d6daa8ec8cebe0b10
                     },
                     child: Text(
                       "View All",
@@ -575,7 +569,6 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-<<<<<<< HEAD
           SizedBox(height: ResponsiveSpacing.getMediumSpacing(context)),
           // Search Bar
           TextField(
@@ -595,16 +588,6 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                   mobile: 24,
                   tablet: 26,
                   desktop: 28,
-=======
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "Find a Driver",
-                  style: ResponsiveTextStyles.getTitleStyle(context),
->>>>>>> 19c60511df77cf71534b179d6daa8ec8cebe0b10
                 ),
                 Text(
                   "Search for nearby drivers and services",
@@ -616,7 +599,6 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
               ],
             ),
           ),
-<<<<<<< HEAD
           SizedBox(height: ResponsiveSpacing.getMediumSpacing(context)),
 
           // Active filters (service type)
@@ -645,48 +627,6 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
           if (_selectedServiceType != null)
             SizedBox(height: ResponsiveSpacing.getSmallSpacing(context)),
 
-=======
-          Container(
-            decoration: BoxDecoration(
-              color: Theme.of(context).cardColor,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? Colors.black.withOpacity(0.3)
-                      : Colors.black.withOpacity(0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: TextField(
-              onChanged: (value) {
-                setState(() {
-                  _driverSearchQuery = value.trim();
-                });
-              },
-              decoration: InputDecoration(
-                hintText: "Search by driver name or vehicle type...",
-                prefixIcon: Icon(Icons.search, color: Mycolors.basecolor),
-                suffixIcon: IconButton(
-                  icon: const Icon(Icons.filter_list),
-                  onPressed: () {
-                    // TODO: Implement filters
-                  },
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide.none,
-                ),
-                filled: true,
-                fillColor: Theme.of(context).cardColor,
-                contentPadding: const EdgeInsets.symmetric(vertical: 16),
-              ),
-            ),
-          ),
-          const SizedBox(height: 20),
->>>>>>> 19c60511df77cf71534b179d6daa8ec8cebe0b10
           // Search Results - Firestore drivers
           StreamBuilder<List<Map<String, dynamic>>>(
             stream: UserService.getDriversStream(),
@@ -746,7 +686,6 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                 );
               }
 
-<<<<<<< HEAD
                 // Filter by selected service type (vehicle type) strictly
                 if (_selectedServiceType != null &&
                     _selectedServiceType!.isNotEmpty) {
@@ -784,12 +723,6 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
 
                 if (drivers.isEmpty) {
                   return Center(
-=======
-              if (drivers.isEmpty) {
-                return Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(40),
->>>>>>> 19c60511df77cf71534b179d6daa8ec8cebe0b10
                     child: Text(
                       'No drivers found for "$_driverSearchQuery"',
                       style: GoogleFonts.poppins(color: Mycolors.gray),
@@ -1942,11 +1875,7 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                 Icons.search,
                 Mycolors.basecolor,
                 () {
-<<<<<<< HEAD
                   _promptHomeBooking();
-=======
-                  setState(() => _selectedIndex = 1);
->>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
                 },
               ),
             ),
@@ -1958,16 +1887,12 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                 Icons.history,
                 Mycolors.orange,
                 () {
-<<<<<<< HEAD
                   Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (context) => RideHistoryScreen(),
                     ),
                   );
-=======
-                  setState(() => _selectedIndex = 1);
->>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
                 },
               ),
             ),
@@ -1983,11 +1908,7 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                 Icons.emergency,
                 Mycolors.red,
                 () {
-<<<<<<< HEAD
                   _showEmergencySheet();
-=======
-                  _showEmergencyDialog();
->>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
                 },
               ),
             ),
@@ -1995,57 +1916,10 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
             Expanded(
               child: _buildServiceCard(
                 context,
-<<<<<<< HEAD
                 "Track Driver",
                 Icons.my_location,
                 Mycolors.green,
                 () => _handleTrackDriver(),
-=======
-                "Ride History",
-                Icons.history,
-                Mycolors.green,
-                () {
-                  setState(() => _selectedIndex = 2);
-                },
-              ),
-            ),
-          ],
-        ),
-        SizedBox(height: ResponsiveSpacing.getSmallSpacing(context)),
-        Row(
-          children: [
-            Expanded(
-              child: _buildServiceCard(
-                context,
-                "Support Chat",
-                Icons.support_agent,
-                Mycolors.blue,
-                () {
-                  final String conversationId = 'admin_${AuthService.currentUserId}';
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => ChatDetailScreen(
-                        peerName: 'Admin Support',
-                        conversationId: conversationId,
-                        peerId: 'admin',
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-            SizedBox(width: ResponsiveSpacing.getSmallSpacing(context)),
-            Expanded(
-              child: _buildServiceCard(
-                context,
-                "Settings",
-                Icons.settings,
-                Colors.blueGrey,
-                () {
-                  setState(() => _selectedIndex = 3);
-                },
->>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
               ),
             ),
           ],
@@ -2067,11 +1941,7 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                 Icons.search,
                 Mycolors.basecolor,
                 () {
-<<<<<<< HEAD
                   _promptHomeBooking();
-=======
-                  setState(() => _selectedIndex = 1);
->>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
                 },
               ),
             ),
@@ -2083,16 +1953,12 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                 Icons.history,
                 Mycolors.orange,
                 () {
-<<<<<<< HEAD
                   Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (context) => RideHistoryScreen(),
                     ),
                   );
-=======
-                  setState(() => _selectedIndex = 1);
->>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
                 },
               ),
             ),
@@ -2108,11 +1974,7 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                 Icons.emergency,
                 Mycolors.red,
                 () {
-<<<<<<< HEAD
                   _showEmergencySheet();
-=======
-                  _showEmergencyDialog();
->>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
                 },
               ),
             ),
@@ -2120,57 +1982,10 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
             Expanded(
               child: _buildServiceCard(
                 context,
-<<<<<<< HEAD
                 "Track Driver",
                 Icons.my_location,
                 Mycolors.green,
                 () => _handleTrackDriver(),
-=======
-                "Ride History",
-                Icons.history,
-                Mycolors.green,
-                () {
-                  setState(() => _selectedIndex = 2);
-                },
-              ),
-            ),
-          ],
-        ),
-        SizedBox(height: ResponsiveSpacing.getMediumSpacing(context)),
-        Row(
-          children: [
-            Expanded(
-              child: _buildServiceCard(
-                context,
-                "Support Chat",
-                Icons.support_agent,
-                Mycolors.blue,
-                () {
-                  final String conversationId = 'admin_${AuthService.currentUserId}';
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => ChatDetailScreen(
-                        peerName: 'Admin Support',
-                        conversationId: conversationId,
-                        peerId: 'admin',
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-            SizedBox(width: ResponsiveSpacing.getMediumSpacing(context)),
-            Expanded(
-              child: _buildServiceCard(
-                context,
-                "Settings",
-                Icons.settings,
-                Colors.blueGrey,
-                () {
-                  setState(() => _selectedIndex = 3);
-                },
->>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
               ),
             ),
           ],
@@ -2202,14 +2017,10 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
             Icons.history,
             Mycolors.orange,
             () {
-<<<<<<< HEAD
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => RideHistoryScreen()),
               );
-=======
-              setState(() => _selectedIndex = 1);
->>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
             },
           ),
         ),
@@ -2221,11 +2032,7 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
             Icons.emergency,
             Mycolors.red,
             () {
-<<<<<<< HEAD
               _showEmergencySheet();
-=======
-              _showEmergencyDialog();
->>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
             },
           ),
         ),
@@ -2233,7 +2040,6 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
         Expanded(
           child: _buildServiceCard(
             context,
-<<<<<<< HEAD
             "Track Driver",
             Icons.my_location,
             Mycolors.green,
@@ -2244,47 +2050,6 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                   backgroundColor: Mycolors.basecolor,
                 ),
               );
-=======
-            "Ride History",
-            Icons.history,
-            Mycolors.green,
-            () {
-              setState(() => _selectedIndex = 2);
-            },
-          ),
-        ),
-        SizedBox(width: ResponsiveSpacing.getMediumSpacing(context)),
-        Expanded(
-          child: _buildServiceCard(
-            context,
-            "Support Chat",
-            Icons.support_agent,
-            Mycolors.blue,
-            () {
-              final String conversationId = 'admin_${AuthService.currentUserId}';
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => ChatDetailScreen(
-                    peerName: 'Admin Support',
-                    conversationId: conversationId,
-                    peerId: 'admin',
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
-        SizedBox(width: ResponsiveSpacing.getMediumSpacing(context)),
-        Expanded(
-          child: _buildServiceCard(
-            context,
-            "Settings",
-            Icons.settings,
-            Colors.blueGrey,
-            () {
-              setState(() => _selectedIndex = 3);
->>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
             },
           ),
         ),
@@ -3207,4 +2972,3 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
     );
   }
 }
-

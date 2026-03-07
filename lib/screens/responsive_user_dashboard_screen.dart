@@ -211,13 +211,9 @@ class _ResponsiveUserDashboardScreenState
                                     requestData['driverName'] ?? 'Driver',
                                 destination:
                                     requestData['destination'] ?? 'Destination',
-<<<<<<< HEAD
                                 amount: (requestData['fare'] is num)
                                   ? (requestData['fare'] as num).toDouble()
                                   : 150.0,
-=======
-                                amount: (requestData['fare'] ?? 0).toDouble(),
->>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
                               ),
                             ),
                           );
@@ -301,22 +297,6 @@ class _ResponsiveUserDashboardScreenState
         },
         items: _navItems,
       ),
-<<<<<<< HEAD
-=======
-      floatingActionButton: _selectedIndex == 0
-          ? FloatingQuickActionButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  AnimationUtils.createSlideRoute(const ServiceBookingScreen()),
-                );
-              },
-              icon: Icons.add,
-              tooltip: 'Book a Ride',
-            )
-          : null,
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
->>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
     );
   }
 
@@ -373,17 +353,12 @@ class _ResponsiveUserDashboardScreenState
           .doc(AuthService.currentUserId)
           .snapshots(),
       builder: (context, snapshot) {
-<<<<<<< HEAD
         final doc = snapshot.data;
         final Map<String, dynamic>? docData = doc != null
             ? (doc.data() as Map<String, dynamic>?)
             : null;
         final userName = docData?['name']?.toString() ?? 'User';
         final userType = docData?['userType']?.toString() ?? 'user';
-=======
-        final userName = snapshot.data?['name'] ?? 'User';
-        final userType = snapshot.data?['userType'] ?? 'user';
->>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
 
         return AnimatedCard(
           color: Colors.white,
@@ -493,24 +468,11 @@ class _ResponsiveUserDashboardScreenState
         ),
       },
       {
-<<<<<<< HEAD
         'title': 'Track Driver',
         'subtitle': 'Live location tracking',
         'icon': Icons.my_location,
         'color': Mycolors.green,
         'onTap': () => _handleTrackDriver(),
-=======
-        'title': 'Chat',
-        'subtitle': 'Message drivers',
-        'icon': Icons.chat,
-        'color': Mycolors.orange,
-        'onTap': () => Navigator.push(
-          context,
-          AnimationUtils.createSlideRoute(
-            const ChatDetailScreen(peerName: 'Support'),
-          ),
-        ),
->>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
       },
     ];
 
@@ -896,11 +858,7 @@ class _ResponsiveUserDashboardScreenState
           height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 16),
         ),
         StreamBuilder<List<Map<String, dynamic>>>(
-<<<<<<< HEAD
           stream: UserService.getUserBookingsStream(
-=======
-          stream: UserService.getUserBookingHistoryStream(
->>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
             AuthService.currentUserId ?? '',
           ),
           builder: (context, snapshot) {

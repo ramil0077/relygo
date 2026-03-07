@@ -117,7 +117,6 @@ class UserService {
   /// Unified stream of user's rides from both collections
   static Stream<List<Map<String, dynamic>>> getCurrentUserRidesStream() {
     final userId = AuthService.currentUserId;
-<<<<<<< HEAD
     if (userId == null) return const Stream.empty();
 
     // Stream from 'bookings' collection
@@ -197,34 +196,6 @@ class UserService {
 
       return sortedRides;
     });
-=======
-    if (userId == null) {
-      return const Stream.empty();
-    }
-    return _firestore
-        .collection('ride_requests')
-        .where('userId', isEqualTo: userId)
-        .snapshots()
-        .map((snapshot) {
-          final rides = snapshot.docs.map((doc) {
-            final data = doc.data();
-            data['id'] = doc.id;
-            // Normalize for UI
-            data['destination'] ??= data['dropoffLocation'] ?? 'Destination';
-            return data;
-          }).toList();
-
-          // Sort client-side
-          rides.sort((a, b) {
-            final aTime = a['createdAt'] as Timestamp?;
-            final bTime = b['createdAt'] as Timestamp?;
-            if (aTime == null || bTime == null) return 0;
-            return bTime.compareTo(aTime);
-          });
-
-          return rides;
-        });
->>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
   }
 
   /// Create a new booking
@@ -535,55 +506,7 @@ class UserService {
     }
   }
 
-<<<<<<< HEAD
   /// Get user's ride history from ride_requests, enrich with driver details
-=======
-  /// Send SOS emergency alert
-  static Future<Map<String, dynamic>> sendSOS({
-    required String userId,
-    required String userName,
-    required String userPhone,
-    required double latitude,
-    required double longitude,
-    String? address,
-    String? bookingId,
-  }) async {
-    try {
-      final docRef = await _firestore.collection('emergencies').add({
-        'userId': userId,
-        'userName': userName,
-        'userPhone': userPhone,
-        'location': GeoPoint(latitude, longitude),
-        'address': address ?? 'Fetching address...',
-        'bookingId': bookingId,
-        'status': 'active',
-        'createdAt': FieldValue.serverTimestamp(),
-        'updatedAt': FieldValue.serverTimestamp(),
-      });
-
-      // Also create a notification for admins
-      await _firestore.collection('notifications').add({
-        'title': '🚨 SOS EMERGENCY ALERT',
-        'message': 'Emergency reported by $userName at $address',
-        'type': 'sos_emergency',
-        'referenceId': docRef.id,
-        'isAdmin': true,
-        'read': false,
-        'createdAt': FieldValue.serverTimestamp(),
-      });
-
-      return {
-        'success': true,
-        'message': 'SOS Alert sent to authorities and admin!',
-        'emergencyId': docRef.id,
-      };
-    } catch (e) {
-      return {'success': false, 'error': 'Failed to send SOS: $e'};
-    }
-  }
-
-  /// Get user's booking history (from ride_requests collection)
->>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
   static Stream<List<Map<String, dynamic>>> getUserBookingHistoryStream(
     String userId,
   ) {
@@ -594,7 +517,6 @@ class UserService {
         .asyncMap((snapshot) async {
           List<Map<String, dynamic>> ridesWithDetails = [];
 
-<<<<<<< HEAD
           for (var doc in snapshot.docs) {
             final rideData = doc.data();
             rideData['id'] = doc.id;
@@ -624,28 +546,6 @@ class UserService {
 
             try {
               if (rideData['driverId'] != null) {
-=======
-          final docs = snapshot.docs.toList();
-          // Sort client-side to avoid index errors
-          docs.sort((a, b) {
-            final aTime = a.data()['createdAt'] as Timestamp?;
-            final bTime = b.data()['createdAt'] as Timestamp?;
-            if (aTime == null || bTime == null) return 0;
-            return bTime.compareTo(aTime);
-          });
-
-          for (var doc in docs) {
-            final bookingData = doc.data();
-            bookingData['id'] = doc.id;
-            // Normalize field names for UI compatibility
-            bookingData['pickupLocation'] ??= bookingData['pickup'] ?? '';
-            bookingData['dropoffLocation'] ??= bookingData['destination'] ?? '';
-
-            try {
-              // Get driver details if driverId is present
-              if (bookingData['driverId'] != null &&
-                  bookingData['driverId'].toString().isNotEmpty) {
->>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
                 final driverDoc = await _firestore
                     .collection('users')
                     .doc(rideData['driverId'])
@@ -660,12 +560,8 @@ class UserService {
               }
               ridesWithDetails.add(rideData);
             } catch (e) {
-<<<<<<< HEAD
               print('Error getting ride details: $e');
               ridesWithDetails.add(rideData);
-=======
-              bookingsWithDetails.add(bookingData);
->>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
             }
           }
 
@@ -690,10 +586,6 @@ class UserService {
     return _firestore
         .collection('feedback')
         .where('driverId', isEqualTo: driverId)
-<<<<<<< HEAD
-=======
-        .where('status', isEqualTo: 'active')
->>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
         .snapshots()
         .asyncMap((snapshot) async {
           List<Map<String, dynamic>> reviewsWithDetails = [];
@@ -768,7 +660,6 @@ class UserService {
     }
   }
 
-<<<<<<< HEAD
   /// One-time fetch of user's active booking (bookings + ride_requests) for Track Driver
   static Future<Map<String, dynamic>?> getActiveBookingOnce(String userId) async {
     try {
@@ -814,19 +705,11 @@ class UserService {
 
   /// Get user's active booking for tracking
   /// Includes rides that are paid and completed (so user can track location)
-=======
-  /// Get user's active booking for tracking (from ride_requests)
->>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
   static Stream<Map<String, dynamic>?> getActiveBookingStream(String userId) {
     // Check bookings collection first
     return _firestore
         .collection('ride_requests')
         .where('userId', isEqualTo: userId)
-<<<<<<< HEAD
-=======
-        .where('status', whereIn: ['pending', 'accepted', 'ongoing', 'started'])
-        .limit(1)
->>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
         .snapshots()
         .asyncMap((snapshot) async {
           // Process bookings collection
@@ -836,7 +719,6 @@ class UserService {
             final isPaid = data['isPaid'] ?? false;
             final status = (data['status'] ?? '').toString().toLowerCase();
 
-<<<<<<< HEAD
             // Include if: pending, accepted, ongoing, OR (completed and paid)
             if (status == 'pending' ||
                 status == 'accepted' ||
@@ -859,16 +741,9 @@ class UserService {
               return data;
             }
           }
-=======
-          final bookingData = snapshot.docs.first.data();
-          bookingData['id'] = snapshot.docs.first.id;
-          bookingData['pickupLocation'] ??= bookingData['pickup'] ?? '';
-          bookingData['dropoffLocation'] ??= bookingData['destination'] ?? '';
->>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
 
           // If not found in bookings, check ride_requests
           try {
-<<<<<<< HEAD
             final rideRequestsSnapshot = await _firestore
                 .collection('ride_requests')
                 .where('userId', isEqualTo: userId)
@@ -902,25 +777,10 @@ class UserService {
                   }
                 }
                 return data;
-=======
-            // Get driver details
-            if (bookingData['driverId'] != null &&
-                bookingData['driverId'].toString().isNotEmpty) {
-              final driverDoc = await _firestore
-                  .collection('users')
-                  .doc(bookingData['driverId'])
-                  .get();
-              if (driverDoc.exists) {
-                bookingData['driverDetails'] = driverDoc.data();
->>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
               }
             }
           } catch (e) {
-<<<<<<< HEAD
             print('Error checking ride_requests: $e');
-=======
-            return bookingData;
->>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
           }
 
           return null;

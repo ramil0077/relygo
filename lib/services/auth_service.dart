@@ -49,19 +49,10 @@ class AuthService {
   }) async {
    
     if (email.trim() == 'admin@relygo.com' && password == 'admin123') {
-<<<<<<< HEAD
       // Save admin login state to SharedPreferences
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool('is_admin_logged_in', true);
       
-=======
-      if (!kIsWeb) {
-        return {
-          'success': false,
-          'error': 'Admin access is only available on the web application. Please use a web browser.',
-        };
-      }
->>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
       return {
         'success': true,
         'user': null, 

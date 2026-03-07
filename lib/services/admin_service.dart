@@ -58,7 +58,6 @@ class AdminService {
         'updatedAt': FieldValue.serverTimestamp(),
       });
 
-<<<<<<< HEAD
       // Try to send approval email to driver (non-fatal if it fails)
       try {
         final doc = await _firestore.collection('users').doc(driverId).get();
@@ -82,23 +81,6 @@ class AdminService {
         // Log but continue - approval already applied in Firestore
         print('Failed to send approval email: $e');
       }
-=======
-      // Send Approval Email
-      await EmailService.sendDriverApprovalEmail(
-        driverName: data['name'] ?? 'Driver',
-        driverEmail: data['email'] ?? '',
-      );
-
-      // Send In-app Notification
-      await _firestore.collection('notifications').add({
-        'userId': driverId,
-        'title': 'Account Approved!',
-        'message': 'Welcome to RelyGo! Your driver account has been approved.',
-        'type': 'account_approval',
-        'createdAt': FieldValue.serverTimestamp(),
-        'read': false,
-      });
->>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
 
       return {
         'success': true,

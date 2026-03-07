@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-<<<<<<< HEAD
 import 'package:relygo/constants.dart';
 
 class EmailService {
@@ -51,57 +50,10 @@ class EmailService {
       }
     } catch (e) {
       print('EmailJS send error: $e');
-=======
-
-class EmailService {
-  // EmailJS Credentials - These should be provided by the USER
-  // For now, using placeholders
-  static const String _serviceId = 'service_418nip9 ';
-  static const String _templateId = 'template_2hvhyzd';
-  static const String _userId = 'DUxMvuZFPNxopEw8A';
-
-  /// Send approval email to driver
-  static Future<bool> sendDriverApprovalEmail({
-    required String driverName,
-    required String driverEmail,
-  }) async {
-    final url = Uri.parse('https://api.emailjs.com/api/v1.0/email/send');
-    
-    try {
-      final response = await http.post(
-        url,
-        headers: {
-          'Content-Type': 'application/json',
-          'origin': 'http://localhost', // Required by EmailJS for some plans
-        },
-        body: json.encode({
-          'service_id': _serviceId,
-          'template_id': _templateId,
-          'user_id': _userId,
-          'template_params': {
-            'to_name': driverName,
-            'to_email': driverEmail,
-            'subject': 'Welcome to RelyGo! - Your Driver Account is Approved',
-            'message': 'Congratulations $driverName, your application to join RelyGo as a driver has been approved. You can now log in to the app and start accepting rides.',
-          },
-        }),
-      );
-
-      if (response.statusCode == 200) {
-        print('Approval email sent successfully to $driverEmail');
-        return true;
-      } else {
-        print('Failed to send email: ${response.body}');
-        return false;
-      }
-    } catch (e) {
-      print('Error sending approval email: $e');
->>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
       return false;
     }
   }
 
-<<<<<<< HEAD
   /// Build a detailed approval message for the driver
   static String _buildApprovalMessage(String driverName) {
     return '''
@@ -132,40 +84,5 @@ Welcome aboard! Thank you for choosing RelyGo.
 
 If you have any questions, contact our support team at support@relygo.com
 ''';
-=======
-  /// Send rejection email to driver
-  static Future<bool> sendDriverRejectionEmail({
-    required String driverName,
-    required String driverEmail,
-    required String reason,
-  }) async {
-    final url = Uri.parse('https://api.emailjs.com/api/v1.0/email/send');
-    
-    try {
-      final response = await http.post(
-        url,
-        headers: {
-          'Content-Type': 'application/json',
-          'origin': 'http://localhost',
-        },
-        body: json.encode({
-          'service_id': _serviceId,
-          'template_id': _templateId,
-          'user_id': _userId,
-          'template_params': {
-            'to_name': driverName,
-            'to_email': driverEmail,
-            'subject': 'Update on your RelyGo Driver Application',
-            'message': 'Hi $driverName, thank you for your interest in RelyGo. Unfortunately, your application has not been approved at this time for the following reason: $reason',
-          },
-        }),
-      );
-
-      return response.statusCode == 200;
-    } catch (e) {
-      print('Error sending rejection email: $e');
-      return false;
-    }
->>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
   }
 }

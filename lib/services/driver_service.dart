@@ -30,7 +30,6 @@ class DriverService {
         .map((doc) => doc.data()?['isAvailable'] ?? false);
   }
 
-<<<<<<< HEAD
   /// Get pending booking requests for driver (unified from both collections)
   static Stream<List<Map<String, dynamic>>> getPendingBookingsStream(
     String driverId,
@@ -38,21 +37,10 @@ class DriverService {
     // Stream from 'bookings' collection
     final bookingsStream = _firestore
         .collection('bookings')
-=======
-  /// Get pending booking requests for driver
-  /// Shows both requests directed at this driver AND open/unassigned requests
-  static Stream<List<Map<String, dynamic>>> getPendingBookingsStream(
-    String driverId,
-  ) {
-    // Stream directed requests for this driver
-    final directedStream = _firestore
-        .collection('ride_requests')
->>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
         .where('driverId', isEqualTo: driverId)
         .where('status', isEqualTo: 'pending')
         .snapshots();
 
-<<<<<<< HEAD
     // Combine with 'ride_requests' collection
     return bookingsStream.asyncMap((bookingsSnapshot) async {
       // Get pending ride_requests
@@ -120,50 +108,6 @@ class DriverService {
       });
 
       return sortedPending;
-=======
-    // Merge: use directed stream and fetch all pending for deduplication
-    return directedStream.asyncMap((snapshot) async {
-      final List<Map<String, dynamic>> results = [];
-      // Get open (no driverId) pending requests as well
-      final openSnap = await _firestore
-          .collection('ride_requests')
-          .where('status', isEqualTo: 'pending')
-          .get();
-
-      for (final doc in openSnap.docs) {
-        final data = doc.data();
-        final docDriverId = data['driverId'];
-        // Include if directed at this driver OR no driver assigned
-        if (docDriverId == driverId ||
-            docDriverId == null ||
-            docDriverId == '') {
-          data['id'] = doc.id;
-          // fetch userName if missing
-          if ((data['userName'] == null ||
-                  data['userName'].toString().isEmpty) &&
-              data['userId'] != null) {
-            try {
-              final userDoc = await _firestore
-                  .collection('users')
-                  .doc(data['userId'].toString())
-                  .get();
-              if (userDoc.exists) {
-                data['userName'] =
-                    userDoc.data()?['name'] ??
-                    userDoc.data()?['fullName'] ??
-                    'User';
-                data['userPhone'] = userDoc.data()?['phone'] ?? '';
-              }
-            } catch (_) {}
-          }
-          // Map pickup/destination field variations
-          data['pickupLocation'] ??= data['pickup'] ?? '';
-          data['dropoffLocation'] ??= data['destination'] ?? '';
-          results.add(data);
-        }
-      }
-      return results;
->>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
     });
   }
 
@@ -176,16 +120,11 @@ class DriverService {
         .where('driverId', isEqualTo: driverId)
         .snapshots()
         .map((snapshot) {
-<<<<<<< HEAD
           return snapshot.docs.map((doc) {
-=======
-          final items = snapshot.docs.map((doc) {
->>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
             final data = doc.data();
             data['id'] = doc.id;
             return data;
           }).toList();
-<<<<<<< HEAD
         });
   }
 
@@ -324,19 +263,6 @@ class DriverService {
 
       return sortedBookings;
     });
-=======
-
-          // Sort client-side
-          items.sort((a, b) {
-            final aTime = a['createdAt'] as Timestamp?;
-            final bTime = b['createdAt'] as Timestamp?;
-            if (aTime == null || bTime == null) return 0;
-            return bTime.compareTo(aTime);
-          });
-
-          return items;
-        });
->>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
   }
 
   /// Accept booking request and set fare (handles both collections)
@@ -348,7 +274,6 @@ class DriverService {
     String driverId, // Driver's user ID
   ) async {
     try {
-<<<<<<< HEAD
       // Try to find booking in 'bookings' collection first
       DocumentReference? bookingRef;
       DocumentSnapshot? bookingDoc;
@@ -363,10 +288,6 @@ class DriverService {
         bookingDoc = await bookingRef.get();
         collectionName = 'ride_requests';
       }
-=======
-      final bookingRef = _firestore.collection('ride_requests').doc(bookingId);
-      final bookingDoc = await bookingRef.get();
->>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
 
       if (!bookingDoc.exists) {
         return {'success': false, 'error': 'Request not found'};
@@ -375,23 +296,12 @@ class DriverService {
       final bookingData = bookingDoc.data() as Map<String, dynamic>;
       final userId = bookingData['userId'];
 
-<<<<<<< HEAD
       // Update booking - normalize field names for ride_requests
       final updateData = <String, dynamic>{
         'status': 'accepted',
         'fare': fare,
         'driverName': driverName,
         'driverId': driverId, // Ensure driverId is set
-=======
-      // resolvedDriverName comes from caller (the driver's actual name)
-      final String resolvedDriverName = driverName;
-
-      // Update ride_request
-      await bookingRef.update({
-        'status': 'accepted',
-        'fare': fare,
-        'driverName': resolvedDriverName,
->>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
         'acceptedAt': FieldValue.serverTimestamp(),
         'updatedAt': FieldValue.serverTimestamp(),
       };
@@ -438,7 +348,6 @@ class DriverService {
     String? reason,
   ) async {
     try {
-<<<<<<< HEAD
       // Try to find booking in 'bookings' collection first
       DocumentReference? bookingRef;
       DocumentSnapshot? bookingDoc;
@@ -451,10 +360,6 @@ class DriverService {
         bookingRef = _firestore.collection('ride_requests').doc(bookingId);
         bookingDoc = await bookingRef.get();
       }
-=======
-      final bookingRef = _firestore.collection('ride_requests').doc(bookingId);
-      final bookingDoc = await bookingRef.get();
->>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
 
       if (!bookingDoc.exists) {
         return {'success': false, 'error': 'Request not found'};
@@ -495,7 +400,6 @@ class DriverService {
   /// Only works if booking is paid and status is ongoing or accepted
   static Future<Map<String, dynamic>> completeBooking(String bookingId) async {
     try {
-<<<<<<< HEAD
       // Try to find booking in 'bookings' collection first
       DocumentReference? bookingRef;
       DocumentSnapshot? bookingDoc;
@@ -542,29 +446,6 @@ class DriverService {
         'completedAt': FieldValue.serverTimestamp(),
         'updatedAt': FieldValue.serverTimestamp(),
       });
-=======
-      // Check both collections as they are used interchangeably in the app
-      final bookingRef = _firestore.collection('bookings').doc(bookingId);
-      final rideRequestRef = _firestore.collection('ride_requests').doc(bookingId);
-
-      final bookingDoc = await bookingRef.get();
-      if (bookingDoc.exists) {
-        await bookingRef.update({
-          'status': 'completed',
-          'completedAt': FieldValue.serverTimestamp(),
-          'updatedAt': FieldValue.serverTimestamp(),
-        });
-      }
-
-      final rideRequestDoc = await rideRequestRef.get();
-      if (rideRequestDoc.exists) {
-        await rideRequestRef.update({
-          'status': 'completed',
-          'completedAt': FieldValue.serverTimestamp(),
-          'updatedAt': FieldValue.serverTimestamp(),
-        });
-      }
->>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
 
       // DO NOT stop location tracking - it should continue so user can track driver
       // Location tracking will only stop when the ride is truly finished (e.g., after drop time passes)
@@ -588,7 +469,6 @@ class DriverService {
     }
   }
 
-<<<<<<< HEAD
   /// Start a ride (sets status to ongoing)
   static Future<Map<String, dynamic>> startRide(String bookingId) async {
     try {
@@ -615,54 +495,16 @@ class DriverService {
       // Update booking to ongoing
       await bookingRef.update({
         'status': 'ongoing',
-=======
-  /// Start a ride
-  static Future<Map<String, dynamic>> startRide(String bookingId) async {
-    try {
-      final rideRequestRef = _firestore.collection('ride_requests').doc(bookingId);
-      final rideRequestDoc = await rideRequestRef.get();
-
-      if (!rideRequestDoc.exists) {
-        return {'success': false, 'error': 'Ride request not found'};
-      }
-
-      final data = rideRequestDoc.data()!;
-      final userId = data['userId'];
-      final driverName = data['driverName'] ?? 'Your driver';
-
-      // Update status to started
-      await rideRequestRef.update({
-        'status': 'started',
->>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
         'startedAt': FieldValue.serverTimestamp(),
         'updatedAt': FieldValue.serverTimestamp(),
       });
 
-<<<<<<< HEAD
-=======
-      // Also update in bookings collection if it exists
-      final bookingRef = _firestore.collection('bookings').doc(bookingId);
-      final bookingDoc = await bookingRef.get();
-      if (bookingDoc.exists) {
-        await bookingRef.update({
-          'status': 'started',
-          'startedAt': FieldValue.serverTimestamp(),
-          'updatedAt': FieldValue.serverTimestamp(),
-        });
-      }
-
->>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
       // Send notification to user
       if (userId != null) {
         await _firestore.collection('notifications').add({
           'userId': userId,
-<<<<<<< HEAD
           'title': 'Ride Started',
           'message': 'Your ride has started. Have a safe journey!',
-=======
-          'title': 'Ride Started!',
-          'message': '$driverName has started your ride. You can now track them in real-time.',
->>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
           'type': 'ride_started',
           'bookingId': bookingId,
           'read': false,
@@ -670,40 +512,13 @@ class DriverService {
         });
       }
 
-<<<<<<< HEAD
       return {'success': true, 'message': 'Ride started'};
-=======
-      return {'success': true, 'message': 'Ride started successfully'};
->>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
     } catch (e) {
       return {'success': false, 'error': 'Failed to start ride: $e'};
     }
   }
 
-<<<<<<< HEAD
   /// Get driver earnings from both bookings and ride_requests collections
-=======
-  /// Update driver's live location
-  static Future<void> updateLocation(
-    String driverId,
-    double latitude,
-    double longitude,
-  ) async {
-    try {
-      await _firestore.collection('users').doc(driverId).update({
-        'location': {
-          'latitude': latitude,
-          'longitude': longitude,
-        },
-        'lastLocationUpdate': FieldValue.serverTimestamp(),
-      });
-    } catch (e) {
-      print('Failed to update location: $e');
-    }
-  }
-
-  /// Get driver earnings
->>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
   static Future<Map<String, dynamic>> getDriverEarnings(String driverId) async {
     try {
       // Get bookings and ride_requests with status either 'completed' or 'paid'
@@ -750,7 +565,6 @@ class DriverService {
       // Get today's earnings
       final today = DateTime.now();
       final startOfDay = DateTime(today.year, today.month, today.day);
-<<<<<<< HEAD
       final todayTimestamp = Timestamp.fromDate(startOfDay);
 
       // Get today's bookings and ride_requests (status completed or paid)
@@ -766,18 +580,6 @@ class DriverService {
           .where('driverId', isEqualTo: driverId)
           .where('status', whereIn: statusList)
           .where('completedAt', isGreaterThanOrEqualTo: todayTimestamp)
-=======
-
-      final todayBookings = await _firestore
-          .collection('bookings')
-          .where('driverId', isEqualTo: driverId)
-          .where('status', isEqualTo: 'completed')
-          .where('isPaid', isEqualTo: true)
-          .where(
-            'completedAt',
-            isGreaterThanOrEqualTo: Timestamp.fromDate(startOfDay),
-          )
->>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
           .get();
 
       double todayEarnings = 0;

@@ -2,12 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:relygo/constants.dart';
 import 'package:relygo/services/admin_service.dart';
-<<<<<<< HEAD
 import 'package:relygo/utils/phone_validation.dart';
-=======
-import 'package:relygo/screens/chat_detail_screen.dart';
-import 'package:relygo/services/chat_service.dart';
->>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
 
 class DriverManagementScreen extends StatefulWidget {
   const DriverManagementScreen({super.key});

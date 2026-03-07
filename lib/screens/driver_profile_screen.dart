@@ -70,7 +70,6 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
             : null,
         title: const Text("Profile"),
       ),
-<<<<<<< HEAD
       body: userId == null
           ? const Center(child: CircularProgressIndicator())
           : StreamBuilder<Map<String, dynamic>?>(
@@ -142,71 +141,6 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
                               blurRadius: 10,
                               offset: const Offset(0, 5),
                             ),
-=======
-      body: StreamBuilder<Map<String, dynamic>?>(
-        stream: UserService.streamUserById(uid),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          if (snapshot.hasError) {
-            return Center(
-              child: Text(
-                'Error: ${snapshot.error}',
-                style: GoogleFonts.poppins(color: Mycolors.red),
-              ),
-            );
-          }
-
-          final data = snapshot.data;
-          if (data == null) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.error_outline, size: 64, color: Mycolors.red),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Driver profile not available',
-                    style: GoogleFonts.poppins(
-                      fontSize: 16,
-                      color: Mycolors.gray,
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }
-
-          // Data extracted from Firestore
-          final name = (data['name'] ?? data['fullName'] ?? 'Driver')
-              .toString();
-          final email = (data['email'] ?? '').toString();
-          final phone = (data['phone'] ?? data['phoneNumber'] ?? '').toString();
-          final photoUrl = (data['photoUrl'] ?? '').toString();
-          final rating = (data['rating'] ?? 4.8).toString();
-
-          final vehicle = (data['vehicle'] is Map)
-              ? Map<String, dynamic>.from(data['vehicle'] as Map)
-              : {};
-          final docs = (data['documents'] is Map)
-              ? Map<String, dynamic>.from(data['documents'] as Map)
-              : {};
-
-          final vehicleType =
-              (vehicle['type'] ?? docs['vehicleType'] ?? 'Vehicle').toString();
-          final vehicleModel = (vehicle['model'] ?? 'Standard').toString();
-          final vehicleReg =
-              (vehicle['registrationNumber'] ?? docs['vehicleNumber'] ?? '')
-                  .toString();
-
-          // Dynamic stats from user data
-          final totalRides = (data['totalRides'] ?? '0').toString();
-          final totalEarnings = (data['totalEarnings'] ?? '0').toString();
-          final hoursToday = (data['hoursToday'] ?? '0').toString();
-
-<<<<<<< HEAD
               return SingleChildScrollView(
                 padding: const EdgeInsets.all(20),
                 child: Column(
@@ -219,12 +153,10 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
                           colors: [
                             Mycolors.basecolor,
                             Mycolors.basecolor.withOpacity(0.8),
->>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
                           ],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                         ),
-<<<<<<< HEAD
                         child: Column(
                           children: [
                             Stack(
@@ -278,38 +210,6 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
                                 ),
                               ],
 =======
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Mycolors.basecolor.withOpacity(0.3),
-                            blurRadius: 10,
-                            offset: const Offset(0, 5),
-                          ),
-                        ],
-=======
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              children: [
-                // Profile Header
-                Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        Mycolors.basecolor,
-                        Mycolors.basecolor.withOpacity(0.8),
-                      ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Mycolors.basecolor.withOpacity(0.3),
-                        blurRadius: 10,
-                        offset: const Offset(0, 5),
->>>>>>> 19c60511df77cf71534b179d6daa8ec8cebe0b10
                       ),
                     ],
                   ),
@@ -352,13 +252,11 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
                           Icon(Icons.star, color: Colors.white, size: 20),
                           const SizedBox(width: 5),
                           Text(
-<<<<<<< HEAD
                             name,
                             style: GoogleFonts.poppins(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
->>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
                             ),
                           ),
                           Text(
@@ -382,7 +280,6 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
-<<<<<<< HEAD
                             ),
                           ],
                         ),
@@ -552,37 +449,10 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
                               fontWeight: FontWeight.w600,
                             ),
 =======
-                            ],
-                          ),
-                          const SizedBox(height: 10),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 6,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Text(
-                              (data['isOnline'] ?? true) ? "Online" : "Offline",
-                              style: GoogleFonts.poppins(
-                                fontSize: 14,
-                                color: Colors.white,
-                                fontWeight: FontWeight.w600,
-                              ),
-=======
-                            "$rating Rating",
-                            style: GoogleFonts.poppins(
-                              fontSize: 16,
-                              color: Colors.white,
-                              fontWeight: FontWeight.w600,
->>>>>>> 19c60511df77cf71534b179d6daa8ec8cebe0b10
                             ),
                           ),
                         ],
                       ),
-<<<<<<< HEAD
                     ),
                     const SizedBox(height: 30),
 
@@ -594,7 +464,6 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
                             totalRides,
                             "Total Rides",
                             Icons.directions_car,
->>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
                           ),
 =======
                       const SizedBox(height: 10),
@@ -1169,7 +1038,6 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
   }
 
   void _showEarningsDialog() {
-<<<<<<< HEAD
     final userId = AuthService.currentUserId;
     if (userId == null) return;
     showDialog(
@@ -1220,23 +1088,6 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
               child: Text(
                 "Close",
                 style: GoogleFonts.poppins(color: Colors.grey),
-=======
-    final uid = AuthService.currentUserId;
-    if (uid == null) return;
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return StreamBuilder<Map<String, double>>(
-          stream: UserService.streamDriverEarningsSummary(uid),
-          builder: (context, snapshot) {
-            final data =
-                snapshot.data ??
-                {'today': 0, 'week': 0, 'month': 0, 'total': 0};
-            return AlertDialog(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
->>>>>>> 19c60511df77cf71534b179d6daa8ec8cebe0b10
               ),
               title: Text(
                 "Earnings Summary",
@@ -1330,169 +1181,7 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
     );
   }
 
-<<<<<<< HEAD
   // Removed unused ride history dialog and helpers
-=======
-  void _showRideHistoryDialog() {
-    final uid = AuthService.currentUserId;
-    if (uid == null) return;
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          title: Text(
-            "Recent Rides",
-            style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
-          ),
-          content: Container(
-            width: double.maxFinite,
-            constraints: BoxConstraints(
-              maxHeight: MediaQuery.of(context).size.height * 0.5,
-            ),
-            child: StreamBuilder<List<Map<String, dynamic>>>(
-              stream: UserService.getDriverRideHistoryStream(uid),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const SizedBox(
-                    height: 100,
-                    child: Center(child: CircularProgressIndicator()),
-                  );
-                }
-
-                final rides = snapshot.data ?? [];
-                if (rides.isEmpty) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 20),
-                    child: Text(
-                      "No rides found",
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.poppins(color: Mycolors.gray),
-                    ),
-                  );
-                }
-
-                return ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: rides.length,
-                  itemBuilder: (context, index) {
-                    final ride = rides[index];
-                    final pickup = ride['pickup'] ?? ride['pickupLocation'] ?? 'Unknown location';
-                    final dropoff = ride['destination'] ?? ride['dropoffLocation'] ?? 'Unknown location';
-                    final fare = ride['fare']?.toString() ?? '0';
-                    final time = ride['createdAt'] is Timestamp
-                        ? DateFormat(
-                            'dd MMM, hh:mm a',
-                          ).format((ride['createdAt'] as Timestamp).toDate())
-                        : 'Unknown time';
-                    final status = (ride['status'] ?? 'Completed').toString().trim();
-
-                    return _buildRideItem(
-                      "$pickup to $dropoff",
-                      "₹$fare",
-                      time,
-                      status,
-                    );
-                  },
-                );
-              },
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text(
-                "Close",
-                style: GoogleFonts.poppins(color: Colors.grey),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _buildRideItem(
-    String route,
-    String price,
-    String time,
-    String status,
-  ) {
-    Color statusColor = Mycolors.green;
-    switch (status.toLowerCase()) {
-      case 'pending':
-        statusColor = Mycolors.orange;
-        break;
-      case 'rejected':
-      case 'cancelled':
-        statusColor = Mycolors.red;
-        break;
-      case 'ongoing':
-      case 'started':
-        statusColor = Colors.blue;
-        break;
-      case 'accepted':
-      case 'paid':
-      case 'completed':
-      default:
-        statusColor = Mycolors.green;
-        break;
-    }
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Theme.of(context).brightness == Brightness.dark
-            ? Colors.grey.shade900
-            : Colors.grey.shade100,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  route,
-                  style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 2,
-                ),
-                Text(
-                  time,
-                  style: GoogleFonts.poppins(fontSize: 12, color: Mycolors.gray),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 8),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                price,
-                style: GoogleFonts.poppins(
-                  fontWeight: FontWeight.bold,
-                  color: Mycolors.basecolor,
-                ),
-              ),
-              Text(
-                status,
-                style: GoogleFonts.poppins(fontSize: 12, color: statusColor),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
->>>>>>> 19c60511df77cf71534b179d6daa8ec8cebe0b10
 
   void _showBankDetailsDialog() {
     showDialog(
@@ -1603,41 +1292,25 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
                 title: Text("Ride Requests", style: GoogleFonts.poppins()),
                 value: true,
                 onChanged: (value) {},
-<<<<<<< HEAD
                 activeColor: Mycolors.basecolor,
-=======
-                activeTrackColor: Mycolors.basecolor,
->>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
               ),
               SwitchListTile(
                 title: Text("Earnings Updates", style: GoogleFonts.poppins()),
                 value: true,
                 onChanged: (value) {},
-<<<<<<< HEAD
                 activeColor: Mycolors.basecolor,
-=======
-                activeTrackColor: Mycolors.basecolor,
->>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
               ),
               SwitchListTile(
                 title: Text("Promotional Offers", style: GoogleFonts.poppins()),
                 value: false,
                 onChanged: (value) {},
-<<<<<<< HEAD
                 activeColor: Mycolors.basecolor,
-=======
-                activeTrackColor: Mycolors.basecolor,
->>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
               ),
               SwitchListTile(
                 title: Text("App Updates", style: GoogleFonts.poppins()),
                 value: true,
                 onChanged: (value) {},
-<<<<<<< HEAD
                 activeColor: Mycolors.basecolor,
-=======
-                activeTrackColor: Mycolors.basecolor,
->>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
               ),
             ],
           ),
@@ -1801,7 +1474,6 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
                     style: GoogleFonts.poppins(color: Colors.grey),
                   ),
                 ),
-<<<<<<< HEAD
                 onTap: () {},
               ),
               ListTile(
@@ -1819,11 +1491,7 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
                 trailing: Switch(
                   value: true,
                   onChanged: (value) {},
-<<<<<<< HEAD
                   activeColor: Mycolors.basecolor,
-=======
-                  activeTrackColor: Mycolors.basecolor,
->>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
                 ),
               ),
             ],

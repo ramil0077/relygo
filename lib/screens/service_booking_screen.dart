@@ -3,7 +3,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:relygo/constants.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:relygo/services/auth_service.dart';
-<<<<<<< HEAD
 
 /// Base fare by vehicle type (used when no distance calculation)
 int _baseFareForVehicle(String vehicle) {
@@ -19,11 +18,6 @@ int _baseFareForVehicle(String vehicle) {
 }
 // Map integration removed
 =======
-import 'package:geolocator/geolocator.dart';
-import 'package:geocoding/geocoding.dart';
-<<<<<<< HEAD
->>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
-=======
 import 'package:relygo/screens/map_picker_screen.dart';
 import 'dart:async';
 >>>>>>> 19c60511df77cf71534b179d6daa8ec8cebe0b10
@@ -36,12 +30,8 @@ class ServiceBookingScreen extends StatefulWidget {
 }
 
 class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
-<<<<<<< HEAD
   final _formKey = GlobalKey<FormState>();
   String _selectedService = "Ride";
-=======
-  String _selectedService = "driver_with_vehicle";
->>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
   String _selectedVehicle = "Car";
   DateTime? _selectedDate;
   TimeOfDay? _selectedTime;
@@ -76,17 +66,13 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
 
   @override
   void dispose() {
-<<<<<<< HEAD
     _pickupController.removeListener(_updateEstimatedPrice);
     _destinationController.removeListener(_updateEstimatedPrice);
-=======
->>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
     _pickupController.dispose();
     _destinationController.dispose();
     super.dispose();
   }
 
-<<<<<<< HEAD
   void _updateEstimatedPrice() {
     final pickup = _pickupController.text.trim();
     final dest = _destinationController.text.trim();
@@ -96,137 +82,7 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
     }
     if (mounted && _estimatedPrice != estimate) {
       setState(() => _estimatedPrice = estimate);
-=======
-  /// Auto-detect current location and fill pickup field
-  Future<void> _detectCurrentLocation() async {
-    setState(() {
-      _detectingPickupLocation = true;
-    });
-    try {
-      // Check if location services are enabled
-      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-      if (!serviceEnabled) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'Location services are disabled. Please enable GPS.',
-                style: GoogleFonts.poppins(),
-              ),
-              backgroundColor: Mycolors.orange,
-              action: SnackBarAction(
-                label: 'Settings',
-                textColor: Colors.white,
-                onPressed: () => Geolocator.openLocationSettings(),
-              ),
-            ),
-          );
-        }
-        return;
-      }
-
-      // Request permission
-      LocationPermission permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-        if (permission == LocationPermission.denied) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  'Location permission denied.',
-                  style: GoogleFonts.poppins(),
-                ),
-                backgroundColor: Mycolors.red,
-              ),
-            );
-          }
-          return;
-        }
-      }
-
-      if (permission == LocationPermission.deniedForever) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'Location permission permanently denied. Enable it in app settings.',
-                style: GoogleFonts.poppins(),
-              ),
-              backgroundColor: Mycolors.red,
-              action: SnackBarAction(
-                label: 'Settings',
-                textColor: Colors.white,
-                onPressed: () => Geolocator.openAppSettings(),
-              ),
-            ),
-          );
-        }
-        return;
-      }
-
-      // Get current position
-      final Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
-      );
-
-      // Reverse geocode to get address
-      List<Placemark> placemarks = await placemarkFromCoordinates(
-        position.latitude,
-        position.longitude,
-      );
-
-      if (placemarks.isNotEmpty) {
-        final Placemark place = placemarks.first;
-        final parts = <String>[];
-        if ((place.name ?? '').isNotEmpty &&
-            place.name != place.street &&
-            place.name != place.thoroughfare) {
-          parts.add(place.name!);
-        }
-        if ((place.street ?? '').isNotEmpty) parts.add(place.street!);
-        if ((place.subLocality ?? '').isNotEmpty) parts.add(place.subLocality!);
-        if ((place.locality ?? '').isNotEmpty) parts.add(place.locality!);
-        if ((place.administrativeArea ?? '').isNotEmpty) {
-          parts.add(place.administrativeArea!);
-        }
-
-        final address = parts.isNotEmpty
-            ? parts.join(', ')
-            : '${position.latitude.toStringAsFixed(5)}, ${position.longitude.toStringAsFixed(5)}';
-
-        setState(() {
-          _pickupController.text = address;
-        });
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'Location detected!',
-                style: GoogleFonts.poppins(),
-              ),
-              backgroundColor: Mycolors.green,
-              duration: const Duration(seconds: 2),
-            ),
-          );
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Could not get location. Please enter manually.',
-              style: GoogleFonts.poppins(),
-            ),
-            backgroundColor: Mycolors.orange,
-          ),
-        );
-      }
-    } finally {
-<<<<<<< HEAD
       if (mounted) setState(() => _detectingLocation = false);
->>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
 =======
       if (mounted) {
         setState(() {
@@ -402,7 +258,6 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
                   color: Colors.black,
                 ),
               ),
-<<<<<<< HEAD
               const SizedBox(height: 15),
               TextFormField(
                 controller: _pickupController,
@@ -411,37 +266,6 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
                   prefixIcon: Icon(
                     Icons.location_on,
                     color: Mycolors.basecolor,
-=======
-              const SizedBox(height: 10),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _pickupController,
-                      decoration: InputDecoration(
-                        hintText: 'Enter pickup location',
-                        prefixIcon: Icon(
-                          Icons.location_on,
-                          color: Mycolors.basecolor,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(
-                            color: Mycolors.basecolor,
-                            width: 2,
-                          ),
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 14,
-                        ),
-                      ),
-                    ),
->>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
                   ),
                   const SizedBox(width: 10),
                   // 📍 GPS Auto-detect Button
@@ -507,7 +331,6 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
                   color: Colors.black,
                 ),
               ),
-<<<<<<< HEAD
               const SizedBox(height: 15),
               TextFormField(
                 controller: _destinationController,
@@ -516,37 +339,6 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
                   prefixIcon: Icon(Icons.place, color: Mycolors.basecolor),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-=======
-              const SizedBox(height: 10),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _destinationController,
-                      decoration: InputDecoration(
-                        hintText: 'Enter destination',
-                        prefixIcon: Icon(
-                          Icons.place,
-                          color: Mycolors.basecolor,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(
-                            color: Mycolors.basecolor,
-                            width: 2,
-                          ),
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 14,
-                        ),
-                      ),
-                    ),
->>>>>>> 19c60511df77cf71534b179d6daa8ec8cebe0b10
                   ),
                   const SizedBox(width: 10),
                   // 🗺️ Choose on Map Button
@@ -959,10 +751,7 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
         'vehicle': _selectedVehicle,
         'pickup': _pickupController.text.trim(),
         'destination': _destinationController.text.trim(),
-<<<<<<< HEAD
         'fare': fare,
-=======
->>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
         'status': 'pending',
         'createdAt': Timestamp.fromDate(now),
         'scheduledDate': _selectedDate != null
