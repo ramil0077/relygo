@@ -328,7 +328,7 @@ class DriverService {
           'userId': userId,
           'title': 'Ride Accepted',
           'message':
-              'Your ride request has been accepted by $resolvedDriverName. Fare: ₹$fare',
+              'Your ride request has been accepted by $driverName. Fare: ₹$fare',
           'type': 'booking_accepted',
           'bookingId': bookingId,
           'read': false,

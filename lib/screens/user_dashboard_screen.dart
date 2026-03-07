@@ -16,7 +16,6 @@ import 'package:relygo/services/auth_service.dart';
 import 'package:relygo/services/chat_service.dart';
 import 'package:relygo/screens/chat_detail_screen.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class UserDashboardScreen extends StatefulWidget {
   const UserDashboardScreen({super.key});
@@ -50,18 +49,18 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
         .where('status', isEqualTo: 'accepted')
         .snapshots()
         .listen((snapshot) {
-      if (!mounted) return;
-      for (var doc in snapshot.docs) {
-        final data = doc.data();
-        // Only show if: Status is accepted, NOT paid, and we haven't shown a dialog for this ID yet
-        if (data['status'] == 'accepted' &&
-            data['paymentMethod'] == null &&
-            !_shownPaymentDialogs.contains(doc.id)) {
-          _shownPaymentDialogs.add(doc.id);
-          _showPaymentDialog(doc.id, data);
-        }
-      }
-    });
+          if (!mounted) return;
+          for (var doc in snapshot.docs) {
+            final data = doc.data();
+            // Only show if: Status is accepted, NOT paid, and we haven't shown a dialog for this ID yet
+            if (data['status'] == 'accepted' &&
+                data['paymentMethod'] == null &&
+                !_shownPaymentDialogs.contains(doc.id)) {
+              _shownPaymentDialogs.add(doc.id);
+              _showPaymentDialog(doc.id, data);
+            }
+          }
+        });
   }
 
   Widget _buildDetailRow(IconData icon, String label, String value) {
@@ -78,7 +77,10 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
           Expanded(
             child: Text(
               value,
-              style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600),
+              style: GoogleFonts.poppins(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+              ),
               overflow: TextOverflow.ellipsis,
             ),
           ),
@@ -149,15 +151,25 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                 style: GoogleFonts.poppins(),
               ),
               const SizedBox(height: 16),
-              _buildDetailRow(Icons.person, 'Driver', requestData['driverName'] ?? 'Driver'),
-              _buildDetailRow(Icons.place, 'To', requestData['destination'] ?? 'Destination'),
+              _buildDetailRow(
+                Icons.person,
+                'Driver',
+                requestData['driverName'] ?? 'Driver',
+              ),
+              _buildDetailRow(
+                Icons.place,
+                'To',
+                requestData['destination'] ?? 'Destination',
+              ),
               const SizedBox(height: 16),
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: Mycolors.basecolor.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Mycolors.basecolor.withOpacity(0.3)),
+                  border: Border.all(
+                    color: Mycolors.basecolor.withOpacity(0.3),
+                  ),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -299,24 +311,22 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                   final userId = AuthService.currentUserId;
                   if (userId == null) return;
 
-                  final userDoc =
-                      await FirebaseFirestore.instance
-                          .collection('users')
-                          .doc(userId)
-                          .get();
+                  final userDoc = await FirebaseFirestore.instance
+                      .collection('users')
+                      .doc(userId)
+                      .get();
                   final userData = userDoc.data() ?? {};
 
                   // Get active booking if any
-                  final bookingSnap =
-                      await FirebaseFirestore.instance
-                          .collection('ride_requests')
-                          .where('userId', isEqualTo: userId)
-                          .where(
-                            'status',
-                            whereIn: ['ongoing', 'started', 'accepted'],
-                          )
-                          .limit(1)
-                          .get();
+                  final bookingSnap = await FirebaseFirestore.instance
+                      .collection('ride_requests')
+                      .where('userId', isEqualTo: userId)
+                      .where(
+                        'status',
+                        whereIn: ['ongoing', 'started', 'accepted'],
+                      )
+                      .limit(1)
+                      .get();
 
                   String? bookingId;
                   if (bookingSnap.docs.isNotEmpty) {
@@ -632,18 +642,53 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
               }
               List<Map<String, dynamic>> drivers = snapshot.data ?? [];
 
-              // Filter by search query
+              if (snapshot.hasError) {
+                return Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Text(
+                      'Error loading drivers: ${snapshot.error}',
+                      style: GoogleFonts.poppins(color: Mycolors.red),
+                    ),
+                  ),
+                );
+              }
+
+              // Filter by selected service type (vehicle type) strictly
+              if (_selectedServiceType != null &&
+                  _selectedServiceType!.isNotEmpty) {
+                final vt = _selectedServiceType!.toLowerCase();
+                drivers = drivers.where((d) {
+                  final vehicleType =
+                      (d['vehicleType'] ?? d['documents']?['vehicleType'] ?? '')
+                          .toString()
+                          .toLowerCase();
+                  return vehicleType == vt;
+                }).toList();
+              }
+
+              // Filter by search query (name, email, vehicleType)
               if (_driverSearchQuery.isNotEmpty) {
                 final q = _driverSearchQuery.toLowerCase();
                 drivers = drivers.where((d) {
-                  final name = (d['name'] ?? d['fullName'] ?? '').toString().toLowerCase();
-                  final vehicleType = (d['vehicleType'] ?? '').toString().toLowerCase();
-                  return name.contains(q) || vehicleType.contains(q);
+                  final name = (d['name'] ?? d['fullName'] ?? '')
+                      .toString()
+                      .toLowerCase();
+                  final email = (d['email'] ?? '').toString().toLowerCase();
+                  final vehicleType =
+                      (d['vehicleType'] ?? d['documents']?['vehicleType'] ?? '')
+                          .toString()
+                          .toLowerCase();
+                  return name.contains(q) ||
+                      email.contains(q) ||
+                      vehicleType.contains(q);
                 }).toList();
               }
 
               // IF NO QUERY AND NO DRIVERS (or just starting), show the placeholder
-              if (_driverSearchQuery.isEmpty && drivers.isEmpty) {
+              if (_driverSearchQuery.isEmpty &&
+                  _selectedServiceType == null &&
+                  drivers.isEmpty) {
                 return Column(
                   children: [
                     const SizedBox(height: 30),
@@ -665,7 +710,9 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                       style: GoogleFonts.poppins(
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
-                        color: Theme.of(context).textTheme.bodyLarge?.color?.withOpacity(0.7),
+                        color: Theme.of(
+                          context,
+                        ).textTheme.bodyLarge?.color?.withOpacity(0.7),
                       ),
                     ),
                     Text(
@@ -679,43 +726,10 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                 );
               }
 
-                // Filter by selected service type (vehicle type) strictly
-                if (_selectedServiceType != null &&
-                    _selectedServiceType!.isNotEmpty) {
-                  final vt = _selectedServiceType!.toLowerCase();
-                  drivers = drivers.where((d) {
-                    final vehicleType =
-                        (d['vehicleType'] ??
-                                d['documents']?['vehicleType'] ??
-                                '')
-                            .toString()
-                            .toLowerCase();
-                    return vehicleType == vt;
-                  }).toList();
-                }
-
-                // Filter by search query (name, email, vehicleType)
-                if (_driverSearchQuery.isNotEmpty) {
-                  final q = _driverSearchQuery.toLowerCase();
-                  drivers = drivers.where((d) {
-                    final name = (d['name'] ?? d['fullName'] ?? '')
-                        .toString()
-                        .toLowerCase();
-                    final email = (d['email'] ?? '').toString().toLowerCase();
-                    final vehicleType =
-                        (d['vehicleType'] ??
-                                d['documents']?['vehicleType'] ??
-                                '')
-                            .toString()
-                            .toLowerCase();
-                    return name.contains(q) ||
-                        email.contains(q) ||
-                        vehicleType.contains(q);
-                  }).toList();
-                }
-
-                if (drivers.isEmpty) {
-                  return Center(
+              if (drivers.isEmpty) {
+                return Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(20.0),
                     child: Text(
                       'No drivers found for "$_driverSearchQuery"',
                       style: GoogleFonts.poppins(color: Mycolors.gray),
@@ -1072,10 +1086,7 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: Text(
-                'Close',
-                style: GoogleFonts.poppins(),
-              ),
+              child: Text('Close', style: GoogleFonts.poppins()),
             ),
           ],
         );
@@ -1393,16 +1404,24 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
             builder: (context, snapshot) {
               if (snapshot.hasData && snapshot.data != null) {
                 final activeBooking = snapshot.data!;
-                final status = activeBooking['status']?.toString().toLowerCase() ?? 'unknown';
+                final status =
+                    activeBooking['status']?.toString().toLowerCase() ??
+                    'unknown';
                 final isStarted = status == 'started';
-                
+
                 return Container(
                   margin: const EdgeInsets.only(bottom: 20),
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: isStarted ? Mycolors.green.withOpacity(0.1) : Mycolors.orange.withOpacity(0.1),
+                    color: isStarted
+                        ? Mycolors.green.withOpacity(0.1)
+                        : Mycolors.orange.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: isStarted ? Mycolors.green.withOpacity(0.3) : Mycolors.orange.withOpacity(0.3)),
+                    border: Border.all(
+                      color: isStarted
+                          ? Mycolors.green.withOpacity(0.3)
+                          : Mycolors.orange.withOpacity(0.3),
+                    ),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -1420,7 +1439,9 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                             style: GoogleFonts.poppins(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
-                              color: isStarted ? Mycolors.green : Mycolors.orange,
+                              color: isStarted
+                                  ? Mycolors.green
+                                  : Mycolors.orange,
                             ),
                           ),
                         ],
@@ -1441,7 +1462,11 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                         const SizedBox(height: 8),
                         Text(
                           'Please pay to confirm and enable tracking.',
-                          style: GoogleFonts.poppins(fontSize: 12, color: Mycolors.red, fontWeight: FontWeight.w500),
+                          style: GoogleFonts.poppins(
+                            fontSize: 12,
+                            color: Mycolors.red,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                       ],
                       if (isStarted) ...[
@@ -1574,9 +1599,7 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Theme.of(context).dividerColor,
-        ),
+        border: Border.all(color: Theme.of(context).dividerColor),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
@@ -1705,13 +1728,15 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                       ),
                     ),
                   ),
-                ] else if (status.toLowerCase() == 'ongoing' || status.toLowerCase() == 'started') ...[
+                ] else if (status.toLowerCase() == 'ongoing' ||
+                    status.toLowerCase() == 'started') ...[
                   Expanded(
                     child: ElevatedButton.icon(
                       onPressed: () {
                         final String? driverId = booking['driverId'];
                         if (driverId != null) {
-                          final String conversationId = ChatService.conversationIdWithPeer(driverId);
+                          final String conversationId =
+                              ChatService.conversationIdWithPeer(driverId);
                           Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -2126,9 +2151,7 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
             desktop: 16,
           ),
         ),
-        border: Border.all(
-          color: Theme.of(context).dividerColor,
-        ),
+        border: Border.all(color: Theme.of(context).dividerColor),
         boxShadow: [
           BoxShadow(
             color: Colors.grey.withOpacity(0.1),
@@ -2300,9 +2323,7 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
             desktop: 16,
           ),
         ),
-        border: Border.all(
-          color: Theme.of(context).dividerColor,
-        ),
+        border: Border.all(color: Theme.of(context).dividerColor),
         boxShadow: [
           BoxShadow(
             color: Colors.grey.withOpacity(0.1),
@@ -2519,9 +2540,7 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
             desktop: 16,
           ),
         ),
-        border: Border.all(
-          color: Theme.of(context).dividerColor,
-        ),
+        border: Border.all(color: Theme.of(context).dividerColor),
         boxShadow: [
           BoxShadow(
             color: Colors.grey.withOpacity(0.1),
@@ -2954,12 +2973,7 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
         children: [
           Icon(icon, color: Mycolors.basecolor, size: 30),
           const SizedBox(height: 8),
-          Text(
-            title,
-            style: GoogleFonts.poppins(
-              fontWeight: FontWeight.w600,
-            ),
-          ),
+          Text(title, style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
         ],
       ),
     );

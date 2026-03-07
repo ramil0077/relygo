@@ -890,4 +890,6 @@ class UserService {
       'lastActive': FieldValue.serverTimestamp(),
     });
   }
+
+  static Future sendSOS({required String userId, required userName, required userPhone, required double latitude, required double longitude, String? bookingId}) async {}
 }

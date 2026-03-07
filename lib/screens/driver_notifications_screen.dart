@@ -241,7 +241,10 @@ class _DriverNotificationsScreenState extends State<DriverNotificationsScreen> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
-          title: Text('Enter Estimated Fare', style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
+          title: Text(
+            'Enter Estimated Fare',
+            style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+          ),
           content: TextField(
             controller: controller,
             keyboardType: TextInputType.number,
@@ -267,12 +270,24 @@ class _DriverNotificationsScreenState extends State<DriverNotificationsScreen> {
 
                 // Get driver info
                 String driverName = 'Driver';
-                final driverDoc = await FirebaseFirestore.instance.collection('users').doc(driverId).get();
+                final driverDoc = await FirebaseFirestore.instance
+                    .collection('users')
+                    .doc(driverId)
+                    .get();
                 if (driverDoc.exists) {
-                  driverName = (driverDoc.data()?['name'] ?? driverDoc.data()?['fullName'] ?? 'Driver').toString();
+                  driverName =
+                      (driverDoc.data()?['name'] ??
+                              driverDoc.data()?['fullName'] ??
+                              'Driver')
+                          .toString();
                 }
 
-                await DriverService.acceptBooking(requestId, fare, driverName);
+                await DriverService.acceptBooking(
+                  requestId,
+                  fare,
+                  driverName,
+                  driverId,
+                );
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Mycolors.green,

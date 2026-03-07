@@ -23,7 +23,7 @@ class _SplashscreenState extends State<Splashscreen>
   late Animation<double> _textFadeAnimation;
   late Animation<double> _textSlideAnimation;
   late Animation<double> _buttonFadeAnimation;
-  late Animation<double> _buttonScaleAnimation;
+  late Animation<double> _buttonSlideAnimation;
 
   @override
   void initState() {
@@ -50,9 +50,10 @@ class _SplashscreenState extends State<Splashscreen>
       CurvedAnimation(parent: _logoController, curve: Curves.easeInOut),
     );
 
-    _logoOpacityAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _logoController, curve: Curves.easeIn),
-    );
+    _logoOpacityAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _logoController, curve: Curves.easeIn));
 
     // Text animations
     _textFadeAnimation = Tween<double>(
@@ -71,8 +72,8 @@ class _SplashscreenState extends State<Splashscreen>
       end: 1.0,
     ).animate(CurvedAnimation(parent: _buttonController, curve: Curves.easeIn));
 
-    _buttonScaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
-      CurvedAnimation(parent: _buttonController, curve: Curves.elasticOut),
+    _buttonSlideAnimation = Tween<double>(begin: 40.0, end: 0.0).animate(
+      CurvedAnimation(parent: _buttonController, curve: Curves.easeOut),
     );
 
     // Start animations
@@ -90,8 +91,8 @@ class _SplashscreenState extends State<Splashscreen>
     // Start button animation after text
     await Future.delayed(const Duration(milliseconds: 300));
     _buttonController.forward();
-  // Start repeating logo animation (fade in/out + subtle scale)
-  _logoController.repeat(reverse: true);
+    // Start repeating logo animation (fade in/out + subtle scale)
+    _logoController.repeat(reverse: true);
   }
 
   @override
