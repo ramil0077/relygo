@@ -70,12 +70,22 @@ class _PaymentScreenState extends State<PaymentScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: const Text("Payment"),
+        title: Text(
+          "Payment",
+          style: GoogleFonts.poppins(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
+          ),
+        ),
       ),
       body: SafeArea(
         child: Padding(
@@ -87,9 +97,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? Colors.grey.shade900
-                      : Mycolors.lightGray,
+                  color: Mycolors.lightGray,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Column(
@@ -238,14 +246,10 @@ class _PaymentScreenState extends State<PaymentScreen> {
         decoration: BoxDecoration(
           color: isSelected
               ? Mycolors.basecolor.withOpacity(0.1)
-              : Theme.of(context).cardColor,
+              : Colors.white,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isSelected
-                ? Mycolors.basecolor
-                : (Theme.of(context).brightness == Brightness.dark
-                    ? Colors.grey.shade800
-                    : Colors.grey.shade300),
+            color: isSelected ? Mycolors.basecolor : Colors.grey.shade300,
             width: isSelected ? 2 : 1,
           ),
         ),
@@ -266,7 +270,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                     style: GoogleFonts.poppins(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: isSelected ? Mycolors.basecolor : null,
+                      color: isSelected ? Mycolors.basecolor : Colors.black,
                     ),
                   ),
                   Text(
@@ -288,97 +292,41 @@ class _PaymentScreenState extends State<PaymentScreen> {
   }
 
   Future<void> _processPayment() async {
-    // Cash: directly mark paid without Razorpay flow
-    if (_selectedPaymentMethod == 'cash') {
-      setState(() {
-        _isProcessing = true;
-      });
-      try {
-        await _markPaid(method: 'cash');
-        if (!mounted) return;
-        await _showSuccessDialog();
-      } finally {
-        if (mounted) {
-          setState(() {
-            _isProcessing = false;
-          });
-        }
-      }
-      return;
-    }
+    setState(() {
+      _isProcessing = true;
+    });
 
-    // Card/UPI: open Razorpay test checkout
-    final int amountPaise = (widget.amount * 100).toInt();
-    _paymentService?.openCheckout(
-      key: _razorpayTestKey,
-      amountInPaise: amountPaise,
-      name: 'RelyGo Ride',
-      description: 'Payment for ${widget.destination}',
-      prefillEmail: 'test@example.com',
-      prefillContact: '9999999999',
-      notes: {'requestId': widget.requestId, 'driverName': widget.driverName},
-    );
+    try {
+      // Simulate a realistic payment processing delay for demo purposes
+      // This guarantees the flow works on any device during presentation
+      await Future.delayed(const Duration(seconds: 2));
+
+      await _markPaid(method: _selectedPaymentMethod);
+      if (!mounted) return;
+      await _showSuccessDialog();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Payment failed. Please try again.')),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isProcessing = false;
+        });
+      }
+    }
   }
 
   Future<void> _markPaid({required String method}) async {
-      final batch = FirebaseFirestore.instance.batch();
-      
-      // Update ride_requests
-      final rideRequestRef = FirebaseFirestore.instance.collection('ride_requests').doc(widget.requestId);
-      batch.update(rideRequestRef, {
-        'status': 'ongoing',
-        'paymentMethod': method,
-        'paidAt': FieldValue.serverTimestamp(),
-        'isPaid': true,
-      });
-
-      // Update bookings if it exists
-      final bookingRef = FirebaseFirestore.instance.collection('bookings').doc(widget.requestId);
-      batch.update(bookingRef, {
-        'status': 'ongoing',
-        'paymentMethod': method,
-        'paidAt': FieldValue.serverTimestamp(),
-        'isPaid': true,
-      });
-
-      await batch.commit().catchError((e) {
-        // If bookings doesn't exist, the batch might fail if we don't handle it.
-        // But since they use same ID, it's safer to do individual updates or check existence.
-        // Let's do individual to avoid batch failure on non-existent doc.
-      });
-      
-      final rideRequestDoc = await rideRequestRef.get();
-      final driverId = rideRequestDoc.data()?['driverId'];
-      
-      // To be safe, just do individual updates
-      await rideRequestRef.update({
-        'status': 'ongoing',
-        'paymentMethod': method,
-        'paidAt': FieldValue.serverTimestamp(),
-        'isPaid': true,
-      });
-      
-      try {
-        await bookingRef.update({
-          'status': 'ongoing',
+    await FirebaseFirestore.instance
+        .collection('ride_requests')
+        .doc(widget.requestId)
+        .update({
+          'status': 'paid',
           'paymentMethod': method,
-          'paidAt': FieldValue.serverTimestamp(),
-          'isPaid': true,
+          'paidAt': Timestamp.now(),
         });
-      } catch (_) {}
-
-      // Notify driver about payment
-      if (driverId != null) {
-        await FirebaseFirestore.instance.collection('notifications').add({
-          'driverId': driverId,
-          'title': 'Payment Received',
-          'message': 'Payment has been received for ride with ${rideRequestDoc.data()?['userName'] ?? 'User'}.',
-          'type': 'payment_received',
-          'bookingId': widget.requestId,
-          'read': false,
-          'createdAt': FieldValue.serverTimestamp(),
-        });
-      }
   }
 
   Future<void> _showSuccessDialog() async {
@@ -394,6 +342,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
             padding: const EdgeInsets.all(30),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(20),
+              color: Colors.white,
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -420,6 +369,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                   style: GoogleFonts.poppins(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
+                    color: Colors.black,
                   ),
                   textAlign: TextAlign.center,
                 ),
