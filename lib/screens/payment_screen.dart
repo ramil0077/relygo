@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:relygo/constants.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:razorpay_flutter/razorpay_flutter.dart';
-import 'package:relygo/services/payment_service.dart';
 import 'package:relygo/screens/user_dashboard_screen.dart';
 
 class PaymentScreen extends StatefulWidget {
@@ -27,45 +25,6 @@ class PaymentScreen extends StatefulWidget {
 class _PaymentScreenState extends State<PaymentScreen> {
   String _selectedPaymentMethod = 'card';
   bool _isProcessing = false;
-  PaymentService? _paymentService;
-
-  // NOTE: Use your Razorpay Test Key here for dummy/test payments
-  static const String _razorpayTestKey = 'rzp_test_1DP5mmOlF5G5ag';
-
-  @override
-  void initState() {
-    super.initState();
-    _paymentService = PaymentService(
-      onOpen: () {
-        setState(() {
-          _isProcessing = true;
-        });
-      },
-      onSuccess: (PaymentSuccessResponse response) async {
-        await _markPaid(method: _selectedPaymentMethod);
-        if (!mounted) return;
-        await _showSuccessDialog();
-        setState(() {
-          _isProcessing = false;
-        });
-      },
-      onError: (PaymentFailureResponse response) {
-        if (!mounted) return;
-        setState(() {
-          _isProcessing = false;
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Payment failed. Please try again.')),
-        );
-      },
-    );
-  }
-
-  @override
-  void dispose() {
-    _paymentService?.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -244,9 +203,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isSelected
-              ? Mycolors.basecolor.withOpacity(0.1)
-              : Colors.white,
+          color: isSelected ? Mycolors.basecolor.withOpacity(0.1) : Colors.white,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: isSelected ? Mycolors.basecolor : Colors.grey.shade300,
@@ -297,8 +254,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
     });
 
     try {
-      // Simulate a realistic payment processing delay for demo purposes
-      // This guarantees the flow works on any device during presentation
+      // Simulated payment processing (works reliably on all devices)
       await Future.delayed(const Duration(seconds: 2));
 
       await _markPaid(method: _selectedPaymentMethod);
@@ -307,7 +263,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Payment failed. Please try again.')),
+        const SnackBar(content: Text('Payment failed. Please try again.')),
       );
     } finally {
       if (mounted) {
@@ -323,10 +279,10 @@ class _PaymentScreenState extends State<PaymentScreen> {
         .collection('ride_requests')
         .doc(widget.requestId)
         .update({
-          'status': 'paid',
-          'paymentMethod': method,
-          'paidAt': Timestamp.now(),
-        });
+      'status': 'paid',
+      'paymentMethod': method,
+      'paidAt': Timestamp.now(),
+    });
   }
 
   Future<void> _showSuccessDialog() async {
@@ -403,7 +359,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
                   child: ElevatedButton(
                     onPressed: () {
                       Navigator.of(context).pop(); // Close dialog
-                      // Navigate to user dashboard screen
                       Navigator.of(context).pushAndRemoveUntil(
                         MaterialPageRoute(
                           builder: (context) => const UserDashboardScreen(),
