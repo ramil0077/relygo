@@ -9,9 +9,9 @@
 =======
 >>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
     <application
-        android:label="relygo"
+        android:label="Relygo"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/launcher_icon">
         <activity
             android:name=".MainActivity"
             android:exported="true"

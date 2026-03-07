@@ -518,6 +518,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+<<<<<<< HEAD
       floatingActionButton: FloatingActionButton(
         backgroundColor: Theme.of(context).primaryColor,
         foregroundColor: Colors.white,
@@ -549,6 +550,8 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
       ),
 
       backgroundColor: Colors.white,
+=======
+>>>>>>> 19c60511df77cf71534b179d6daa8ec8cebe0b10
       body: SafeArea(
         child: IndexedStack(
           index: _selectedIndex,
@@ -563,20 +566,17 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
       ),
       appBar: _selectedIndex == 0
           ? AppBar(
-              backgroundColor: Colors.white,
               elevation: 0,
               title: Text(
                 'Driver Dashboard',
                 style: GoogleFonts.poppins(
                   fontWeight: FontWeight.w600,
-                  color: Colors.black,
                 ),
               ),
               actions: [
                 IconButton(
                   icon: const Icon(
                     Icons.smart_toy_outlined,
-                    color: Colors.black,
                   ),
                   onPressed: () {
                     Navigator.push(
@@ -591,7 +591,6 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                 IconButton(
                   icon: const Icon(
                     Icons.notifications_none,
-                    color: Colors.black,
                   ),
                   onPressed: () {
                     Navigator.push(
@@ -2232,7 +2231,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
     return Container(
       padding: ResponsiveUtils.getResponsivePadding(context),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(
           ResponsiveUtils.getResponsiveBorderRadius(
             context,
@@ -2241,7 +2240,9 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
             desktop: 16,
           ),
         ),
-        border: Border.all(color: Colors.grey.shade300),
+        border: Border.all(
+          color: Theme.of(context).dividerColor,
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.grey.withOpacity(0.1),
@@ -2302,6 +2303,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                         ),
                       ),
                     ),
+<<<<<<< HEAD
                     SizedBox(width: ResponsiveSpacing.getSmallSpacing(context)),
                     Expanded(
                       child: Column(
@@ -2342,6 +2344,10 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                       ),
                     ),
                   ],
+=======
+                    fontWeight: FontWeight.w600,
+                  ),
+>>>>>>> 19c60511df77cf71534b179d6daa8ec8cebe0b10
                 ),
                 SizedBox(height: ResponsiveSpacing.getSmallSpacing(context)),
                 Row(
@@ -2408,6 +2414,21 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
           }
           return Row(
             children: [
+<<<<<<< HEAD
+=======
+              Text(
+                price,
+                style: GoogleFonts.poppins(
+                  fontSize: ResponsiveUtils.getResponsiveFontSize(
+                    context,
+                    mobile: 16,
+                    tablet: 18,
+                    desktop: 20,
+                  ),
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+>>>>>>> 19c60511df77cf71534b179d6daa8ec8cebe0b10
               Container(
                 padding: EdgeInsets.all(
                   ResponsiveUtils.getResponsiveSpacing(
@@ -2598,7 +2619,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
       ),
       padding: ResponsiveUtils.getResponsivePadding(context),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(
           ResponsiveUtils.getResponsiveBorderRadius(
             context,
@@ -2607,7 +2628,9 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
             desktop: 16,
           ),
         ),
-        border: Border.all(color: Colors.grey.shade300),
+        border: Border.all(
+          color: Theme.of(context).dividerColor,
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.grey.withOpacity(0.1),
@@ -2660,7 +2683,6 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
                       desktop: 20,
                     ),
                     fontWeight: FontWeight.w600,
-                    color: Colors.black,
                   ),
                 ),
                 Text(

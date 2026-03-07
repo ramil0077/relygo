@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:relygo/constants.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:razorpay_flutter/razorpay_flutter.dart';
-import 'package:relygo/services/payment_service.dart';
 import 'package:relygo/screens/user_dashboard_screen.dart';
 import 'package:relygo/utils/platform_utils.dart';
 import 'package:relygo/utils/responsive.dart';
@@ -29,6 +27,7 @@ class PaymentScreen extends StatefulWidget {
 class _PaymentScreenState extends State<PaymentScreen> {
   String _selectedPaymentMethod = 'card';
   bool _isProcessing = false;
+<<<<<<< HEAD
   PaymentService? _paymentService;
 
   static String get _razorpayKey => PaymentConfig.razorpayKey;
@@ -67,6 +66,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
     _paymentService?.dispose();
     super.dispose();
   }
+=======
+>>>>>>> 19c60511df77cf71534b179d6daa8ec8cebe0b10
 
   @override
   Widget build(BuildContext context) {
@@ -336,12 +337,17 @@ class _PaymentScreenState extends State<PaymentScreen> {
       child: Container(
         padding: ResponsiveUtils.getResponsivePadding(context),
         decoration: BoxDecoration(
+<<<<<<< HEAD
           color: isSelected
               ? Mycolors.basecolor.withOpacity(0.1)
               : Colors.white,
           borderRadius: BorderRadius.circular(
             ResponsiveUtils.getResponsiveBorderRadius(context, mobile: 12, tablet: 14, desktop: 16),
           ),
+=======
+          color: isSelected ? Mycolors.basecolor.withOpacity(0.1) : Colors.white,
+          borderRadius: BorderRadius.circular(12),
+>>>>>>> 19c60511df77cf71534b179d6daa8ec8cebe0b10
           border: Border.all(
             color: isSelected ? Mycolors.basecolor : Colors.grey.shade300,
             width: isSelected ? 2 : 1,
@@ -390,25 +396,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
   }
 
   Future<void> _processPayment() async {
-    // Cash: directly mark paid without Razorpay flow
-    if (_selectedPaymentMethod == 'cash') {
-      setState(() {
-        _isProcessing = true;
-      });
-      try {
-        await _markPaid(method: 'cash');
-        if (!mounted) return;
-        await _showSuccessDialog();
-      } finally {
-        if (mounted) {
-          setState(() {
-            _isProcessing = false;
-          });
-        }
-      }
-      return;
-    }
+    setState(() {
+      _isProcessing = true;
+    });
 
+<<<<<<< HEAD
     // Card/UPI: open Razorpay test checkout
     final int amountPaise = (widget.amount * 100).toInt();
     _paymentService?.openCheckout(
@@ -425,10 +417,35 @@ class _PaymentScreenState extends State<PaymentScreen> {
   Future<void> _markPaid({required String method}) async {
 <<<<<<< HEAD
     // Update ride_requests collection
+=======
+    try {
+      // Simulated payment processing (works reliably on all devices)
+      await Future.delayed(const Duration(seconds: 2));
+
+      await _markPaid(method: _selectedPaymentMethod);
+      if (!mounted) return;
+      await _showSuccessDialog();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Payment failed. Please try again.')),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isProcessing = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _markPaid({required String method}) async {
+>>>>>>> 19c60511df77cf71534b179d6daa8ec8cebe0b10
     await FirebaseFirestore.instance
         .collection('ride_requests')
         .doc(widget.requestId)
         .update({
+<<<<<<< HEAD
           'status': 'ongoing',
           'isPaid': true,
 =======
@@ -516,6 +533,12 @@ class _PaymentScreenState extends State<PaymentScreen> {
         });
       }
 >>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
+=======
+      'status': 'paid',
+      'paymentMethod': method,
+      'paidAt': Timestamp.now(),
+    });
+>>>>>>> 19c60511df77cf71534b179d6daa8ec8cebe0b10
   }
 
   Future<void> _showSuccessDialog() async {
@@ -592,7 +615,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
                   child: ElevatedButton(
                     onPressed: () {
                       Navigator.of(context).pop(); // Close dialog
-                      // Navigate to user dashboard screen
                       Navigator.of(context).pushAndRemoveUntil(
                         MaterialPageRoute(
                           builder: (context) => const UserDashboardScreen(),

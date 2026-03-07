@@ -34,7 +34,6 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: ResponsiveUtils.getResponsivePadding(context),
@@ -68,7 +67,6 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                       style: GoogleFonts.poppins(
                         fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 28, tablet: 32, desktop: 36),
                         fontWeight: FontWeight.bold,
-                        color: Colors.black,
                       ),
                     ),
                     SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 8, tablet: 10, desktop: 12)),
@@ -97,7 +95,6 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                       style: GoogleFonts.poppins(
                         fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 16, tablet: 17, desktop: 18),
                         fontWeight: FontWeight.w600,
-                        color: Colors.black,
                       ),
                     ),
                     SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 8, tablet: 10, desktop: 12)),
@@ -144,7 +141,6 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                       style: GoogleFonts.poppins(
                         fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 16, tablet: 17, desktop: 18),
                         fontWeight: FontWeight.w600,
-                        color: Colors.black,
                       ),
                     ),
                     SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context, mobile: 8, tablet: 10, desktop: 12)),

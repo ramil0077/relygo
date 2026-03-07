@@ -19,6 +19,11 @@ import 'package:relygo/utils/responsive.dart';
 import 'package:relygo/services/chat_service.dart';
 >>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
 import 'package:url_launcher/url_launcher.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:geocoding/geocoding.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 
 class DriverTrackingScreen extends StatefulWidget {
   final String bookingId;
@@ -35,6 +40,7 @@ class DriverTrackingScreen extends StatefulWidget {
 }
 
 class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
+<<<<<<< HEAD
   GoogleMapController? _mapController;
   LatLng? _driverPosition;
   LatLng? _userPosition;
@@ -45,15 +51,26 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
   bool _isLoadingDriverLocation = true;
   // Default location (can be a default city center or pickup location)
   LatLng _defaultLocation = const LatLng(11.2588, 75.7804); // Kozhikode, Kerala
+=======
+  List<LatLng> _routePoints = [];
+  bool _isLoadingRoute = false;
+  LatLng? _pickupLatLng;
+  late final MapController _mapController;
+>>>>>>> 19c60511df77cf71534b179d6daa8ec8cebe0b10
 
   @override
   void initState() {
     super.initState();
+<<<<<<< HEAD
     _initializeTracking();
+=======
+    _mapController = MapController();
+>>>>>>> 19c60511df77cf71534b179d6daa8ec8cebe0b10
   }
 
   @override
   void dispose() {
+<<<<<<< HEAD
     _driverLocationSubscription?.cancel();
     super.dispose();
   }
@@ -221,6 +238,69 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
           backgroundColor: Colors.red,
         ),
       );
+=======
+    _mapController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _fetchRoute(LatLng driverLocation, String pickupAddress) async {
+    if (_routePoints.isNotEmpty || _isLoadingRoute) return;
+
+    setState(() {
+      _isLoadingRoute = true;
+    });
+
+    try {
+      // 1. Geocode the pickup address
+      if (_pickupLatLng == null && pickupAddress.isNotEmpty) {
+        List<Location> locations = await locationFromAddress(pickupAddress);
+        if (locations.isNotEmpty) {
+          _pickupLatLng = LatLng(locations.first.latitude, locations.first.longitude);
+        }
+      }
+
+      if (_pickupLatLng == null) {
+        setState(() => _isLoadingRoute = false);
+        return;
+      }
+
+      // 2. Fetch Route from OSRM
+      final url = 'https://router.project-osrm.org/route/v1/driving/'
+          '${driverLocation.longitude},${driverLocation.latitude};'
+          '${_pickupLatLng!.longitude},${_pickupLatLng!.latitude}'
+          '?overview=full&geometries=geojson';
+
+      final response = await http.get(Uri.parse(url));
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final routes = data['routes'] as List?;
+        if (routes != null && routes.isNotEmpty) {
+          final geometry = routes.first['geometry'];
+          final coordinates = geometry['coordinates'] as List;
+
+          final points = coordinates.map((coord) {
+            return LatLng(coord[1].toDouble(), coord[0].toDouble());
+          }).toList();
+
+          if (mounted) {
+            setState(() {
+              _routePoints = points;
+              _isLoadingRoute = false;
+            });
+          }
+          return;
+        }
+      }
+    } catch (e) {
+      print('Error fetching route: $e');
+    }
+
+    if (mounted) {
+      setState(() {
+        _isLoadingRoute = false;
+      });
+>>>>>>> 19c60511df77cf71534b179d6daa8ec8cebe0b10
     }
   }
 
@@ -757,8 +837,12 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
     final status = bookingData['status']?.toString().toLowerCase() ?? 'unknown';
     final driverId = bookingData['driverId'];
 
+<<<<<<< HEAD
     if (status != 'started' || driverId == null) {
 >>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
+=======
+    if (!['accepted', 'ongoing', 'started'].contains(status) || driverId == null) {
+>>>>>>> 19c60511df77cf71534b179d6daa8ec8cebe0b10
       return Container(
         padding: ResponsiveUtils.getResponsivePadding(context),
         decoration: BoxDecoration(
@@ -778,12 +862,16 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
             Expanded(
               child: Text(
 <<<<<<< HEAD
+<<<<<<< HEAD
                 'Live tracking will be available when driver accepts the ride',
 =======
                 status == 'ongoing' 
                   ? 'Ride started! Tracking will appear soon.' 
                   : 'Live tracking will be available once the driver starts the ride.',
 >>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
+=======
+                'Live tracking will be available once the driver accepts the ride.',
+>>>>>>> 19c60511df77cf71534b179d6daa8ec8cebe0b10
                 style: GoogleFonts.poppins(
                   fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 16, tablet: 17, desktop: 18),
                   color: Colors.grey[600],
@@ -933,6 +1021,25 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
         if (location != null) {
           lat = (location['latitude'] as num?)?.toDouble();
           lng = (location['longitude'] as num?)?.toDouble();
+        }
+
+        if (lat != null && lng != null) {
+          final driverLatLng = LatLng(lat, lng);
+          final pickupAddress = bookingData['pickupLocation'] ?? '';
+          
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+             if (_routePoints.isEmpty && !_isLoadingRoute && mounted) {
+               _fetchRoute(driverLatLng, pickupAddress);
+             }
+             if (mounted) {
+               // Make the map camera follow the live driver!
+               try {
+                 _mapController.move(driverLatLng, _mapController.camera.zoom); // Keep user's zoom level
+               } catch (_) {
+                 // MapController might not be fully initialized on the very first frame
+               }
+             }
+          });
         }
 
         return Container(
@@ -1156,46 +1263,122 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
                 const SizedBox(height: 16),
               ],
 
-              // Map Placeholder with coordinates
-              Container(
-                height: 200,
-                decoration: BoxDecoration(
-                  color: Colors.grey[200],
-                  borderRadius: BorderRadius.circular(8),
-                  image: lat != null ? const DecorationImage(
-                    image: AssetImage('assets/logooo.png'), // Using logo as a placeholder icon
-                    scale: 5,
-                  ) : null,
-                ),
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.map, size: 48, color: Mycolors.basecolor.withOpacity(0.5)),
-                      const SizedBox(height: 8),
-                      Text(
-                        lat != null ? 'Driver is currently at ($lat, $lng)' : 'Waiting for GPS signal...',
-                        textAlign: TextAlign.center,
-                        style: GoogleFonts.poppins(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.grey[700],
-                        ),
+              // Map View with live coordinates
+              if (lat != null && lng != null)
+                Container(
+                  height: 300,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.grey.shade300),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: FlutterMap(
+                      mapController: _mapController,
+                      options: MapOptions(
+                        initialCenter: LatLng(lat, lng),
+                        initialZoom: 15.0,
                       ),
-                    ],
+                      children: [
+                        TileLayer(
+                          urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                          userAgentPackageName: 'com.example.relygo',
+                        ),
+                        PolylineLayer(
+                          polylines: [
+                            if (_routePoints.isNotEmpty)
+                              Polyline(
+                                points: _routePoints,
+                                color: Mycolors.basecolor,
+                                strokeWidth: 4.0,
+                              ),
+                          ],
+                        ),
+                        MarkerLayer(
+                          markers: [
+                            // Pickup Location Marker
+                            if (_pickupLatLng != null)
+                              Marker(
+                                point: _pickupLatLng!,
+                                width: 40,
+                                height: 40,
+                                child: const Icon(
+                                  Icons.location_on,
+                                  color: Colors.red,
+                                  size: 40,
+                                ),
+                              ),
+                            // Driver Location Marker
+                            Marker(
+                              point: LatLng(lat, lng),
+                              width: 60,
+                              height: 60,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.2),
+                                      blurRadius: 6,
+                                      offset: const Offset(0, 3),
+                                    ),
+                                  ],
+                                ),
+                                child: Icon(
+                                  Icons.local_taxi,
+                                  color: Mycolors.basecolor,
+                                  size: 35,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              else
+                Container(
+                  height: 200,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[200],
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.location_off, size: 48, color: Mycolors.basecolor.withOpacity(0.5)),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Waiting for GPS signal...',
+                          style: GoogleFonts.poppins(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.grey[700],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
 
               const SizedBox(height: 16),
 
-              // Estimated arrival
+              // Estimated arrival / Status Message
               Row(
                 children: [
-                  Icon(Icons.access_time, color: Mycolors.orange, size: 20),
+                  Icon(
+                    status == 'started' ? Icons.navigation : Icons.access_time,
+                    color: status == 'started' ? Mycolors.basecolor : Mycolors.orange,
+                    size: 20,
+                  ),
                   const SizedBox(width: 12),
                   Text(
-                    'Driver is on the way!',
+                    status == 'started'
+                        ? 'Ride is in progress'
+                        : 'Driver is coming to your pickup location',
                     style: GoogleFonts.poppins(
                       fontSize: 16,
                       fontWeight: FontWeight.w500,

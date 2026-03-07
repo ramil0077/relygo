@@ -9,7 +9,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:relygo/utils/phone_validation.dart';
 =======
 import 'package:firebase_auth/firebase_auth.dart';
+<<<<<<< HEAD
 >>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
+=======
+import 'package:url_launcher/url_launcher.dart';
+import 'package:relygo/services/user_service.dart';
+>>>>>>> 19c60511df77cf71534b179d6daa8ec8cebe0b10
 // AppSettings are defined in constants.dart
 
 class UserProfileScreen extends StatefulWidget {
@@ -23,25 +28,15 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
         automaticallyImplyLeading: false,
         leading: Navigator.of(context).canPop()
             ? IconButton(
-                icon: const Icon(Icons.arrow_back, color: Colors.black),
+                icon: const Icon(Icons.arrow_back),
                 onPressed: () => Navigator.pop(context),
               )
             : null,
-        title: Text(
-          "Profile",
-          style: GoogleFonts.poppins(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Colors.black,
-          ),
-        ),
+        title: const Text("Profile"),
       ),
       body: StreamBuilder<User?>(
         stream: AuthService.authStateChanges,
@@ -258,6 +253,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                           currentName: name,
                           currentEmail: email,
                           currentPhone: (data['phone'] ?? '').toString(),
+                          currentLicense: licenseNumber,
                         );
                       },
                     ),
@@ -280,6 +276,14 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                       Icons.help,
                       () {
                         _showHelpSupportDialog();
+                      },
+                    ),
+                    _buildProfileOption(
+                      "Settings",
+                      "App settings and preferences",
+                      Icons.settings,
+                      () {
+                        _showSettingsDialog(data['isLocationEnabled'] ?? true);
                       },
                     ),
                     const SizedBox(height: 20),
@@ -319,7 +323,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                           style: GoogleFonts.poppins(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
-                            color: Colors.black,
                           ),
                         ),
                       ),
@@ -372,7 +375,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           style: GoogleFonts.poppins(
             fontSize: 16,
             fontWeight: FontWeight.w600,
-            color: Colors.black,
           ),
         ),
         subtitle: Text(
@@ -381,7 +383,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         ),
         trailing: Icon(Icons.arrow_forward_ios, color: Mycolors.gray, size: 16),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        tileColor: Colors.white,
+        tileColor: Theme.of(context).cardColor,
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       ),
     );
@@ -391,6 +393,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     required String currentName,
     required String currentEmail,
     required String currentPhone,
+    required String currentLicense,
   }) {
     showDialog(
       context: context,
@@ -443,6 +446,17 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   PhoneNumberInputFormatter(), // Only allows digits
                 ],
               ),
+              const SizedBox(height: 15),
+              TextField(
+                decoration: InputDecoration(
+                  labelText: "License Number",
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                controller: TextEditingController(text: currentLicense),
+                onChanged: (val) => currentLicense = val,
+              ),
             ],
           ),
           actions: [
@@ -462,6 +476,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     userId: uid,
                     name: nameController.text.trim(),
                     phone: phoneController.text.trim(),
+                    documents: {
+                      'licenseNumber': currentLicense.trim(),
+                    },
                   );
                   final ok = res['success'] == true;
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -618,12 +635,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 "support@relygo.com",
                 Mycolors.basecolor,
               ),
-              _buildContactItem(
-                Icons.chat,
-                "Live Chat",
-                "Available 24/7",
-                Mycolors.orange,
-              ),
             ],
           ),
           actions: [
@@ -646,35 +657,46 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     String value,
     Color color,
   ) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Row(
-        children: [
-          Icon(icon, color: color, size: 20),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: GoogleFonts.poppins(
-                    fontSize: 12,
-                    color: Mycolors.gray,
+    return InkWell(
+      onTap: () async {
+        if (title == "Phone") {
+          final uri = Uri.parse("tel:${value.replaceAll(' ', '')}");
+          if (await canLaunchUrl(uri)) await launchUrl(uri);
+        } else if (title == "Email") {
+          final uri = Uri.parse("mailto:$value");
+          if (await canLaunchUrl(uri)) await launchUrl(uri);
+        }
+      },
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 12),
+        child: Row(
+          children: [
+            Icon(icon, color: color, size: 20),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      color: Mycolors.gray,
+                    ),
                   ),
-                ),
-                Text(
-                  value,
-                  style: GoogleFonts.poppins(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black,
+                  Text(
+                    value,
+                    style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -739,7 +761,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         style: GoogleFonts.poppins(
           fontSize: 14,
           fontWeight: FontWeight.w600,
-          color: Colors.black,
         ),
       ),
       children: [
@@ -751,6 +772,92 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  void _showSettingsDialog(bool currentLocationStatus) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        bool isLocationEnabled = currentLocationStatus;
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            final isDark = AppSettings.themeMode.value == ThemeMode.dark;
+            
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              title: Text(
+                "Settings",
+                style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SwitchListTile(
+                    secondary: Icon(
+                      isDark ? Icons.dark_mode : Icons.light_mode,
+                      color: Mycolors.basecolor,
+                    ),
+                    title: Text("Dark Mode", style: GoogleFonts.poppins()),
+                    subtitle: Text(
+                      isDark ? "Dark theme enabled" : "Light theme enabled",
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        color: Mycolors.gray,
+                      ),
+                    ),
+                    value: isDark,
+                    activeTrackColor: Mycolors.basecolor,
+                    onChanged: (value) {
+                      setDialogState(() {
+                        AppSettings.themeMode.value =
+                            value ? ThemeMode.dark : ThemeMode.light;
+                      });
+                    },
+                  ),
+                  SwitchListTile(
+                    secondary: Icon(Icons.location_on, color: Mycolors.basecolor),
+                    title:
+                        Text("Location Services", style: GoogleFonts.poppins()),
+                    subtitle: Text(
+                      isLocationEnabled ? "Enabled" : "Disabled",
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        color: Mycolors.gray,
+                      ),
+                    ),
+                    value: isLocationEnabled,
+                    activeTrackColor: Mycolors.basecolor,
+                    onChanged: (value) async {
+                      final uid = AuthService.currentUserId;
+                      if (uid != null) {
+                        setDialogState(() {
+                          isLocationEnabled = value;
+                          currentLocationStatus = value;
+                        });
+                        await UserService.updateUserFields(uid, {
+                          'isLocationEnabled': value,
+                        });
+                      }
+                    },
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text(
+                    "Close",
+                    style: GoogleFonts.poppins(color: Colors.grey),
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 

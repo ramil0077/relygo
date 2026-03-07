@@ -10,7 +10,6 @@ class WelcomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       body: SafeArea(
         child: ResponsiveLayoutBuilder(
           builder: (context, constraints) {
@@ -325,10 +324,12 @@ class WelcomeScreen extends StatelessWidget {
     return Container(
       padding: ResponsiveUtils.getResponsiveVerticalPadding(context),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.2),
+            color: Theme.of(context).brightness == Brightness.dark
+                ? Colors.black.withOpacity(0.4)
+                : Colors.grey.withOpacity(0.2),
             blurRadius: ResponsiveUtils.getResponsiveElevation(
               context,
               mobile: 10,
@@ -363,7 +364,11 @@ class WelcomeScreen extends StatelessWidget {
       children: [
         Icon(
           icon,
-          color: isActive ? Mycolors.basecolor : Colors.grey,
+          color: isActive
+              ? Mycolors.basecolor
+              : (Theme.of(context).brightness == Brightness.dark
+                  ? Colors.grey[400]
+                  : Colors.grey),
           size: ResponsiveUtils.getResponsiveIconSize(
             context,
             mobile: 24,

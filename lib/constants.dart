@@ -42,6 +42,7 @@ class AppTheme {
           fontWeight: FontWeight.w600,
         ),
       ),
+      dividerColor: Colors.grey.shade300,
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: Mycolors.basecolor,
@@ -52,6 +53,19 @@ class AppTheme {
             fontWeight: FontWeight.w600,
           ),
         ),
+      ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: Colors.white,
+        titleTextStyle: GoogleFonts.poppins(
+          color: Colors.black,
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+        ),
+        contentTextStyle: GoogleFonts.poppins(
+          color: Colors.black87,
+          fontSize: 16,
+        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
       inputDecorationTheme: InputDecorationTheme(
         border: OutlineInputBorder(
@@ -70,6 +84,8 @@ class AppTheme {
         labelStyle: GoogleFonts.poppins(color: Colors.grey.shade600),
         hintStyle: GoogleFonts.poppins(color: Colors.grey.shade400),
       ),
+      scaffoldBackgroundColor: Colors.white,
+      cardColor: Colors.white,
     );
   }
 
@@ -77,11 +93,24 @@ class AppTheme {
     final base = ThemeData.dark();
     return base.copyWith(
       primaryColor: Mycolors.basecolor,
+      scaffoldBackgroundColor: Color(0xFF121212),
+      cardColor: Color(0xFF1E1E1E),
       colorScheme: base.colorScheme.copyWith(
         primary: Mycolors.basecolor,
         secondary: Mycolors.orange,
+        surface: Color(0xFF1E1E1E),
       ),
       textTheme: GoogleFonts.poppinsTextTheme(base.textTheme),
+      appBarTheme: AppBarTheme(
+        backgroundColor: Color(0xFF121212),
+        foregroundColor: Colors.white,
+        elevation: 0,
+        titleTextStyle: GoogleFonts.poppins(
+          color: Colors.white,
+          fontSize: 20,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: Mycolors.basecolor,
@@ -92,6 +121,19 @@ class AppTheme {
             fontWeight: FontWeight.w600,
           ),
         ),
+      ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: Color(0xFF1E1E1E),
+        titleTextStyle: GoogleFonts.poppins(
+          color: Colors.white,
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+        ),
+        contentTextStyle: GoogleFonts.poppins(
+          color: Colors.white70,
+          fontSize: 16,
+        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
     );
   }
@@ -114,7 +156,7 @@ class ResponsiveTextStyles {
         desktop: 32,
       ),
       fontWeight: FontWeight.bold,
-      color: Colors.black,
+      color: Theme.of(context).textTheme.bodyLarge?.color,
     );
   }
 

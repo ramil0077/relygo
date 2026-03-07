@@ -20,25 +20,15 @@ class _RideHistoryScreenState extends State<RideHistoryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
         automaticallyImplyLeading: false,
         leading: Navigator.of(context).canPop()
             ? IconButton(
-                icon: const Icon(Icons.arrow_back, color: Colors.black),
+                icon: const Icon(Icons.arrow_back),
                 onPressed: () => Navigator.pop(context),
               )
             : null,
-        title: Text(
-          "Ride History",
-          style: GoogleFonts.poppins(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Colors.black,
-          ),
-        ),
+        title: const Text("Ride History"),
       ),
       body: Column(
         children: [
@@ -337,9 +327,13 @@ class _RideHistoryScreenState extends State<RideHistoryScreen> {
       margin: const EdgeInsets.only(bottom: 15),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade300),
+        border: Border.all(
+          color: Theme.of(context).brightness == Brightness.dark
+              ? Colors.grey.shade800
+              : Colors.grey.shade300,
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.grey.withOpacity(0.1),
@@ -383,7 +377,6 @@ class _RideHistoryScreenState extends State<RideHistoryScreen> {
             style: GoogleFonts.poppins(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: Colors.black,
             ),
           ),
           const SizedBox(height: 8),
@@ -406,7 +399,7 @@ class _RideHistoryScreenState extends State<RideHistoryScreen> {
               const SizedBox(width: 12),
               Text(
                 driverName,
-                style: GoogleFonts.poppins(fontSize: 14, color: Colors.black),
+                style: GoogleFonts.poppins(fontSize: 14),
               ),
               const SizedBox(width: 8),
               if (rating != "0.0") ...[

@@ -23,16 +23,13 @@ class _DriverManagementScreenState extends State<DriverManagementScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
         elevation: 0,
         title: Text(
           "Driver Management",
           style: GoogleFonts.poppins(
             fontSize: 20,
             fontWeight: FontWeight.bold,
-            color: Colors.black,
           ),
         ),
         actions: [
@@ -65,7 +62,7 @@ class _DriverManagementScreenState extends State<DriverManagementScreen> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     filled: true,
-                    fillColor: Colors.grey.shade100,
+                    fillColor: Theme.of(context).cardColor,
                   ),
                 ),
                 const SizedBox(height: 15),
@@ -184,7 +181,7 @@ class _DriverManagementScreenState extends State<DriverManagementScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? Mycolors.basecolor : Colors.grey.shade100,
+          color: isSelected ? Mycolors.basecolor : Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: isSelected ? Mycolors.basecolor : Colors.grey.shade300,
@@ -195,7 +192,7 @@ class _DriverManagementScreenState extends State<DriverManagementScreen> {
           style: GoogleFonts.poppins(
             fontSize: 14,
             fontWeight: FontWeight.w600,
-            color: isSelected ? Colors.white : Colors.black,
+            color: isSelected ? Colors.white : Theme.of(context).textTheme.bodyMedium?.color,
           ),
         ),
       ),
@@ -218,7 +215,7 @@ class _DriverManagementScreenState extends State<DriverManagementScreen> {
       margin: const EdgeInsets.only(bottom: 15),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.grey.shade300),
         boxShadow: [
@@ -259,7 +256,6 @@ class _DriverManagementScreenState extends State<DriverManagementScreen> {
                         style: GoogleFonts.poppins(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          color: Colors.black,
                         ),
                       ),
                       Text(

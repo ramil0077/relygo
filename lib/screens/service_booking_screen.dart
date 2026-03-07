@@ -21,7 +21,12 @@ int _baseFareForVehicle(String vehicle) {
 =======
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
+<<<<<<< HEAD
 >>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
+=======
+import 'package:relygo/screens/map_picker_screen.dart';
+import 'dart:async';
+>>>>>>> 19c60511df77cf71534b179d6daa8ec8cebe0b10
 
 class ServiceBookingScreen extends StatefulWidget {
   const ServiceBookingScreen({super.key});
@@ -45,7 +50,7 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
   String? _driverId;
   String? _driverName;
   int? _estimatedPrice;
-  bool _detectingLocation = false;
+  bool _detectingPickupLocation = false;
 
   @override
   void initState() {
@@ -94,7 +99,9 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
 =======
   /// Auto-detect current location and fill pickup field
   Future<void> _detectCurrentLocation() async {
-    setState(() => _detectingLocation = true);
+    setState(() {
+      _detectingPickupLocation = true;
+    });
     try {
       // Check if location services are enabled
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
@@ -217,8 +224,16 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
         );
       }
     } finally {
+<<<<<<< HEAD
       if (mounted) setState(() => _detectingLocation = false);
 >>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
+=======
+      if (mounted) {
+        setState(() {
+          _detectingPickupLocation = false;
+        });
+      }
+>>>>>>> 19c60511df77cf71534b179d6daa8ec8cebe0b10
     }
   }
 
@@ -405,13 +420,20 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
                     child: TextField(
                       controller: _pickupController,
                       decoration: InputDecoration(
-                        hintText: "Enter pickup location",
+                        hintText: 'Enter pickup location',
                         prefixIcon: Icon(
                           Icons.location_on,
                           color: Mycolors.basecolor,
                         ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: Mycolors.basecolor,
+                            width: 2,
+                          ),
                         ),
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: 12,
@@ -422,11 +444,13 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
 >>>>>>> b07d4e920cd2ae6666412320823f957957d9089c
                   ),
                   const SizedBox(width: 10),
-                  // 📍 Auto-Location Button
+                  // 📍 GPS Auto-detect Button
                   Tooltip(
                     message: 'Use my current location',
                     child: InkWell(
-                      onTap: _detectingLocation ? null : _detectCurrentLocation,
+                      onTap: _detectingPickupLocation
+                          ? null
+                          : () => _detectCurrentLocation(),
                       borderRadius: BorderRadius.circular(12),
                       child: Container(
                         width: 50,
@@ -442,7 +466,7 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
                             ),
                           ],
                         ),
-                        child: _detectingLocation
+                        child: _detectingPickupLocation
                             ? const Padding(
                                 padding: EdgeInsets.all(14),
                                 child: CircularProgressIndicator(
@@ -483,6 +507,7 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
                   color: Colors.black,
                 ),
               ),
+<<<<<<< HEAD
               const SizedBox(height: 15),
               TextFormField(
                 controller: _destinationController,
@@ -491,7 +516,88 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
                   prefixIcon: Icon(Icons.place, color: Mycolors.basecolor),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
+=======
+              const SizedBox(height: 10),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _destinationController,
+                      decoration: InputDecoration(
+                        hintText: 'Enter destination',
+                        prefixIcon: Icon(
+                          Icons.place,
+                          color: Mycolors.basecolor,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: Mycolors.basecolor,
+                            width: 2,
+                          ),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 14,
+                        ),
+                      ),
+                    ),
+>>>>>>> 19c60511df77cf71534b179d6daa8ec8cebe0b10
                   ),
+                  const SizedBox(width: 10),
+                  // 🗺️ Choose on Map Button
+                  Tooltip(
+                    message: 'Choose on map',
+                    child: InkWell(
+                      onTap: () async {
+                        final result = await Navigator.of(context).push<String>(
+                          MaterialPageRoute(
+                            builder: (_) => const MapPickerScreen(
+                              title: 'Pick Destination',
+                            ),
+                          ),
+                        );
+                        if (result != null && result.isNotEmpty) {
+                          setState(() {
+                            _destinationController.text = result;
+                          });
+                        }
+                      },
+                      borderRadius: BorderRadius.circular(12),
+                      child: Container(
+                        width: 50,
+                        height: 54,
+                        decoration: BoxDecoration(
+                          color: Mycolors.basecolor,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Mycolors.basecolor.withOpacity(0.3),
+                              blurRadius: 6,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                        child: const Icon(
+                          Icons.map_outlined,
+                          color: Colors.white,
+                          size: 24,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'Tap 🗺️ to choose destination on map',
+                style: GoogleFonts.poppins(
+                  fontSize: 12,
+                  color: Mycolors.gray,
                 ),
                 validator: (v) {
                   if (v == null || v.trim().isEmpty) return 'Please enter destination';
@@ -872,7 +978,20 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
             : null,
       };
 
-      await FirebaseFirestore.instance.collection('ride_requests').add(data);
+      final docRef = await FirebaseFirestore.instance.collection('ride_requests').add(data);
+
+      // Notify driver
+      if (_driverId != null) {
+        await FirebaseFirestore.instance.collection('notifications').add({
+          'userId': _driverId, // Driver's ID (assuming driver maps to a user record)
+          'title': 'New Booking Request',
+          'message': 'You have a new ride request from the pickup location.',
+          'type': 'new_booking',
+          'bookingId': docRef.id,
+          'read': false,
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+      }
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
