@@ -22,6 +22,7 @@ class MapPickerScreen extends StatefulWidget {
 
 class _MapPickerScreenState extends State<MapPickerScreen> {
   late MapController _mapController;
+  final TextEditingController _searchController = TextEditingController();
 
   // Default: Kerala, India
   LatLng _pickedLatLng = const LatLng(11.2588, 75.7804);
@@ -44,6 +45,7 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
 
   @override
   void dispose() {
+    _searchController.dispose();
     _mapController.dispose();
     super.dispose();
   }
@@ -144,6 +146,42 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
     }
   }
 
+  Future<void> _searchLocation(String query) async {
+    if (query.trim().isEmpty) return;
+    FocusScope.of(context).unfocus();
+    setState(() => _isGeocoding = true);
+    try {
+      List<Location> locations = await locationFromAddress(query).timeout(
+        const Duration(seconds: 5),
+      );
+      if (locations.isNotEmpty) {
+        final loc = locations.first;
+        final newLatLng = LatLng(loc.latitude, loc.longitude);
+        _mapController.move(newLatLng, 16.0);
+        setState(() => _pickedLatLng = newLatLng);
+        await _reverseGeocode(newLatLng);
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Could not find location', style: GoogleFonts.poppins()),
+            ),
+          );
+        }
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error finding location', style: GoogleFonts.poppins()),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isGeocoding = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -189,6 +227,11 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
             options: MapOptions(
               initialCenter: _pickedLatLng,
               initialZoom: 15.0,
+              onTap: (tapPosition, point) {
+                _mapController.move(point, 16.0);
+                setState(() => _pickedLatLng = point);
+                _reverseGeocode(point);
+              },
               onPositionChanged: (position, hasGesture) {
                 if (hasGesture && position.center != null) {
                   setState(() => _pickedLatLng = position.center!);
@@ -218,6 +261,48 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
                 Icon(Icons.location_pin, color: Colors.red, size: 48),
                 SizedBox(height: 24), // offset for pin bottom point
               ],
+            ),
+          ),
+
+          // ── Search Bar ─────────────────────────────────────────────────
+          Positioned(
+            top: 16,
+            left: 16,
+            right: 16,
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Colors.black12,
+                    blurRadius: 8,
+                    offset: Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: TextField(
+                controller: _searchController,
+                textInputAction: TextInputAction.search,
+                onSubmitted: _searchLocation,
+                decoration: InputDecoration(
+                  hintText: 'Search manually...',
+                  hintStyle: GoogleFonts.poppins(color: Colors.grey),
+                  prefixIcon: Icon(Icons.search, color: Mycolors.basecolor),
+                  suffixIcon: IconButton(
+                    icon: const Icon(Icons.clear, color: Colors.grey),
+                    onPressed: () {
+                      _searchController.clear();
+                      FocusScope.of(context).unfocus();
+                    },
+                  ),
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
+                ),
+              ),
             ),
           ),
 
