@@ -29,6 +29,19 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
   List<LatLng> _routePoints = [];
   bool _isLoadingRoute = false;
   LatLng? _pickupLatLng;
+  late final MapController _mapController;
+
+  @override
+  void initState() {
+    super.initState();
+    _mapController = MapController();
+  }
+
+  @override
+  void dispose() {
+    _mapController.dispose();
+    super.dispose();
+  }
 
   Future<void> _fetchRoute(LatLng driverLocation, String pickupAddress) async {
     if (_routePoints.isNotEmpty || _isLoadingRoute) return;
@@ -501,7 +514,7 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
     final status = bookingData['status']?.toString().toLowerCase() ?? 'unknown';
     final driverId = bookingData['driverId'];
 
-    if (status != 'started' || driverId == null) {
+    if (!['accepted', 'ongoing', 'started'].contains(status) || driverId == null) {
       return Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
@@ -514,9 +527,7 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
             const SizedBox(width: 16),
             Expanded(
               child: Text(
-                status == 'ongoing' 
-                  ? 'Ride started! Tracking will appear soon.' 
-                  : 'Live tracking will be available once the driver starts the ride.',
+                'Live tracking will be available once the driver accepts the ride.',
                 style: GoogleFonts.poppins(
                   fontSize: 16,
                   color: Colors.grey[600],
@@ -551,6 +562,14 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
           WidgetsBinding.instance.addPostFrameCallback((_) {
              if (_routePoints.isEmpty && !_isLoadingRoute && mounted) {
                _fetchRoute(driverLatLng, pickupAddress);
+             }
+             if (mounted) {
+               // Make the map camera follow the live driver!
+               try {
+                 _mapController.move(driverLatLng, _mapController.camera.zoom); // Keep user's zoom level
+               } catch (_) {
+                 // MapController might not be fully initialized on the very first frame
+               }
              }
           });
         }
@@ -614,6 +633,7 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(8),
                     child: FlutterMap(
+                      mapController: _mapController,
                       options: MapOptions(
                         initialCenter: LatLng(lat, lng),
                         initialZoom: 15.0,
@@ -705,13 +725,19 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
 
               const SizedBox(height: 16),
 
-              // Estimated arrival
+              // Estimated arrival / Status Message
               Row(
                 children: [
-                  Icon(Icons.access_time, color: Mycolors.orange, size: 20),
+                  Icon(
+                    status == 'started' ? Icons.navigation : Icons.access_time,
+                    color: status == 'started' ? Mycolors.basecolor : Mycolors.orange,
+                    size: 20,
+                  ),
                   const SizedBox(width: 12),
                   Text(
-                    'Driver is on the way!',
+                    status == 'started'
+                        ? 'Ride is in progress'
+                        : 'Driver is coming to your pickup location',
                     style: GoogleFonts.poppins(
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
