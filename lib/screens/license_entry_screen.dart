@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:relygo/constants.dart';
 import 'package:relygo/screens/document_verification_screen.dart';
+import 'package:relygo/widgets/image_upload_widget.dart';
 
 class LicenseEntryScreen extends StatefulWidget {
   const LicenseEntryScreen({super.key});
@@ -146,35 +147,13 @@ class _LicenseEntryScreenState extends State<LicenseEntryScreen> {
                 ),
                 const SizedBox(height: 30),
 
-                // Upload License Image Button
-                SizedBox(
-                  width: double.infinity,
-                  height: 50,
-                  child: OutlinedButton.icon(
-                    onPressed: () {
-                      // Image picker functionality would go here
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Image picker coming soon'),
-                        ),
-                      );
-                    },
-                    icon: Icon(Icons.upload, color: Mycolors.basecolor),
-                    label: Text(
-                      "Upload license image",
-                      style: GoogleFonts.poppins(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Mycolors.basecolor,
-                      ),
-                    ),
-                    style: OutlinedButton.styleFrom(
-                      side: BorderSide(color: Mycolors.basecolor),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                  ),
+                ImageUploadWidget(
+                  title: 'License Image',
+                  subtitle: 'Upload your driving license',
+                  folder: 'drivers/license',
+                  onImageUploaded: (url) {
+                    // Handle uploaded license image url
+                  },
                 ),
                 const SizedBox(height: 30),
 

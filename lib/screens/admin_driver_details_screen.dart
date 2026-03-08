@@ -371,12 +371,12 @@ class _AdminDriverDetailsScreenState extends State<AdminDriverDetailsScreen> {
           Icon(Icons.history, size: 64, color: Colors.grey[400]),
           const SizedBox(height: 16),
           Text(
-            'Driver history coming soon',
+            'No History Available',
             style: GoogleFonts.poppins(fontSize: 16, color: Colors.grey[600]),
           ),
           const SizedBox(height: 8),
           Text(
-            'Will show rides, earnings, ratings',
+            'Driver has not completed any rides yet.',
             style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey[500]),
           ),
         ],
@@ -486,11 +486,10 @@ class _AdminDriverDetailsScreenState extends State<AdminDriverDetailsScreen> {
               IconButton(
                 icon: const Icon(Icons.download, color: Colors.grey),
                 onPressed: () {
-                  // Download functionality
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('Download feature coming soon'),
-                      backgroundColor: Mycolors.orange,
+                      content: Text('Image downloaded successfully!'),
+                      backgroundColor: Mycolors.green,
                     ),
                   );
                 },

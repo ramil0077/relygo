@@ -51,6 +51,17 @@ class _DriverNotificationsScreenState extends State<DriverNotificationsScreen> {
                   );
                 }
                 final docs = snapshot.data?.docs ?? [];
+
+                // Sort docs locally to ensure latest are on top
+                docs.sort((a, b) {
+                  final aData = a.data();
+                  final bData = b.data();
+                  final aTime = aData['createdAt'] as Timestamp?;
+                  final bTime = bData['createdAt'] as Timestamp?;
+                  if (aTime == null || bTime == null) return 0;
+                  return bTime.compareTo(aTime);
+                });
+
                 if (docs.isEmpty) {
                   return Center(
                     child: Text(

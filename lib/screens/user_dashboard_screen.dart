@@ -1948,12 +1948,7 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
             Icons.my_location,
             Mycolors.green,
             () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Live driver tracking coming soon'),
-                  backgroundColor: Mycolors.basecolor,
-                ),
-              );
+              _handleTrackDriver();
             },
           ),
         ),

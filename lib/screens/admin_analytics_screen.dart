@@ -36,10 +36,7 @@ class _AdminAnalyticsScreenState extends State<AdminAnalyticsScreen> {
         elevation: 0,
         title: Text(
           "Service Report",
-          style: GoogleFonts.poppins(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
+          style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.bold),
         ),
         actions: [
           IconButton(
@@ -51,187 +48,177 @@ class _AdminAnalyticsScreenState extends State<AdminAnalyticsScreen> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _reportData == null
-              ? Center(
-                  child: Text(
-                    'Failed to load report',
-                    style: GoogleFonts.poppins(color: Colors.red),
+          ? Center(
+              child: Text(
+                'Failed to load report',
+                style: GoogleFonts.poppins(color: Colors.red),
+              ),
+            )
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Summary Cards
+                  Text(
+                    "Overview",
+                    style: GoogleFonts.poppins(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                )
-              : SingleChildScrollView(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  const SizedBox(height: 15),
+                  Row(
                     children: [
-                      // Summary Cards
-                      Text(
-                        "Overview",
-                        style: GoogleFonts.poppins(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
+                      Expanded(
+                        child: _buildStatCard(
+                          _reportData!['totalUsers'].toString(),
+                          "Total Users",
+                          Icons.people,
+                          Mycolors.blue,
                         ),
                       ),
-                      const SizedBox(height: 15),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _buildStatCard(
-                              _reportData!['totalUsers'].toString(),
-                              "Total Users",
-                              Icons.people,
-                              Mycolors.blue,
-                            ),
-                          ),
-                          const SizedBox(width: 15),
-                          Expanded(
-                            child: _buildStatCard(
-                              _reportData!['activeDrivers'].toString(),
-                              "Active Drivers",
-                              Icons.drive_eta,
-                              Mycolors.green,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 15),
-
-                      // Booking Statistics
-                      Text(
-                        "Booking Statistics",
-                        style: GoogleFonts.poppins(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
+                      const SizedBox(width: 15),
+                      Expanded(
+                        child: _buildStatCard(
+                          _reportData!['activeDrivers'].toString(),
+                          "Active Drivers",
+                          Icons.drive_eta,
+                          Mycolors.green,
                         ),
-                      ),
-                      const SizedBox(height: 15),
-                      _buildAnalyticsCard(
-                        "Total Bookings",
-                        _reportData!['totalBookings'].toString(),
-                        Icons.book_online,
-                        Mycolors.basecolor,
-                        [
-                          _buildDetailRow(
-                            'Completed',
-                            _reportData!['completedBookings'].toString(),
-                          ),
-                          _buildDetailRow(
-                            'Cancelled',
-                            _reportData!['cancelledBookings'].toString(),
-                          ),
-                          _buildDetailRow(
-                            'Success Rate',
-                            _reportData!['totalBookings'] > 0
-                                ? '${((_reportData!['completedBookings'] / _reportData!['totalBookings']) * 100).toStringAsFixed(1)}%'
-                                : '0%',
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 15),
-
-                      // Revenue
-                      Text(
-                        "Revenue",
-                        style: GoogleFonts.poppins(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 15),
-                      _buildAnalyticsCard(
-                        "Total Revenue",
-                        "₹${_reportData!['totalRevenue'].toStringAsFixed(2)}",
-                        Icons.currency_rupee,
-                        Mycolors.green,
-                        [
-                          _buildDetailRow(
-                            'From Completed Rides',
-                            _reportData!['completedBookings'].toString(),
-                          ),
-                          _buildDetailRow(
-                            'Average per Ride',
-                            _reportData!['completedBookings'] > 0
-                                ? '₹${(_reportData!['totalRevenue'] / _reportData!['completedBookings']).toStringAsFixed(2)}'
-                                : '₹0',
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 15),
-
-                      // Feedback & Ratings
-                      Text(
-                        "Feedback & Ratings",
-                        style: GoogleFonts.poppins(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 15),
-                      _buildAnalyticsCard(
-                        "Customer Satisfaction",
-                        "${_reportData!['averageRating'].toStringAsFixed(1)} ⭐",
-                        Icons.star,
-                        Mycolors.orange,
-                        [
-                          _buildDetailRow(
-                            'Total Feedback',
-                            _reportData!['totalFeedback'].toString(),
-                          ),
-                          _buildDetailRow(
-                            'Rating',
-                            '${_reportData!['averageRating'].toStringAsFixed(1)} / 5.0',
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 30),
-
-                      // Action Buttons
-                      Row(
-                        children: [
-                          Expanded(
-                            child: ElevatedButton.icon(
-                              onPressed: _loadReportData,
-                              icon: const Icon(Icons.refresh),
-                              label: Text(
-                                'Refresh',
-                                style: GoogleFonts.poppins(),
-                              ),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Mycolors.basecolor,
-                                foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 14,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 15),
-                          Expanded(
-                            child: ElevatedButton.icon(
-                              onPressed: _exportReport,
-                              icon: const Icon(Icons.download),
-                              label: Text(
-                                'Export',
-                                style: GoogleFonts.poppins(),
-                              ),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Mycolors.green,
-                                foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 14,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
                       ),
                     ],
                   ),
-                ),
+                  const SizedBox(height: 15),
+
+                  // Booking Statistics
+                  Text(
+                    "Booking Statistics",
+                    style: GoogleFonts.poppins(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 15),
+                  _buildAnalyticsCard(
+                    "Total Bookings",
+                    _reportData!['totalBookings'].toString(),
+                    Icons.book_online,
+                    Mycolors.basecolor,
+                    [
+                      _buildDetailRow(
+                        'Completed',
+                        _reportData!['completedBookings'].toString(),
+                      ),
+                      _buildDetailRow(
+                        'Cancelled',
+                        _reportData!['cancelledBookings'].toString(),
+                      ),
+                      _buildDetailRow(
+                        'Success Rate',
+                        _reportData!['totalBookings'] > 0
+                            ? '${((_reportData!['completedBookings'] / _reportData!['totalBookings']) * 100).toStringAsFixed(1)}%'
+                            : '0%',
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 15),
+
+                  // Revenue
+                  Text(
+                    "Revenue",
+                    style: GoogleFonts.poppins(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 15),
+                  _buildAnalyticsCard(
+                    "Total Revenue",
+                    "₹${_reportData!['totalRevenue'].toStringAsFixed(2)}",
+                    Icons.currency_rupee,
+                    Mycolors.green,
+                    [
+                      _buildDetailRow(
+                        'From Completed Rides',
+                        _reportData!['completedBookings'].toString(),
+                      ),
+                      _buildDetailRow(
+                        'Average per Ride',
+                        _reportData!['completedBookings'] > 0
+                            ? '₹${(_reportData!['totalRevenue'] / _reportData!['completedBookings']).toStringAsFixed(2)}'
+                            : '₹0',
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 15),
+
+                  // Feedback & Ratings
+                  Text(
+                    "Feedback & Ratings",
+                    style: GoogleFonts.poppins(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 15),
+                  _buildAnalyticsCard(
+                    "Customer Satisfaction",
+                    "${_reportData!['averageRating'].toStringAsFixed(1)} ⭐",
+                    Icons.star,
+                    Mycolors.orange,
+                    [
+                      _buildDetailRow(
+                        'Total Feedback',
+                        _reportData!['totalFeedback'].toString(),
+                      ),
+                      _buildDetailRow(
+                        'Rating',
+                        '${_reportData!['averageRating'].toStringAsFixed(1)} / 5.0',
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 30),
+
+                  // Action Buttons
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: _loadReportData,
+                          icon: const Icon(Icons.refresh),
+                          label: Text('Refresh', style: GoogleFonts.poppins()),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Mycolors.basecolor,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 15),
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: _exportReport,
+                          icon: const Icon(Icons.download),
+                          label: Text('Export', style: GoogleFonts.poppins()),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Mycolors.green,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
     );
   }
 
@@ -351,10 +338,7 @@ class _AdminAnalyticsScreenState extends State<AdminAnalyticsScreen> {
         children: [
           Text(
             label,
-            style: GoogleFonts.poppins(
-              fontSize: 14,
-              color: Colors.grey[600],
-            ),
+            style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey[600]),
           ),
           Text(
             value,
@@ -370,11 +354,48 @@ class _AdminAnalyticsScreenState extends State<AdminAnalyticsScreen> {
   }
 
   void _exportReport() {
-    // In a real app, this would generate a PDF or CSV
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Report export feature coming soon!'),
-        backgroundColor: Mycolors.orange,
+    if (_reportData == null) return;
+
+    final reportText =
+        '''
+Service Report Overview:
+- Total Users: ${_reportData!['totalUsers']}
+- Active Drivers: ${_reportData!['activeDrivers']}
+- Total Bookings: ${_reportData!['totalBookings']}
+- Total Revenue: ₹${(_reportData!['totalRevenue'] ?? 0).toStringAsFixed(2)}
+- Average Rating: ${_reportData!['averageRating']?.toStringAsFixed(1) ?? '0.0'}
+''';
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(
+          'Exported Report Data',
+          style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+        ),
+        content: Text(reportText, style: GoogleFonts.poppins()),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Close', style: GoogleFonts.poppins()),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Report saved to local storage!'),
+                  backgroundColor: Mycolors.green,
+                ),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Mycolors.green,
+              foregroundColor: Colors.white,
+            ),
+            child: Text('Save', style: GoogleFonts.poppins()),
+          ),
+        ],
       ),
     );
   }

@@ -9,6 +9,7 @@ import 'package:relygo/widgets/image_upload_widget.dart';
 import 'package:relygo/screens/signin_screen.dart';
 import 'package:relygo/services/driver_service.dart';
 import 'package:relygo/utils/phone_validation.dart';
+import 'package:relygo/screens/driver_ride_history_screen.dart';
 
 class DriverProfileScreen extends StatefulWidget {
   final String? initialSection;
@@ -314,7 +315,13 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
                       currentName: name,
                       currentEmail: email,
                       currentPhone: phone,
-                      currentLicense: (data?['licenseNumber'] ?? '').toString(),
+                      currentLicense:
+                          (data?['licenseNumber'] ??
+                                  (data?['documents'] is Map
+                                      ? data!['documents']['licenseNumber']
+                                      : null) ??
+                                  '')
+                              .toString(),
                     );
                   },
                 ),
@@ -351,11 +358,10 @@ class _DriverProfileScreenState extends State<DriverProfileScreen> {
                   "View your ride history",
                   Icons.history,
                   () {
-                    // Removed unused ride history dialog and helpers
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Ride History coming soon!'),
-                        backgroundColor: Mycolors.basecolor,
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const DriverRideHistoryScreen(),
                       ),
                     );
                   },

@@ -657,17 +657,11 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
   }
 
   void _showSettingsDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Settings'),
-        content: const Text('Settings functionality coming soon.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
-          ),
-        ],
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) =>
+            const DriverProfileScreen(initialSection: 'settings'),
       ),
     );
   }

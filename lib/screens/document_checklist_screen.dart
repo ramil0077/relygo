@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:relygo/constants.dart';
 import 'package:relygo/screens/license_entry_screen.dart';
+import 'package:relygo/widgets/image_upload_widget.dart';
 
 class DocumentChecklistScreen extends StatefulWidget {
   const DocumentChecklistScreen({super.key});
@@ -12,7 +13,69 @@ class DocumentChecklistScreen extends StatefulWidget {
 }
 
 class _DocumentChecklistScreenState extends State<DocumentChecklistScreen> {
-  final String userName = "Naseem"; // This would typically come from user data
+  final String userName = "Driver";
+
+  bool isLicenseCompleted = true;
+  bool isProfilePhotoCompleted = false;
+  bool isAadhaarCompleted = false;
+  bool isRCCompleted = false;
+  bool isInsuranceCompleted = false;
+
+  void _showUploadDialog(
+    String title,
+    String folder,
+    VoidCallback onCompleted,
+  ) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+            left: 20,
+            right: 20,
+            top: 20,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "Upload $title",
+                style: GoogleFonts.poppins(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 16),
+              ImageUploadWidget(
+                title: title,
+                subtitle: 'Upload a clear image of your $title',
+                folder: folder,
+                onImageUploaded: (url) {
+                  if (url.isNotEmpty) {
+                    onCompleted();
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('$title uploaded successfully!'),
+                        backgroundColor: Mycolors.green,
+                      ),
+                    );
+                  }
+                },
+              ),
+              const SizedBox(height: 30),
+            ],
+          ),
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -57,7 +120,7 @@ class _DocumentChecklistScreenState extends State<DocumentChecklistScreen> {
                       "Driving license",
                       "Upload your valid driving license",
                       Icons.credit_card,
-                      true, // Completed
+                      isLicenseCompleted,
                       () {
                         Navigator.push(
                           context,
@@ -73,13 +136,14 @@ class _DocumentChecklistScreenState extends State<DocumentChecklistScreen> {
                       "Profile photo",
                       "Add a clear profile picture",
                       Icons.camera_alt,
-                      false, // Pending
+                      isProfilePhotoCompleted,
                       () {
-                        // Navigate to profile photo screen
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Profile photo upload coming soon'),
-                          ),
+                        _showUploadDialog(
+                          'Profile Photo',
+                          'drivers/photos',
+                          () {
+                            setState(() => isProfilePhotoCompleted = true);
+                          },
                         );
                       },
                     ),
@@ -89,13 +153,14 @@ class _DocumentChecklistScreenState extends State<DocumentChecklistScreen> {
                       "Aadhaar card",
                       "Upload your Aadhaar card for verification",
                       Icons.contact_page,
-                      false, // Pending
+                      isAadhaarCompleted,
                       () {
-                        // Navigate to Aadhaar upload screen
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Aadhaar card upload coming soon'),
-                          ),
+                        _showUploadDialog(
+                          'Aadhaar Card',
+                          'drivers/documents',
+                          () {
+                            setState(() => isAadhaarCompleted = true);
+                          },
                         );
                       },
                     ),
@@ -105,11 +170,14 @@ class _DocumentChecklistScreenState extends State<DocumentChecklistScreen> {
                       "Registration Certificate (RC)",
                       "Upload your vehicle RC",
                       Icons.description,
-                      false, // Pending
+                      isRCCompleted,
                       () {
-                        // Navigate to RC upload screen
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('RC upload coming soon')),
+                        _showUploadDialog(
+                          'Vehicle RC',
+                          'drivers/documents',
+                          () {
+                            setState(() => isRCCompleted = true);
+                          },
                         );
                       },
                     ),
@@ -119,13 +187,14 @@ class _DocumentChecklistScreenState extends State<DocumentChecklistScreen> {
                       "Vehicle Insurance",
                       "Upload your vehicle insurance document",
                       Icons.security,
-                      false, // Pending
+                      isInsuranceCompleted,
                       () {
-                        // Navigate to insurance upload screen
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Insurance upload coming soon'),
-                          ),
+                        _showUploadDialog(
+                          'Vehicle Insurance',
+                          'drivers/documents',
+                          () {
+                            setState(() => isInsuranceCompleted = true);
+                          },
                         );
                       },
                     ),
@@ -154,7 +223,7 @@ class _DocumentChecklistScreenState extends State<DocumentChecklistScreen> {
                           ),
                         ),
                         Text(
-                          "1/5",
+                          "${(isLicenseCompleted ? 1 : 0) + (isProfilePhotoCompleted ? 1 : 0) + (isAadhaarCompleted ? 1 : 0) + (isRCCompleted ? 1 : 0) + (isInsuranceCompleted ? 1 : 0)}/5",
                           style: GoogleFonts.poppins(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
@@ -165,7 +234,13 @@ class _DocumentChecklistScreenState extends State<DocumentChecklistScreen> {
                     ),
                     const SizedBox(height: 10),
                     LinearProgressIndicator(
-                      value: 0.2, // 1 out of 5 documents completed
+                      value:
+                          ((isLicenseCompleted ? 1 : 0) +
+                              (isProfilePhotoCompleted ? 1 : 0) +
+                              (isAadhaarCompleted ? 1 : 0) +
+                              (isRCCompleted ? 1 : 0) +
+                              (isInsuranceCompleted ? 1 : 0)) /
+                          5,
                       backgroundColor: Colors.grey.shade300,
                       valueColor: AlwaysStoppedAnimation<Color>(
                         Mycolors.basecolor,
