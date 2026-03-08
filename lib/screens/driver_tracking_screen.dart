@@ -11,8 +11,6 @@ import 'package:relygo/services/location_service.dart';
 import 'package:relygo/utils/platform_utils.dart';
 import 'package:relygo/utils/responsive.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 
 class DriverTrackingScreen extends StatefulWidget {
   final String bookingId;

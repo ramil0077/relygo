@@ -1,6 +1,5 @@
-
-
 import 'package:relygo/screens/driver_earnings_screen.dart';
+import 'package:relygo/screens/driver_chatbot_screen.dart';
 import 'package:relygo/screens/driver_profile_screen.dart';
 import 'package:relygo/screens/driver_ride_history_screen.dart';
 import 'package:relygo/screens/driver_reviews_screen.dart';
@@ -108,6 +107,19 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: Mycolors.basecolor,
+        foregroundColor: Colors.white,
+        child: const Icon(Icons.smart_toy),
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const DriverChatbotScreen(),
+            ),
+          );
+        },
+      ),
       backgroundColor: Colors.white,
       body: SafeArea(
         child: IndexedStack(
@@ -626,8 +638,6 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
   Widget _buildEarningsTab() {
     return const DriverEarningsScreen();
   }
-
-
 
   Widget _buildReviewsTab() {
     return const DriverReviewsScreen();

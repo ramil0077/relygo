@@ -1,41 +1,51 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:relygo/api_keys.dart';
 
 class AIService {
-  final String apiKey = 'AIzaSyDS5cxy2YkwFY34C51WeKBi6qpzzx2vb4U'; // 🔑 Replace with your Gemini API key
-  final String model = 'gemini-2.0-flash'; // Latest model
+  final String model = 'llama-3.1-8b-instant';
 
-  Future<String> getAIResponse(String query, Map<String, dynamic> contextData) async {
+  Future<String> getAIResponse(
+    String query,
+    Map<String, dynamic> contextData,
+  ) async {
+    final String groqApiKey = ApiKeys.groqApiKey;
+
     final totalEarnings = contextData['totalEarnings']?.toString() ?? '0';
-    final topLocations = contextData['topLocations'] ?? {};
+    final totalRides = contextData['totalRides']?.toString() ?? '0';
+    final topLocations = contextData['topLocations'] ?? 'No data';
 
-    final prompt = """
-You are an AI assistant for a rideshare driver dashboard.
-
-Use this Firestore data to answer naturally and briefly.
-
-Driver Data:
+    final prompt =
+        """
+You are an AI assistant for a RelyGo rideshare driver.
+Help the driver understand their performance based on this data:
 - Total Earnings: ₹$totalEarnings
-- Top Ride Locations: $topLocations
+- Total Rides: $totalRides
+- Top Locations: $topLocations
 
-Question: $query
+User Question: $query
 
-Answer clearly and helpfully in short sentences.
+Provide a helpful, concise response.
 """;
 
-    final url = Uri.parse(
-      'https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent?key=$apiKey',
-    );
+    final url = Uri.parse('https://api.groq.com/openai/v1/chat/completions');
 
-    final headers = {'Content-Type': 'application/json'};
+    final headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $groqApiKey',
+    };
+
     final body = jsonEncode({
-      "contents": [
+      "model": model,
+      "messages": [
         {
-          "parts": [
-            {"text": prompt}
-          ]
-        }
-      ]
+          "role": "system",
+          "content": "You are a helpful assistant for rideshare drivers.",
+        },
+        {"role": "user", "content": prompt},
+      ],
+      "temperature": 0.5,
+      "max_tokens": 500,
     });
 
     try {
@@ -43,14 +53,14 @@ Answer clearly and helpfully in short sentences.
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        final text = data['candidates']?[0]?['content']?['parts']?[0]?['text'];
-        return text ?? "I couldn't generate a response right now.";
+        return data['choices'][0]['message']['content'] ??
+            "I couldn't generate a response.";
       } else {
-        print('Gemini API error: ${response.body}');
-        return "Error ${response.statusCode}: check your API key or quota.";
+        print('Groq API error: ${response.statusCode} - ${response.body}');
+        return "Error from AI assistant. Please try again later.";
       }
     } catch (e) {
-      print('Gemini request failed: $e');
+      print('Groq request failed: $e');
       return "Connection failed. Please check your internet.";
     }
   }

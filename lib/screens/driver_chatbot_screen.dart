@@ -57,55 +57,67 @@ class _DriverChatbotScreenState extends State<DriverChatbotScreen> {
     final startOfDay = DateTime(now.year, now.month, now.day);
 
     try {
-      // Rides & Earnings
-      final ridesSnap = await FirebaseFirestore.instance
+      // Fetch from both collections like DriverService does
+      final bookingsSnap = await FirebaseFirestore.instance
+          .collection('bookings')
+          .where('driverId', isEqualTo: driverId)
+          .where('status', whereIn: ['completed', 'paid'])
+          .get();
+
+      final rideRequestsSnap = await FirebaseFirestore.instance
           .collection('ride_requests')
           .where('driverId', isEqualTo: driverId)
-          .where('status', isEqualTo: 'completed')
+          .where('status', whereIn: ['completed', 'paid'])
           .get();
 
       int totRides = 0;
       int todRides = 0;
       double totEarnings = 0;
       double todEarnings = 0;
-
       List<Map<String, dynamic>> allRides = [];
 
-      for (var doc in ridesSnap.docs) {
-        totRides++;
-        final data = doc.data();
+      void processDocs(List<QueryDocumentSnapshot> docs) {
+        for (var doc in docs) {
+          totRides++;
+          final data = doc.data() as Map<String, dynamic>;
 
-        // Safe fare extraction
-        double fare = 0.0;
-        if (data['fare'] != null) {
-          if (data['fare'] is num) {
-            fare = (data['fare'] as num).toDouble();
-          } else if (data['fare'] is String) {
-            // Handle strings like "₹500" or "500"
-            String fareStr = data['fare'].toString().replaceAll(
-              RegExp(r'[^0-9.]'),
-              '',
-            );
-            fare = double.tryParse(fareStr) ?? 0.0;
+          double fare = 0.0;
+          final fareValue =
+              data['fare'] ?? data['price'] ?? data['amount'] ?? data['cost'];
+
+          if (fareValue != null) {
+            if (fareValue is num) {
+              fare = fareValue.toDouble();
+            } else if (fareValue is String) {
+              String fareStr = fareValue.replaceAll(RegExp(r'[^0-9.]'), '');
+              fare = double.tryParse(fareStr) ?? 0.0;
+            }
+          }
+
+          totEarnings += fare;
+
+          final createdAt =
+              (data['createdAt'] ?? data['completedAt'] ?? data['paidAt'])
+                  as Timestamp?;
+          if (createdAt != null) {
+            final date = createdAt.toDate();
+            if (date.isAfter(startOfDay)) {
+              todRides++;
+              todEarnings += fare;
+            }
+            allRides.add({
+              'fare': fare,
+              'date': date,
+              'pickup': data['pickupLocation'] ?? data['pickup'] ?? 'Unknown',
+              'dropoff':
+                  data['dropoffLocation'] ?? data['destination'] ?? 'Unknown',
+            });
           }
         }
-
-        totEarnings += fare;
-
-        final createdAt = data['createdAt'] as Timestamp?;
-        if (createdAt != null && createdAt.toDate().isAfter(startOfDay)) {
-          todRides++;
-          todEarnings += fare;
-        }
-
-        allRides.add({
-          'fare': fare,
-          'date': createdAt?.toDate() ?? DateTime.now(),
-          'pickup': data['pickupLocation'] ?? data['pickup'] ?? 'Unknown',
-          'dropoff':
-              data['dropoffLocation'] ?? data['destination'] ?? 'Unknown',
-        });
       }
+
+      processDocs(bookingsSnap.docs);
+      processDocs(rideRequestsSnap.docs);
 
       allRides.sort(
         (a, b) => (b['date'] as DateTime).compareTo(a['date'] as DateTime),
@@ -129,9 +141,7 @@ class _DriverChatbotScreenState extends State<DriverChatbotScreen> {
             count++;
           }
         }
-        if (count > 0) {
-          rating = total / count;
-        }
+        if (count > 0) rating = total / count;
       }
 
       if (mounted) {
@@ -246,15 +256,19 @@ If they ask a general question not related to stats, be helpful and informative.
               "model": "llama-3.1-8b-instant", // Fast, current Groq model
               "messages": conversationHistory,
               "temperature": 0.5,
-              "max_tokens": 300,
+              "max_tokens": 500,
             }),
           )
           .timeout(const Duration(seconds: 30));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        final String botReply = data['choices'][0]['message']['content'];
-        _addBotMessage(botReply.trim());
+        if (data['choices'] != null && data['choices'].isNotEmpty) {
+          final String botReply = data['choices'][0]['message']['content'];
+          _addBotMessage(botReply.trim());
+        } else {
+          _addBotMessage("Sorry, I received an empty response from the AI.");
+        }
       } else if (response.statusCode == 401) {
         debugPrint("Groq API: Invalid or expired API key");
         _addBotMessage(
