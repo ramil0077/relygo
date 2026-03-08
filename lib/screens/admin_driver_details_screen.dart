@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:relygo/constants.dart';
 import 'package:relygo/services/admin_service.dart';
-import 'package:relygo/screens/admin_driver_chat_screen.dart';
+
 import 'package:intl/intl.dart';
 
 class AdminDriverDetailsScreen extends StatefulWidget {
@@ -27,31 +27,16 @@ class _AdminDriverDetailsScreenState extends State<AdminDriverDetailsScreen> {
       appBar: AppBar(
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Theme.of(context).iconTheme.color),
+          icon: Icon(
+            Icons.arrow_back,
+            color: Theme.of(context).iconTheme.color,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           "Driver Details",
-          style: GoogleFonts.poppins(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
+          style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.bold),
         ),
-        actions: [
-          // Chat icon in app bar
-          IconButton(
-            icon: Icon(Icons.chat_bubble_outline, color: Mycolors.basecolor),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) =>
-                      AdminDriverChatScreen(driver: widget.driver),
-                ),
-              );
-            },
-          ),
-        ],
       ),
       body: Column(
         children: [
@@ -234,7 +219,9 @@ class _AdminDriverDetailsScreenState extends State<AdminDriverDetailsScreen> {
           style: GoogleFonts.poppins(
             fontSize: 14,
             fontWeight: FontWeight.w600,
-            color: isSelected ? Colors.white : Theme.of(context).textTheme.bodyMedium?.color,
+            color: isSelected
+                ? Colors.white
+                : Theme.of(context).textTheme.bodyMedium?.color,
           ),
         ),
       ),
@@ -400,10 +387,7 @@ class _AdminDriverDetailsScreenState extends State<AdminDriverDetailsScreen> {
   Widget _buildSectionTitle(String title) {
     return Text(
       title,
-      style: GoogleFonts.poppins(
-        fontSize: 18,
-        fontWeight: FontWeight.bold,
-      ),
+      style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold),
     );
   }
 

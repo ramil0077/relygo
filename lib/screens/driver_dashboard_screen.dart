@@ -1,8 +1,4 @@
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:relygo/constants.dart';
-import 'package:relygo/screens/driver_chatbot_screen.dart';
+
 
 import 'package:relygo/screens/driver_earnings_screen.dart';
 import 'package:relygo/screens/driver_profile_screen.dart';
@@ -17,8 +13,9 @@ import 'package:relygo/services/auth_service.dart';
 import 'package:relygo/services/driver_service.dart';
 import 'package:relygo/services/driver_location_service.dart';
 import 'package:relygo/screens/driver_notifications_screen.dart';
-import 'package:relygo/screens/chat_detail_screen.dart';
-import 'package:relygo/widgets/driver_ai_assistant.dart';
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:relygo/constants.dart';
 
 class DriverDashboardScreen extends StatefulWidget {
   const DriverDashboardScreen({super.key});
@@ -111,36 +108,6 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: Theme.of(context).primaryColor,
-        foregroundColor: Colors.white,
-        child: const Icon(Icons.smart_toy),
-        onPressed: () {
-          final driverId =
-              FirebaseAuth.instance.currentUser?.uid ?? 'demo_driver';
-          showModalBottomSheet(
-            context: context,
-            isScrollControlled: true,
-            backgroundColor: Colors.transparent,
-            builder: (_) => DraggableScrollableSheet(
-              initialChildSize: 0.85,
-              maxChildSize: 0.95,
-              minChildSize: 0.6,
-              expand: false,
-              builder: (_, __) => Container(
-                decoration: BoxDecoration(
-                  color: Theme.of(context).scaffoldBackgroundColor,
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(25),
-                  ),
-                ),
-                child: DriverAIAssistantScreen(driverId: driverId),
-              ),
-            ),
-          );
-        },
-      ),
-
       backgroundColor: Colors.white,
       body: SafeArea(
         child: IndexedStack(
@@ -148,9 +115,9 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
           children: [
             _buildHomeTab(), // index 0
             _buildEarningsTab(), // index 1
-            _buildChatTab(), // index 2
-            _buildReviewsTab(), // index 3
-            _buildProfileTab(), // index 4
+
+            _buildReviewsTab(), // index 2
+            _buildProfileTab(), // index 3
           ],
         ),
       ),
@@ -199,7 +166,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
         items: const [
           NavBarItem(icon: Icons.home, label: 'Home'),
           NavBarItem(icon: Icons.attach_money, label: 'Earnings'),
-          NavBarItem(icon: Icons.chat, label: 'Chat'),
+
           NavBarItem(icon: Icons.star, label: 'Reviews'),
           NavBarItem(icon: Icons.person, label: 'Profile'),
         ],
@@ -660,54 +627,7 @@ class _DriverDashboardScreenState extends State<DriverDashboardScreen> {
     return const DriverEarningsScreen();
   }
 
-  Widget _buildChatTab() {
-    final driverId = AuthService.currentUserId;
-    return Scaffold(
-      body: driverId == null
-          ? const Center(child: Text('Please log in to chat.'))
-          : StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collection('bookings')
-                  .where('driverId', isEqualTo: driverId)
-                  .where(
-                    'status',
-                    whereIn: ['accepted', 'ongoing', 'completed'],
-                  )
-                  .snapshots(),
-              builder: (context, snapshot) {
-                if (!snapshot.hasData) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                final bookings = snapshot.data!.docs;
-                if (bookings.isEmpty) {
-                  return const Center(child: Text('No current user chats.'));
-                }
-                return ListView(
-                  children: bookings.map((doc) {
-                    final data = doc.data() as Map<String, dynamic>;
-                    return ListTile(
-                      leading: const Icon(Icons.person),
-                      title: Text(data['userName'] ?? 'User'),
-                      subtitle: Text("Booking: ${doc.id}"),
-                      trailing: const Icon(Icons.chat),
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => ChatDetailScreen(
-                              peerName: data['userName'] ?? 'User',
-                              peerId: data['userId'] ?? '',
-                            ),
-                          ),
-                        );
-                      },
-                    );
-                  }).toList(),
-                );
-              },
-            ),
-    );
-  }
+
 
   Widget _buildReviewsTab() {
     return const DriverReviewsScreen();

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:relygo/constants.dart';
-import 'package:relygo/screens/chat_detail_screen.dart';
+
 import 'package:relygo/services/admin_service.dart';
-import 'package:relygo/services/chat_service.dart';
+
 import 'package:relygo/utils/phone_validation.dart';
 
 class DriverManagementScreen extends StatefulWidget {
@@ -24,10 +24,7 @@ class _DriverManagementScreenState extends State<DriverManagementScreen> {
         elevation: 0,
         title: Text(
           "Driver Management",
-          style: GoogleFonts.poppins(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
+          style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.bold),
         ),
         actions: [
           IconButton(
@@ -189,7 +186,9 @@ class _DriverManagementScreenState extends State<DriverManagementScreen> {
           style: GoogleFonts.poppins(
             fontSize: 14,
             fontWeight: FontWeight.w600,
-            color: isSelected ? Colors.white : Theme.of(context).textTheme.bodyMedium?.color,
+            color: isSelected
+                ? Colors.white
+                : Theme.of(context).textTheme.bodyMedium?.color,
           ),
         ),
       ),
@@ -346,16 +345,7 @@ class _DriverManagementScreenState extends State<DriverManagementScreen> {
                             ],
                           ),
                         ),
-                      PopupMenuItem(
-                        value: "chat",
-                        child: Row(
-                          children: [
-                            Icon(Icons.chat, color: Mycolors.blue, size: 18),
-                            const SizedBox(width: 8),
-                            Text("Support Chat", style: GoogleFonts.poppins()),
-                          ],
-                        ),
-                      ),
+
                       PopupMenuItem(
                         value: "delete",
                         child: Row(
@@ -488,27 +478,11 @@ class _DriverManagementScreenState extends State<DriverManagementScreen> {
       case "suspend":
         _suspendDriver(driverId, driverName);
         break;
-      case "chat":
-        _openSupportChat(driverId, driverName);
-        break;
+
       case "delete":
         _deleteDriver(driverId, driverName);
         break;
     }
-  }
-
-  void _openSupportChat(String driverId, String driverName) {
-    final String conversationId = ChatService.conversationIdWithPeer(driverId);
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ChatDetailScreen(
-          peerName: driverName,
-          conversationId: conversationId,
-          peerId: driverId,
-        )
-      )
-    );
   }
 
   void _showDriverDetailsDialog(String driverName) {

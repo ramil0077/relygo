@@ -13,8 +13,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:relygo/services/admin_service.dart';
 import 'package:relygo/services/auth_service.dart';
-import 'package:relygo/services/chat_service.dart';
-import 'package:relygo/screens/chat_detail_screen.dart';
+
 import 'package:geolocator/geolocator.dart';
 
 class UserDashboardScreen extends StatefulWidget {
@@ -398,7 +397,7 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
             _buildHomeTab(),
             _buildSearchTab(),
             _buildHistoryTab(),
-            _buildChatTab(),
+
             _buildProfileTab(),
           ],
         ),
@@ -414,7 +413,7 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
           NavBarItem(icon: Icons.home, label: 'Home'),
           NavBarItem(icon: Icons.search, label: 'Search'),
           NavBarItem(icon: Icons.history, label: 'History'),
-          NavBarItem(icon: Icons.chat, label: 'Chat'),
+
           NavBarItem(icon: Icons.person, label: 'Profile'),
         ],
       ),
@@ -1063,20 +1062,6 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                     SnackBar(
                       content: Text('Calling $phone...'),
                       backgroundColor: Mycolors.green,
-                    ),
-                  );
-                },
-              ),
-              ListTile(
-                leading: Icon(Icons.chat, color: Mycolors.basecolor),
-                title: Text('Chat', style: GoogleFonts.poppins()),
-                onTap: () {
-                  Navigator.of(context).pop();
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          ChatDetailScreen(peerName: name, peerId: driverId),
                     ),
                   );
                 },
@@ -1730,34 +1715,6 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                   ),
                 ] else if (status.toLowerCase() == 'ongoing' ||
                     status.toLowerCase() == 'started') ...[
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: () {
-                        final String? driverId = booking['driverId'];
-                        if (driverId != null) {
-                          final String conversationId =
-                              ChatService.conversationIdWithPeer(driverId);
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ChatDetailScreen(
-                                peerName: driverDetails['name'] ?? 'Driver',
-                                conversationId: conversationId,
-                                peerId: driverId,
-                              ),
-                            ),
-                          );
-                        }
-                      },
-                      icon: const Icon(Icons.chat, size: 16),
-                      label: const Text('Chat with Driver'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Mycolors.blue,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                      ),
-                    ),
-                  ),
                   if (status.toLowerCase() == 'started') ...[
                     const SizedBox(width: 8),
                     Expanded(
@@ -1787,90 +1744,6 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
               ],
             ),
           ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildChatTab() {
-    return Padding(
-      padding: ResponsiveUtils.getResponsivePadding(context),
-      child: Column(
-        children: [
-          SizedBox(height: ResponsiveSpacing.getMediumSpacing(context)),
-          Text("Messages", style: ResponsiveTextStyles.getTitleStyle(context)),
-          SizedBox(height: ResponsiveSpacing.getMediumSpacing(context)),
-
-          // Conversations from Firestore
-          Expanded(
-            child: StreamBuilder<List<Map<String, dynamic>>>(
-              stream: ChatService.getUserConversationsStream(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                if (snapshot.hasError) {
-                  return Center(
-                    child: Text(
-                      'Failed to load messages',
-                      style: GoogleFonts.poppins(color: Mycolors.red),
-                    ),
-                  );
-                }
-                final conversations = snapshot.data ?? [];
-                if (conversations.isEmpty) {
-                  return Center(
-                    child: Text(
-                      'No conversations yet',
-                      style: GoogleFonts.poppins(color: Mycolors.gray),
-                    ),
-                  );
-                }
-                return ListView.builder(
-                  itemCount: conversations.length,
-                  itemBuilder: (context, index) {
-                    final c = conversations[index];
-                    final String conversationId = (c['id'] ?? '').toString();
-                    final String lastMessage = (c['lastMessage'] ?? '')
-                        .toString();
-                    final Timestamp? updatedAt = c['updatedAt'] as Timestamp?;
-                    final String timeText = updatedAt != null
-                        ? _formatDate(updatedAt)
-                        : '';
-                    // Use enriched peerName from ChatService stream
-                    final String peerId = (c['peerId'] ?? '').toString();
-                    final String title =
-                        (c['peerName'] != null &&
-                            (c['peerName'] as String).isNotEmpty)
-                        ? c['peerName'] as String
-                        : (peerId.isNotEmpty ? 'User' : 'Conversation');
-
-                    return GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => ChatDetailScreen(
-                              peerName: title,
-                              conversationId: conversationId,
-                              peerId: peerId,
-                            ),
-                          ),
-                        );
-                      },
-                      child: _buildChatCard(
-                        context,
-                        title,
-                        lastMessage.isEmpty ? 'Say hi' : lastMessage,
-                        timeText,
-                        '',
-                      ),
-                    );
-                  },
-                );
-              },
-            ),
-          ),
         ],
       ),
     );
@@ -2511,153 +2384,6 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
                   ),
                 ),
               ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildChatCard(
-    BuildContext context,
-    String name,
-    String message,
-    String time,
-    String unreadCount,
-  ) {
-    return Container(
-      margin: EdgeInsets.only(
-        bottom: ResponsiveSpacing.getSmallSpacing(context),
-      ),
-      padding: ResponsiveUtils.getResponsivePadding(context),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(
-          ResponsiveUtils.getResponsiveBorderRadius(
-            context,
-            mobile: 12,
-            tablet: 14,
-            desktop: 16,
-          ),
-        ),
-        border: Border.all(color: Theme.of(context).dividerColor),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            blurRadius: ResponsiveUtils.getResponsiveElevation(
-              context,
-              mobile: 5,
-              tablet: 6,
-              desktop: 8,
-            ),
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: ResponsiveUtils.getResponsiveSpacing(
-              context,
-              mobile: 20,
-              tablet: 22,
-              desktop: 24,
-            ),
-            backgroundColor: Mycolors.basecolor.withOpacity(0.1),
-            child: Text(
-              name.isNotEmpty ? name[0] : '?',
-              style: GoogleFonts.poppins(
-                fontSize: ResponsiveUtils.getResponsiveFontSize(
-                  context,
-                  mobile: 16,
-                  tablet: 18,
-                  desktop: 20,
-                ),
-                fontWeight: FontWeight.bold,
-                color: Mycolors.basecolor,
-              ),
-            ),
-          ),
-          SizedBox(width: ResponsiveSpacing.getMediumSpacing(context)),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  name,
-                  style: GoogleFonts.poppins(
-                    fontSize: ResponsiveUtils.getResponsiveFontSize(
-                      context,
-                      mobile: 16,
-                      tablet: 18,
-                      desktop: 20,
-                    ),
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                Text(
-                  message,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.poppins(
-                    fontSize: ResponsiveUtils.getResponsiveFontSize(
-                      context,
-                      mobile: 14,
-                      tablet: 15,
-                      desktop: 16,
-                    ),
-                    color: Mycolors.gray,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                time,
-                style: GoogleFonts.poppins(
-                  fontSize: ResponsiveUtils.getResponsiveFontSize(
-                    context,
-                    mobile: 12,
-                    tablet: 13,
-                    desktop: 14,
-                  ),
-                  color: Mycolors.gray,
-                ),
-              ),
-              if (unreadCount.isNotEmpty)
-                Container(
-                  margin: EdgeInsets.only(
-                    top: ResponsiveSpacing.getSmallSpacing(context) / 2,
-                  ),
-                  padding: EdgeInsets.all(
-                    ResponsiveUtils.getResponsiveSpacing(
-                      context,
-                      mobile: 6,
-                      tablet: 7,
-                      desktop: 8,
-                    ),
-                  ),
-                  decoration: BoxDecoration(
-                    color: Mycolors.basecolor,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Text(
-                    unreadCount,
-                    style: GoogleFonts.poppins(
-                      fontSize: ResponsiveUtils.getResponsiveFontSize(
-                        context,
-                        mobile: 10,
-                        tablet: 11,
-                        desktop: 12,
-                      ),
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
             ],
           ),
         ],

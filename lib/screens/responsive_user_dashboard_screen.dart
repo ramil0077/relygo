@@ -4,7 +4,7 @@ import 'package:relygo/constants.dart';
 import 'package:relygo/screens/service_booking_screen.dart';
 import 'package:relygo/screens/user_profile_screen.dart';
 import 'package:relygo/screens/ride_history_screen.dart';
-import 'package:relygo/screens/chat_detail_screen.dart';
+
 import 'package:relygo/screens/payment_screen.dart';
 import 'package:relygo/screens/driver_tracking_screen.dart';
 import 'package:relygo/widgets/animated_bottom_nav_bar.dart';
@@ -12,7 +12,7 @@ import 'package:relygo/utils/responsive.dart';
 import 'package:relygo/utils/animation_utils.dart';
 import 'package:relygo/services/user_service.dart';
 import 'package:relygo/services/auth_service.dart';
-import 'package:relygo/services/chat_service.dart';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ResponsiveUserDashboardScreen extends StatefulWidget {
@@ -34,7 +34,7 @@ class _ResponsiveUserDashboardScreenState
   final List<NavBarItem> _navItems = [
     const NavBarItem(icon: Icons.home, label: 'Home'),
     const NavBarItem(icon: Icons.history, label: 'History'),
-    const NavBarItem(icon: Icons.chat, label: 'Chat'),
+
     const NavBarItem(icon: Icons.person, label: 'Profile'),
   ];
 
@@ -306,8 +306,7 @@ class _ResponsiveUserDashboardScreenState
         return _buildHomeTab();
       case 1:
         return _buildHistoryTab();
-      case 2:
-        return _buildChatTab();
+
       case 3:
         return _buildProfileTab();
       default:
@@ -1013,125 +1012,6 @@ class _ResponsiveUserDashboardScreenState
     return const RideHistoryScreen();
   }
 
-  Widget _buildChatTab() {
-    return StreamBuilder<List<Map<String, dynamic>>>(
-      stream: ChatService.getUserConversationsStream(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: LoadingAnimation());
-        }
-
-        if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.chat_bubble_outline,
-                  size: ResponsiveUtils.getResponsiveIconSize(
-                    context,
-                    mobile: 64,
-                  ),
-                  color: Colors.grey[400],
-                ),
-                SizedBox(
-                  height: ResponsiveUtils.getResponsiveSpacing(
-                    context,
-                    mobile: 16,
-                  ),
-                ),
-                Text(
-                  'No conversations yet',
-                  style: GoogleFonts.poppins(
-                    fontSize: ResponsiveUtils.getResponsiveFontSize(
-                      context,
-                      mobile: 18,
-                    ),
-                    color: Colors.grey[600],
-                  ),
-                ),
-                Text(
-                  'Start chatting with drivers after booking a ride',
-                  style: GoogleFonts.poppins(
-                    fontSize: ResponsiveUtils.getResponsiveFontSize(
-                      context,
-                      mobile: 14,
-                    ),
-                    color: Colors.grey[500],
-                  ),
-                ),
-              ],
-            ),
-          );
-        }
-
-        return ListView.builder(
-          padding: ResponsiveUtils.getResponsivePadding(context),
-          itemCount: snapshot.data!.length,
-          itemBuilder: (context, index) {
-            final conversation = snapshot.data![index];
-            return AnimatedListItem(
-              index: index,
-              child: AnimatedCard(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    AnimationUtils.createSlideRoute(
-                      ChatDetailScreen(
-                        peerName: conversation['peerName'] ?? 'Driver',
-                        conversationId: conversation['id'],
-                        peerId: conversation['peerId'],
-                      ),
-                    ),
-                  );
-                },
-                child: ListTile(
-                  leading: CircleAvatar(
-                    backgroundColor: Mycolors.basecolor.withOpacity(0.1),
-                    child: Text(
-                      (conversation['peerName'] ?? 'D')[0].toUpperCase(),
-                      style: GoogleFonts.poppins(
-                        fontWeight: FontWeight.bold,
-                        color: Mycolors.basecolor,
-                      ),
-                    ),
-                  ),
-                  title: Text(
-                    conversation['peerName'] ?? 'Driver',
-                    style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
-                  ),
-                  subtitle: Text(
-                    conversation['lastMessage'] ?? 'No messages yet',
-                    style: GoogleFonts.poppins(color: Colors.grey[600]),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  trailing: conversation['unreadCount'] > 0
-                      ? Container(
-                          padding: const EdgeInsets.all(6),
-                          decoration: BoxDecoration(
-                            color: Mycolors.basecolor,
-                            shape: BoxShape.circle,
-                          ),
-                          child: Text(
-                            conversation['unreadCount'].toString(),
-                            style: GoogleFonts.poppins(
-                              color: Colors.white,
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        )
-                      : null,
-                ),
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-
   Widget _buildProfileTab() {
     return const UserProfileScreen();
   }
@@ -1259,38 +1139,6 @@ class _ResponsiveUserDashboardScreenState
                       ),
                     ),
                     const SizedBox(height: 16),
-                    SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton.icon(
-                        onPressed: () {
-                          Navigator.pop(context);
-                          Navigator.push(
-                            context,
-                            AnimationUtils.createSlideRoute(
-                              ChatDetailScreen(
-                                peerName: driver['name'] ?? 'Driver',
-                                peerId: driver['id']?.toString() ?? '',
-                              ),
-                            ),
-                          );
-                        },
-                        icon: const Icon(Icons.chat),
-                        label: Text(
-                          'Contact Driver',
-                          style: GoogleFonts.poppins(
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: Mycolors.basecolor,
-                          side: BorderSide(color: Mycolors.basecolor),
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                      ),
-                    ),
                   ],
                 ),
               ),

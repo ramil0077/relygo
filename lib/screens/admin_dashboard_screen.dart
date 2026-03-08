@@ -7,8 +7,7 @@ import 'package:relygo/screens/feedback_screen.dart';
 import 'package:relygo/screens/admin_complaints_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:relygo/screens/admin_user_details_screen.dart';
-import 'package:relygo/screens/admin_driver_chat_screen.dart';
-import 'package:relygo/screens/admin_user_chat_screen.dart';
+
 import 'package:relygo/screens/admin_driver_details_screen.dart';
 import 'package:relygo/screens/admin_driver_approval_screen.dart';
 import 'package:relygo/services/admin_service.dart';
@@ -159,16 +158,14 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     showDialog(
       context: context,
       builder: (context) => Dialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: ConstrainedBox(
           constraints: BoxConstraints(
             maxWidth: ResponsiveUtils.isDesktop(context)
                 ? 500
                 : ResponsiveUtils.isTablet(context)
-                    ? 400
-                    : MediaQuery.of(context).size.width * 0.9,
+                ? 400
+                : MediaQuery.of(context).size.width * 0.9,
             maxHeight: MediaQuery.of(context).size.height * 0.5,
           ),
           child: Padding(
@@ -1611,16 +1608,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     );
 
     if (onTap != null) {
-      return GestureDetector(
-        onTap: onTap,
-        child: cardContent,
-      );
+      return GestureDetector(onTap: onTap, child: cardContent);
     }
 
     return cardContent;
   }
-
-  
 
   Widget _buildActivityCardFromData(Map<String, dynamic> data) {
     String title = 'Activity';
@@ -1870,20 +1862,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => AdminUserChatScreen(user: user),
-                  ),
-                );
-              },
-              child: Container(
-                padding: const EdgeInsets.all(4),
-                child: Icon(Icons.chat, size: 20, color: Mycolors.basecolor),
-              ),
-            ),
             const SizedBox(width: 8),
             Icon(Icons.arrow_forward_ios, size: 16, color: Mycolors.gray),
           ],
@@ -1950,21 +1928,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               ),
             ),
             const SizedBox(width: 8),
-            GestureDetector(
-              onTap: () {
-                // Only chat icon navigates to chat screen
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => AdminDriverChatScreen(driver: driver),
-                  ),
-                );
-              },
-              child: Container(
-                padding: const EdgeInsets.all(4),
-                child: Icon(Icons.chat, size: 20, color: Mycolors.basecolor),
-              ),
-            ),
           ],
         ),
         shape: RoundedRectangleBorder(

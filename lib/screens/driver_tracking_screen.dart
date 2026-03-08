@@ -6,8 +6,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:location/location.dart';
 import 'package:relygo/constants.dart';
-import 'package:relygo/screens/chat_detail_screen.dart';
-import 'package:relygo/services/chat_service.dart';
+
 import 'package:relygo/services/location_service.dart';
 import 'package:relygo/utils/platform_utils.dart';
 import 'package:relygo/utils/responsive.dart';
@@ -636,7 +635,6 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
     final bookingData = widget.initialBookingData;
     final driverDetails = bookingData['driverDetails'] as Map<String, dynamic>?;
     final driverId = bookingData['driverId'];
-    final driverName = driverDetails?['name'] ?? 'Driver';
     final driverPhone = driverDetails?['phone'] ?? '';
 
     if (driverDetails == null || driverId == null) {
@@ -702,34 +700,6 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
                 mobile: 12,
                 tablet: 14,
                 desktop: 16,
-              ),
-            ),
-            Expanded(
-              child: ElevatedButton.icon(
-                onPressed: () => _openChat(driverId, driverName),
-                icon: Icon(
-                  Icons.chat,
-                  color: Colors.white,
-                  size: ResponsiveUtils.getResponsiveIconSize(
-                    context,
-                    mobile: 20,
-                    tablet: 22,
-                    desktop: 24,
-                  ),
-                ),
-                label: Text('Chat'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Mycolors.basecolor,
-                  foregroundColor: Colors.white,
-                  padding: EdgeInsets.symmetric(
-                    vertical: ResponsiveUtils.getResponsiveSpacing(
-                      context,
-                      mobile: 12,
-                      tablet: 14,
-                      desktop: 16,
-                    ),
-                  ),
-                ),
               ),
             ),
           ],
@@ -1450,19 +1420,5 @@ class _DriverTrackingScreenState extends State<DriverTrackingScreen> {
         SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
       );
     }
-  }
-
-  void _openChat(String driverId, String driverName) {
-    final String conversationId = ChatService.conversationIdWithPeer(driverId);
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ChatDetailScreen(
-          peerName: driverName,
-          conversationId: conversationId,
-          peerId: driverId,
-        ),
-      ),
-    );
   }
 }
