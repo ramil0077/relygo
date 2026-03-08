@@ -3,9 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:relygo/constants.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:relygo/services/auth_service.dart';
-import 'package:relygo/api_keys.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
+import 'package:relygo/services/ai_services.dart';
 
 class ChatMessage {
   final String text;
@@ -179,121 +177,32 @@ class _DriverChatbotScreenState extends State<DriverChatbotScreen> {
   }
 
   Future<void> _generateBotResponse(String userText) async {
-    final String groqApiKey = ApiKeys.groqApiKey;
+    final AIService aiService = AIService();
 
-    if (groqApiKey == "gsk_YOUR_GROQ_API_KEY_HERE") {
-      _addBotMessage(
-        "Please configure your Groq API key in the code to use the live chatbot.",
-      );
-      return;
-    }
+    // Prepare context for the AI
+    final Map<String, dynamic> contextData = {
+      'totalRides': _totalRides,
+      'todayRides': _todayRides,
+      'totalEarnings': _totalEarnings,
+      'todayEarnings': _todayEarnings,
+      'averageRating': _averageRating,
+      'topLocations': _recentRides.isNotEmpty
+          ? _recentRides.map((r) => r['pickup']).toSet().join(", ")
+          : 'No data',
+      'recentRides': _recentRides.isNotEmpty
+          ? _recentRides
+                .map(
+                  (r) => "- ${r['pickup']} to ${r['dropoff']} (₹${r['fare']})",
+                )
+                .join("\n")
+          : 'No rides yet',
+    };
 
-    // Build recent rides string
-    String recentRidesText = "No recent rides.";
-    if (_recentRides.isNotEmpty) {
-      recentRidesText = _recentRides
-          .map((r) {
-            final date = r['date'] as DateTime;
-            final dateStr = "${date.day}/${date.month}/${date.year}";
-            return "- $dateStr: ${r['pickup']} to ${r['dropoff']} (₹${r['fare']})";
-          })
-          .join("\n");
-    }
-
-    // System prompt with live driver stats injected
-    final String systemPrompt =
-        """
-You are RelyGo Assistant, a highly intelligent and data-learned AI assistant built into the RelyGo driver app to support driver partners.
-You have been trained on their actual historical earnings and ride data. Your tone should be friendly, clear, helpful and concise. Keep replies brief.
-
-Here is the driver's real-time statistics and historical data from the database:
-- Total Rides Completed: $_totalRides
-- Today's Rides: $_todayRides
-- Total Earnings: ₹${_totalEarnings.toStringAsFixed(0)}
-- Today's Earnings: ₹${_todayEarnings.toStringAsFixed(0)}
-- Average Passenger Rating: ${_averageRating > 0 ? _averageRating.toStringAsFixed(1) : 'Not rated yet'} out of 5
-
-Recent Rides History:
-$recentRidesText
-
-Answer their questions specifically and accurately based on exactly this data. 
-Since you are a "data learned" chatbot, you can analyze these earnings and rides, providing insights like their most recent ride, their earning trends, and anything else they ask about their ride history.
-If they ask a general question not related to stats, be helpful and informative.
-""";
-
-    // Prepare message history for the LLM
-    final List<Map<String, String>> conversationHistory = [
-      {"role": "system", "content": systemPrompt},
-    ];
-
-    // Read the recent messages to give context (ignore the welcome message)
-    int count = 0;
-    final List<ChatMessage> recentMessages = [];
-    for (int i = _messages.length - 1; i >= 0 && count < 10; i--) {
-      if (_messages[i].text.startsWith("Hello! I am your RelyGo Assistant")) {
-        continue;
-      }
-      recentMessages.insert(0, _messages[i]);
-      count++;
-    }
-
-    for (var msg in recentMessages) {
-      conversationHistory.add({
-        "role": msg.isUser ? "user" : "assistant",
-        "content": msg.text,
-      });
-    }
-
-    try {
-      final response = await http
-          .post(
-            Uri.parse('https://api.groq.com/openai/v1/chat/completions'),
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': 'Bearer $groqApiKey',
-            },
-            body: jsonEncode({
-              "model": "llama-3.1-8b-instant", // Fast, current Groq model
-              "messages": conversationHistory,
-              "temperature": 0.5,
-              "max_tokens": 500,
-            }),
-          )
-          .timeout(const Duration(seconds: 30));
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        if (data['choices'] != null && data['choices'].isNotEmpty) {
-          final String botReply = data['choices'][0]['message']['content'];
-          _addBotMessage(botReply.trim());
-        } else {
-          _addBotMessage("Sorry, I received an empty response from the AI.");
-        }
-      } else if (response.statusCode == 401) {
-        debugPrint("Groq API: Invalid or expired API key");
-        _addBotMessage(
-          "The AI assistant API key is invalid or expired. Please update the Groq API key.",
-        );
-      } else if (response.statusCode == 429) {
-        debugPrint("Groq API: Rate limit exceeded");
-        _addBotMessage(
-          "Too many requests. Please wait a moment and try again.",
-        );
-      } else {
-        debugPrint("Groq API Error: ${response.statusCode} - ${response.body}");
-        _addBotMessage(
-          "Sorry, I'm having trouble connecting to my brain right now. (Error ${response.statusCode})",
-        );
-      }
-    } catch (e) {
-      debugPrint("Error making Groq API call: $e");
-      String errorMessage =
-          "Sorry, there was a network error. Please check your internet connection.";
-      if (e.toString().contains('TimeoutException')) {
-        errorMessage = "Connection timed out. Please try again.";
-      }
-      _addBotMessage(errorMessage);
-    }
+    final String botReply = await aiService.getAIResponse(
+      userText,
+      contextData,
+    );
+    _addBotMessage(botReply);
   }
 
   void _addBotMessage(String text) {
