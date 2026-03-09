@@ -13,7 +13,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:relygo/services/admin_service.dart';
 import 'package:relygo/services/auth_service.dart';
-import 'package:relygo/screens/driver_chatbot_screen.dart';
 
 import 'package:geolocator/geolocator.dart';
 
@@ -391,18 +390,6 @@ class _UserDashboardScreenState extends State<UserDashboardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const DriverChatbotScreen(),
-            ),
-          );
-        },
-        backgroundColor: Mycolors.basecolor,
-        child: const Icon(Icons.smart_toy, color: Colors.white),
-      ),
       body: SafeArea(
         child: IndexedStack(
           index: _selectedIndex,

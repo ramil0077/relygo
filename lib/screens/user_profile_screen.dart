@@ -77,10 +77,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           final bool isDriver =
               (data['userType']?.toString().toLowerCase() == 'driver') ||
               docs.isNotEmpty;
-          final String vehicleType =
-              (data['vehicleType'] ?? docs['vehicleType'] ?? '').toString();
-          final String vehicleNumber =
-              (data['vehicleNumber'] ?? docs['vehicleNumber'] ?? '').toString();
+
           final String licenseNumber =
               (data['licenseNumber'] ?? docs['licenseNumber'] ?? '').toString();
 
@@ -234,28 +231,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   ),
                 ),
                 const SizedBox(height: 20),
-
-                if (isDriver) ...[
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      "Driver Documents",
-                      style: GoogleFonts.poppins(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  _buildDocTile('License', docs['license'] ?? licenseNumber),
-                  _buildDocTile(
-                    'Vehicle Registration',
-                    docs['vehicleRegistration'] ?? vehicleNumber,
-                  ),
-                  _buildDocTile('Insurance', docs['insurance'] ?? ''),
-                  if (vehicleType.isNotEmpty || vehicleNumber.isNotEmpty)
-                    _buildDocTile('Vehicle', '$vehicleType - $vehicleNumber'),
-                ],
               ],
             ),
           );
@@ -815,25 +790,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           ],
         );
       },
-    );
-  }
-
-  Widget _buildDocTile(String label, String value) {
-    final String text = (value).toString();
-    return ListTile(
-      dense: true,
-      contentPadding: EdgeInsets.zero,
-      leading: Icon(Icons.description, color: Mycolors.basecolor),
-      title: Text(
-        label,
-        style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
-      ),
-      subtitle: Text(
-        text.isEmpty ? 'Not available' : text,
-        style: GoogleFonts.poppins(fontSize: 12, color: Mycolors.gray),
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-      ),
     );
   }
 }

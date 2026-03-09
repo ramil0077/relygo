@@ -7,7 +7,7 @@ import 'package:relygo/screens/ride_history_screen.dart';
 
 import 'package:relygo/screens/payment_screen.dart';
 import 'package:relygo/screens/driver_tracking_screen.dart';
-import 'package:relygo/screens/driver_chatbot_screen.dart';
+
 import 'package:relygo/widgets/animated_bottom_nav_bar.dart';
 import 'package:relygo/utils/responsive.dart';
 import 'package:relygo/utils/animation_utils.dart';
@@ -276,18 +276,6 @@ class _ResponsiveUserDashboardScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const DriverChatbotScreen(),
-            ),
-          );
-        },
-        backgroundColor: Mycolors.basecolor,
-        child: const Icon(Icons.smart_toy, color: Colors.white),
-      ),
       backgroundColor: Colors.grey[50],
       body: AnimatedBuilder(
         animation: _animationController,
